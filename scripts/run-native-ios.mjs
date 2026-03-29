@@ -59,8 +59,8 @@ function installPods() {
 }
 
 function startMetro() {
-  console.log('Starting Metro bundler in the background...');
-  startBackground('npx', ['react-native', 'start', '--port', '8081', '--host', '0.0.0.0', '--reset-cache'], {
+  console.log('Starting Expo dev server in the background...');
+  startBackground('npx', ['expo', 'start', '--dev-client', '--localhost', '--port', '8081', '--clear'], {
     cwd: root
   });
 }

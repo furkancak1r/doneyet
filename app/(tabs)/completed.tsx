@@ -17,7 +17,7 @@ export default function CompletedScreen() {
   const completedTasks = useMemo(() => sortTasks(filterTasks(tasks, { filter: 'completed', sort }), sort), [sort, tasks]);
 
   return (
-    <Screen animateOnFocus tabHref="/completed">
+    <Screen animateOnFocus>
       <Section title={t('completed.title')} />
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 12 }}>
         <Chip label={t('completed.sortCreated')} selected={sort === 'createdAt'} onPress={() => setSort('createdAt')} />

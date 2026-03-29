@@ -22,7 +22,7 @@ export default function UpcomingScreen() {
   );
 
   return (
-    <Screen animateOnFocus tabHref="/upcoming">
+    <Screen animateOnFocus>
       <Section title={t('upcoming.title')} />
       <TextField label={t('upcoming.filterLabel')} value={tagFilter} onChangeText={setTagFilter} placeholder={t('upcoming.filterPlaceholder')} />
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 12 }}>

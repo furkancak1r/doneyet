@@ -4,6 +4,12 @@
     "slug": "doneyet",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.jpeg",
+    "splash": {
+      "image": "./assets/icon.jpeg",
+      "resizeMode": "contain",
+      "backgroundColor": "#F4F0E8"
+    },
     "scheme": "doneyet",
     "userInterfaceStyle": "automatic",
     "platforms": [
@@ -17,7 +23,11 @@
     },
     "android": {
       "package": "com.doneyet.app",
-      "allowBackup": true
+      "allowBackup": true,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.jpeg",
+        "backgroundColor": "#1F5C52"
+      }
     },
     "plugins": [
       "expo-asset"

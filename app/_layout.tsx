@@ -31,7 +31,9 @@ function AppShell() {
           contentStyle: { backgroundColor: theme.background },
           headerShadowVisible: false,
           headerTitleStyle: { fontWeight: '800' },
-          headerBackTitle: ''
+          headerBackTitle: '',
+          headerBackTitleVisible: false,
+          headerBackButtonDisplayMode: 'minimal'
         }}
       >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

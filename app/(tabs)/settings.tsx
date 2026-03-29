@@ -60,7 +60,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <Screen scrollRef={scrollRef} animateOnFocus tabHref="/settings">
+    <Screen scrollRef={scrollRef} animateOnFocus>
       {!notificationGranted ? (
         <Section title={t('settings.permissionTitle')}>
           <View style={[styles.permissionCard, { backgroundColor: theme.surface, borderColor: theme.border, shadowColor: theme.shadow }]}>

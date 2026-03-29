@@ -29,6 +29,8 @@ export interface AppList {
   icon: string;
   sortOrder: number;
   createdAt: string;
+  seedKey?: string | null;
+  seedNameLocked?: 0 | 1;
 }
 
 export interface Task {

@@ -25,6 +25,7 @@ import {
   deleteList as deleteListRecord,
   listAllLists,
   reorderLists as reorderListsRecord,
+  syncLocalizedDefaultLists,
   updateList as updateListRecord
 } from '@/services/listService';
 import { getSettings, updateSettings as updateSettingsRecord } from '@/services/settingsService';
@@ -79,11 +80,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       const snapshot = await loadAppData();
       await setAppLanguage(snapshot.settings.language);
-      setLists(snapshot.lists);
-      setTasks(snapshot.tasks);
-      setSettings(snapshot.settings);
-      setThemeMode(snapshot.settings.themeMode);
-      setNotificationGranted(snapshot.notificationGranted);
+      await syncLocalizedDefaultLists();
+      const localizedSnapshot = await loadAppData();
+      setLists(localizedSnapshot.lists);
+      setTasks(localizedSnapshot.tasks);
+      setSettings(localizedSnapshot.settings);
+      setThemeMode(localizedSnapshot.settings.themeMode);
+      setNotificationGranted(localizedSnapshot.notificationGranted);
     } finally {
       setLoading(false);
     }
@@ -102,13 +105,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
 
       await setAppLanguage(snapshot.settings.language);
-      configureNotificationHandling(snapshot.settings);
-      setLists(snapshot.lists);
-      setTasks(snapshot.tasks);
-      setSettings(snapshot.settings);
-      setThemeMode(snapshot.settings.themeMode);
-      setNotificationGranted(snapshot.notificationGranted);
-      await restoreAllTaskSchedules(snapshot.settings);
+      await syncLocalizedDefaultLists();
+      const localizedSnapshot = await loadAppData();
+      configureNotificationHandling(localizedSnapshot.settings);
+      setLists(localizedSnapshot.lists);
+      setTasks(localizedSnapshot.tasks);
+      setSettings(localizedSnapshot.settings);
+      setThemeMode(localizedSnapshot.settings.themeMode);
+      setNotificationGranted(localizedSnapshot.notificationGranted);
+      await restoreAllTaskSchedules(localizedSnapshot.settings);
       await refresh();
       if (mounted) {
         setReady(true);
@@ -260,6 +265,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     async (updates: Partial<AppSettings>) => {
       const next = await updateSettingsRecord(updates);
       await setAppLanguage(next.language);
+      await syncLocalizedDefaultLists();
       configureNotificationHandling(next);
       await restoreAllTaskSchedules(next);
       await refresh();
@@ -274,6 +280,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (result.ok) {
         const nextSettings = await getSettings();
         await setAppLanguage(nextSettings.language);
+        await syncLocalizedDefaultLists();
         configureNotificationHandling(nextSettings);
         await restoreAllTaskSchedules(nextSettings);
         await refresh();
@@ -292,6 +299,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const permissions = await ensureNotificationPermissions();
     if (permissions.granted) {
       await setAppLanguage(settings.language);
+      await syncLocalizedDefaultLists();
       configureNotificationHandling(settings);
       await restoreAllTaskSchedules(settings);
     }

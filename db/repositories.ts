@@ -20,14 +20,16 @@ export async function fetchListById(id: string): Promise<AppList | null> {
 export async function saveList(list: AppList): Promise<void> {
   await withDatabase(async (db) => {
     await db.runAsync(
-      `INSERT INTO lists (id, name, color, icon, sortOrder, createdAt)
-       VALUES (?, ?, ?, ?, ?, ?)
+      `INSERT INTO lists (id, name, color, icon, sortOrder, createdAt, seedKey, seedNameLocked)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(id) DO UPDATE SET
          name = excluded.name,
          color = excluded.color,
          icon = excluded.icon,
-         sortOrder = excluded.sortOrder`,
-      [list.id, list.name, list.color, list.icon, list.createdAt, list.sortOrder]
+         sortOrder = excluded.sortOrder,
+         seedKey = excluded.seedKey,
+         seedNameLocked = excluded.seedNameLocked`,
+      [list.id, list.name, list.color, list.icon, list.sortOrder, list.createdAt, list.seedKey ?? null, list.seedNameLocked ?? 0]
     );
   });
 }

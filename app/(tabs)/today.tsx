@@ -13,7 +13,7 @@ export default function TodayScreen() {
   const todayTasks = useMemo(() => sortTasks(filterTasks(tasks, { filter: 'today', sort: 'nextNotification' }), 'nextNotification'), [tasks]);
 
   return (
-    <Screen animateOnFocus tabHref="/today">
+    <Screen animateOnFocus>
       <Section title={t('today.title')} />
       <TaskListView
         tasks={todayTasks}

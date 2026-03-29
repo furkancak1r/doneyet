@@ -5,6 +5,7 @@ import { stableStringify } from '@/utils/json';
 import { withDatabase, markDatabaseInitialized } from '@/db/client';
 import { AppList } from '@/types/domain';
 import i18n from '@/i18n';
+import { resolveDefaultSeedKey } from '@/utils/defaultLists';
 
 const schemaStatements = [
   `PRAGMA foreign_keys = ON;`,
@@ -14,7 +15,9 @@ const schemaStatements = [
     color TEXT NOT NULL,
     icon TEXT NOT NULL,
     sortOrder INTEGER NOT NULL DEFAULT 0,
-    createdAt TEXT NOT NULL
+    createdAt TEXT NOT NULL,
+    seedKey TEXT,
+    seedNameLocked INTEGER NOT NULL DEFAULT 0
   );`,
   `CREATE TABLE IF NOT EXISTS tasks (
     id TEXT PRIMARY KEY NOT NULL,
@@ -95,6 +98,24 @@ async function ensureListSortOrderColumn(): Promise<boolean> {
   return false;
 }
 
+async function ensureListMetadataColumns(): Promise<boolean> {
+  const database = await withDatabase(async (db) => db);
+  const columns = (await database.getAllAsync('PRAGMA table_info(lists)')) as Record<string, unknown>[];
+  let changed = false;
+
+  if (!columns.some((column) => String(column.name) === 'seedKey')) {
+    await database.execAsync(`ALTER TABLE lists ADD COLUMN seedKey TEXT;`);
+    changed = true;
+  }
+
+  if (!columns.some((column) => String(column.name) === 'seedNameLocked')) {
+    await database.execAsync(`ALTER TABLE lists ADD COLUMN seedNameLocked INTEGER NOT NULL DEFAULT 0;`);
+    changed = true;
+  }
+
+  return changed;
+}
+
 async function ensureTaskSortOrderColumn(): Promise<boolean> {
   const database = await withDatabase(async (db) => db);
   const columns = (await database.getAllAsync('PRAGMA table_info(tasks)')) as Record<string, unknown>[];
@@ -156,12 +177,33 @@ async function seedLists(): Promise<void> {
       color: seed.color,
       icon: seed.icon,
       sortOrder: index,
-      createdAt
+      createdAt,
+      seedKey: seed.nameKey,
+      seedNameLocked: 0
     };
     await database.runAsync(
-      'INSERT INTO lists (id, name, color, icon, sortOrder, createdAt) VALUES (?, ?, ?, ?, ?, ?)',
-      [list.id, list.name, list.color, list.icon, list.sortOrder, list.createdAt]
+      'INSERT INTO lists (id, name, color, icon, sortOrder, createdAt, seedKey, seedNameLocked) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [list.id, list.name, list.color, list.icon, list.sortOrder, list.createdAt, list.seedKey, list.seedNameLocked]
     );
+  }
+}
+
+async function backfillListMetadata(): Promise<void> {
+  const database = await withDatabase(async (db) => db);
+  const rows = (await database.getAllAsync('SELECT id, name, color, icon FROM lists')) as Record<string, unknown>[];
+
+  for (const row of rows) {
+    const seedKey = resolveDefaultSeedKey({
+      name: String(row.name),
+      color: String(row.color),
+      icon: String(row.icon)
+    });
+
+    if (!seedKey) {
+      continue;
+    }
+
+    await database.runAsync('UPDATE lists SET seedKey = ?, seedNameLocked = 0 WHERE id = ?', [seedKey, String(row.id)]);
   }
 }
 
@@ -185,11 +227,15 @@ export async function initializeDatabase(): Promise<void> {
   await ensureTaskModeColumn();
   const listSortOrderAdded = await ensureListSortOrderColumn();
   const taskSortOrderAdded = await ensureTaskSortOrderColumn();
+  const listMetadataAdded = await ensureListMetadataColumns();
   if (listSortOrderAdded) {
     await backfillListSortOrder();
   }
   if (taskSortOrderAdded) {
     await backfillTaskSortOrder();
+  }
+  if (listMetadataAdded) {
+    await backfillListMetadata();
   }
   await seedLists();
   await seedSettings();

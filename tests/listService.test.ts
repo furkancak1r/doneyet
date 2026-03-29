@@ -1,5 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createList, reorderLists } from '../services/listService';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import i18n from '../i18n';
+import { createList, reorderLists, syncLocalizedDefaultLists } from '../services/listService';
 
 const fetchLists = vi.fn();
 const fetchMaxListSortOrder = vi.fn();
@@ -14,6 +15,63 @@ vi.mock('../db/repositories', () => ({
 describe('list service', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(async () => {
+    await i18n.changeLanguage('en');
+  });
+
+  it('syncs unlocked default lists to the active language', async () => {
+    await i18n.changeLanguage('tr');
+    fetchLists.mockResolvedValue([
+      {
+        id: 'list-1',
+        name: 'Work',
+        color: '#116466',
+        icon: 'briefcase-outline',
+        sortOrder: 0,
+        createdAt: '2025-03-01T00:00:00.000Z',
+        seedKey: 'seeds.work',
+        seedNameLocked: 0
+      },
+      {
+        id: 'list-2',
+        name: 'Custom',
+        color: '#123456',
+        icon: 'note',
+        sortOrder: 1,
+        createdAt: '2025-03-01T00:00:00.000Z',
+        seedKey: null,
+        seedNameLocked: 0
+      }
+    ]);
+    saveList.mockResolvedValue(undefined);
+
+    await syncLocalizedDefaultLists();
+
+    expect(saveList).toHaveBeenCalledWith(expect.objectContaining({ id: 'list-1', name: 'İş', seedKey: 'seeds.work', seedNameLocked: 0 }));
+    expect(saveList).not.toHaveBeenCalledWith(expect.objectContaining({ id: 'list-2' }));
+  });
+
+  it('does not sync locked default lists', async () => {
+    await i18n.changeLanguage('tr');
+    fetchLists.mockResolvedValue([
+      {
+        id: 'list-1',
+        name: 'My Work',
+        color: '#116466',
+        icon: 'briefcase-outline',
+        sortOrder: 0,
+        createdAt: '2025-03-01T00:00:00.000Z',
+        seedKey: 'seeds.work',
+        seedNameLocked: 1
+      }
+    ]);
+    saveList.mockResolvedValue(undefined);
+
+    await syncLocalizedDefaultLists();
+
+    expect(saveList).not.toHaveBeenCalled();
   });
 
   it('creates a list with trimmed name, color and icon', async () => {
@@ -31,6 +89,7 @@ describe('list service', () => {
   });
 
   it('rejects duplicate list names regardless of case', async () => {
+    await i18n.changeLanguage('tr');
     fetchLists.mockResolvedValue([
       {
         id: 'list-1',
@@ -47,6 +106,7 @@ describe('list service', () => {
   });
 
   it('rejects empty names', async () => {
+    await i18n.changeLanguage('tr');
     fetchLists.mockResolvedValue([]);
     fetchMaxListSortOrder.mockResolvedValue(-1);
 

@@ -9,7 +9,9 @@ export function mapListRow(row: Record<string, unknown>): AppList {
     color: String(row.color),
     icon: String(row.icon),
     sortOrder: row.sortOrder === null || row.sortOrder === undefined ? 0 : Number(row.sortOrder),
-    createdAt: String(row.createdAt)
+    createdAt: String(row.createdAt),
+    seedKey: row.seedKey === null || row.seedKey === undefined ? null : String(row.seedKey),
+    seedNameLocked: row.seedNameLocked === null || row.seedNameLocked === undefined ? 0 : (Number(row.seedNameLocked) as 0 | 1)
   };
 }
 

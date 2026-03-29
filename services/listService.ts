@@ -4,6 +4,7 @@ import { AppList } from '@/types/domain';
 import { createId } from '@/utils/id';
 import { renumberSortOrders } from '@/utils/order';
 import i18n from '@/i18n';
+import { getDefaultSeedName, resolveDefaultSeedKey, shouldLockSeedName } from '@/utils/defaultLists';
 
 function normalizeListName(name: string): string {
   return name.trim();
@@ -41,7 +42,9 @@ export async function createList(name: string, color: string, icon: string): Pro
     color,
     icon,
     sortOrder: nextSortOrder,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    seedKey: null,
+    seedNameLocked: 0
   };
 
   await saveList(list);
@@ -56,7 +59,8 @@ export async function updateList(listId: string, updates: Partial<Pick<AppList, 
 
   const updated: AppList = {
     ...current,
-    ...updates
+    ...updates,
+    seedNameLocked: shouldLockSeedName(current, updates) ? 1 : current.seedNameLocked ?? 0
   };
 
   await saveList(updated);
@@ -80,4 +84,39 @@ export async function deleteList(listId: string): Promise<void> {
 
 export function getDefaultSeedListNames(): string[] {
   return defaultListSeeds.map((seed) => String(i18n.t(seed.nameKey)));
+}
+
+export async function syncLocalizedDefaultLists(): Promise<void> {
+  const lists = await fetchLists();
+  const nextLanguage = i18n.language === 'tr' ? 'tr' : 'en';
+  const updates = lists
+    .map((list) => {
+      const resolvedSeedKey = list.seedKey ?? resolveDefaultSeedKey(list);
+      if (!resolvedSeedKey) {
+        return null;
+      }
+
+      const seed = defaultListSeeds.find((item) => item.nameKey === resolvedSeedKey);
+      if (!seed) {
+        return null;
+      }
+
+      const nextName = getDefaultSeedName(seed, nextLanguage);
+      const shouldRename = (list.seedNameLocked ?? 0) === 0 && list.name !== nextName;
+
+      if (list.seedKey === resolvedSeedKey && !shouldRename) {
+        return null;
+      }
+
+      return {
+        ...list,
+        seedKey: resolvedSeedKey,
+        name: shouldRename ? nextName : list.name
+      };
+    })
+    .filter(Boolean) as AppList[];
+
+  for (const list of updates) {
+    await saveList(list);
+  }
 }

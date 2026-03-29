@@ -2,7 +2,9 @@
   "compilerOptions": {
     "target": "ES2021",
     "module": "ESNext",
-    "lib": ["ES2021"],
+    "lib": [
+      "ES2021"
+    ],
     "strict": true,
     "jsx": "react-jsx",
     "moduleResolution": "Bundler",
@@ -14,14 +16,23 @@
     "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     },
-    "types": ["jest", "react", "react-native", "node"]
+    "types": [
+      "jest",
+      "react",
+      "react-native",
+      "node"
+    ]
   },
   "include": [
     "**/*.ts",
-    "**/*.tsx",
-    ".expo/types/**/*.ts"
+    "**/*.tsx"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ],
+  "extends": "expo/tsconfig.base"
 }

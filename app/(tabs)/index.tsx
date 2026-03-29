@@ -68,7 +68,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <Screen scroll={false} padded={false} animateOnFocus tabHref="/">
+    <Screen scroll={false} padded={false} animateOnFocus>
       <NestableScrollContainer ref={scrollRef} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {!notificationGranted ? (
           <Card>
