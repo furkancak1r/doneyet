@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "DoneYet?",
+    "slug": "doneyet",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "doneyet",
+    "userInterfaceStyle": "automatic",
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "jsEngine": "hermes",
+    "ios": {
+      "bundleIdentifier": "com.doneyet.app",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.doneyet.app",
+      "allowBackup": true
+    },
+    "plugins": [
+      "expo-asset"
+    ]
+  }
+}
