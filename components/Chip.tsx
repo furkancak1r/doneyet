@@ -18,6 +18,7 @@ export function Chip({
   accessibilityLabel?: string;
 }) {
   const { theme } = useApp();
+  const iconOnly = label.trim().length === 0;
   const toneColor =
     tone === 'primary'
       ? theme.primary
@@ -40,6 +41,7 @@ export function Chip({
       onPress={onPress}
       style={({ pressed }) => [
         styles.chip,
+        iconOnly && styles.iconOnlyChip,
         {
           backgroundColor: selected ? selectedBackgroundColor : theme.surfaceAlt,
           opacity: pressed ? 0.85 : 1,
@@ -48,8 +50,15 @@ export function Chip({
         }
       ]}
     >
-      {icon ? <Ionicons name={icon} size={16} color={selected ? selectedLabelColor : tone === 'primary' ? toneColor : theme.text} style={styles.icon} /> : null}
-      <Text style={[styles.label, { color: selected ? selectedLabelColor : theme.text }]}>{label}</Text>
+      {icon ? (
+        <Ionicons
+          name={icon}
+          size={16}
+          color={selected ? selectedLabelColor : tone === 'primary' ? toneColor : theme.text}
+          style={[styles.icon, iconOnly && styles.iconOnlyIcon]}
+        />
+      ) : null}
+      {iconOnly ? null : <Text style={[styles.label, { color: selected ? selectedLabelColor : theme.text }]}>{label}</Text>}
     </Pressable>
   );
 }
@@ -69,8 +78,19 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 1
   },
+  iconOnlyChip: {
+    width: 42,
+    height: 42,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
   icon: {
     marginRight: 6
+  },
+  iconOnlyIcon: {
+    marginRight: 0
   },
   label: {
     fontSize: 13,
