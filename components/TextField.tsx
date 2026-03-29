@@ -41,11 +41,12 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '700',
-    marginBottom: 8
+    marginBottom: 8,
+    letterSpacing: 0.2
   },
   input: {
     borderWidth: 1,
-    borderRadius: 16,
+    borderRadius: 18,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 16,

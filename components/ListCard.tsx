@@ -32,6 +32,7 @@ export function ListCard({
         {
           backgroundColor: theme.surface,
           borderColor: dragging ? theme.primary : theme.border,
+          shadowColor: theme.shadow,
           opacity: pressed || dragging ? 0.88 : 1,
           transform: [{ scale: dragging ? 0.985 : 1 }]
         }
@@ -58,7 +59,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
-    gap: 12
+    gap: 12,
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 1
   },
   iconWrap: {
     width: 42,

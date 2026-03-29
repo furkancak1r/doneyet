@@ -3,34 +3,34 @@ import { ThemeMode } from '@/types/domain';
 export const themeModes: ThemeMode[] = ['system', 'light', 'dark'];
 
 export const lightColors = {
-  background: '#F7F7F2',
-  surface: '#FFFFFF',
-  surfaceAlt: '#EEF1EB',
-  text: '#142016',
-  mutedText: '#5B6B60',
-  border: '#D7DED8',
-  primary: '#116466',
-  primarySoft: '#D8F0EE',
-  danger: '#B42318',
-  warning: '#C2410C',
-  success: '#157F3D',
-  chip: '#E7ECE8',
-  shadow: '#000000'
+  background: '#F4F0E8',
+  surface: '#FCFAF6',
+  surfaceAlt: '#EEE6DA',
+  text: '#17201C',
+  mutedText: '#66736B',
+  border: '#D5CCBE',
+  primary: '#1F5C52',
+  primarySoft: '#DCE9E3',
+  danger: '#A3473C',
+  warning: '#A86A2A',
+  success: '#2F7A56',
+  chip: '#E4DCCD',
+  shadow: '#0C1210'
 };
 
 export const darkColors = {
-  background: '#0B1111',
-  surface: '#111A1A',
-  surfaceAlt: '#162020',
-  text: '#ECF3EE',
-  mutedText: '#A9B9AE',
-  border: '#263230',
-  primary: '#5CE1E6',
-  primarySoft: '#193234',
-  danger: '#F97066',
-  warning: '#F79009',
-  success: '#32D583',
-  chip: '#1E2A2A',
+  background: '#101513',
+  surface: '#161D1A',
+  surfaceAlt: '#1B241F',
+  text: '#F1F0EA',
+  mutedText: '#A3B0A7',
+  border: '#2A352F',
+  primary: '#7EC7B8',
+  primarySoft: '#1C2D27',
+  danger: '#EF8A7A',
+  warning: '#E0A25A',
+  success: '#7BCB8B',
+  chip: '#222C27',
   shadow: '#000000'
 };
 

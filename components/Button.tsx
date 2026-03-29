@@ -23,7 +23,7 @@ export function Button({
         : variant === 'secondary'
           ? theme.surfaceAlt
           : 'transparent';
-  const textColor = variant === 'secondary' || variant === 'ghost' ? theme.text : '#FFFFFF';
+  const textColor = variant === 'secondary' ? theme.text : variant === 'ghost' ? theme.primary : '#FFFFFF';
 
   return (
     <Pressable
@@ -31,7 +31,7 @@ export function Button({
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
-        { backgroundColor, borderColor: theme.border, opacity: pressed ? 0.85 : 1 },
+        { backgroundColor, borderColor: theme.border, shadowColor: theme.shadow, opacity: pressed ? 0.85 : 1 },
         style
       ]}
     >
@@ -44,10 +44,14 @@ const styles = StyleSheet.create({
   button: {
     minHeight: 48,
     paddingHorizontal: 16,
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 1,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 1
   },
   label: {
     fontSize: 16,

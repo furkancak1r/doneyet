@@ -43,7 +43,8 @@ export function Chip({
         {
           backgroundColor: selected ? selectedBackgroundColor : theme.surfaceAlt,
           opacity: pressed ? 0.85 : 1,
-          borderColor: selected ? selectedBorderColor : theme.border
+          borderColor: selected ? selectedBorderColor : theme.border,
+          shadowColor: theme.shadow
         }
       ]}
     >
@@ -62,7 +63,11 @@ const styles = StyleSheet.create({
     marginRight: 8,
     marginBottom: 8,
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 1
   },
   icon: {
     marginRight: 6

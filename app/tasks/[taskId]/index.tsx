@@ -47,16 +47,16 @@ export default function TaskDetailScreen() {
 
       <Card>
         <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('taskDetail.infoSection')}</Text>
-        <InfoRow label={t('taskDetail.list')} value={list?.name ?? t('common.noList')} />
-        <InfoRow label={t('taskDetail.taskType')} value={isTodo ? t('taskCard.modeTodo') : task.taskMode === 'recurring' ? t('taskCard.modeRecurring') : t('taskCard.modeSingle')} />
-        {isTodo ? <InfoRow label={t('taskDetail.notification')} value={t('common.none')} /> : <InfoRow label={t('taskDetail.start')} value={formatDateTimeTR(task.startDateTime)} />}
-        {isTodo ? <InfoRow label={t('taskDetail.created')} value={formatDateTimeTR(task.createdAt)} /> : null}
-        {!isTodo ? <InfoRow label={t('taskDetail.lastNotification')} value={formatDateTimeTR(task.lastNotificationAt)} /> : null}
-        {!isTodo ? <InfoRow label={t('taskDetail.nextNotification')} value={formatDateTimeTR(task.nextNotificationAt)} /> : null}
-        {isRecurring ? <InfoRow label={t('taskDetail.completedCycle')} value={formatDateTimeTR(task.completedAt)} /> : null}
-        <InfoRow label={t('taskDetail.status')} value={state === 'overdue' ? t('taskCard.statusOverdue') : state === 'snoozed' ? t('taskCard.statusSnoozed') : state === 'completed' ? t('taskCard.statusCompleted') : t('taskCard.statusActive')} />
-        {!isTodo && task.startReminderWeekday !== null ? <InfoRow label={t('taskDetail.weekday')} value={weekdayName(task.startReminderWeekday)} /> : null}
-        {tags.length > 0 ? <InfoRow label={t('taskDetail.tags')} value={tags.join(', ')} /> : null}
+        <InfoRow themeColor={theme.border} label={t('taskDetail.list')} value={list?.name ?? t('common.noList')} />
+        <InfoRow themeColor={theme.border} label={t('taskDetail.taskType')} value={isTodo ? t('taskCard.modeTodo') : task.taskMode === 'recurring' ? t('taskCard.modeRecurring') : t('taskCard.modeSingle')} />
+        {isTodo ? <InfoRow themeColor={theme.border} label={t('taskDetail.notification')} value={t('common.none')} /> : <InfoRow themeColor={theme.border} label={t('taskDetail.start')} value={formatDateTimeTR(task.startDateTime)} />}
+        {isTodo ? <InfoRow themeColor={theme.border} label={t('taskDetail.created')} value={formatDateTimeTR(task.createdAt)} /> : null}
+        {!isTodo ? <InfoRow themeColor={theme.border} label={t('taskDetail.lastNotification')} value={formatDateTimeTR(task.lastNotificationAt)} /> : null}
+        {!isTodo ? <InfoRow themeColor={theme.border} label={t('taskDetail.nextNotification')} value={formatDateTimeTR(task.nextNotificationAt)} /> : null}
+        {isRecurring ? <InfoRow themeColor={theme.border} label={t('taskDetail.completedCycle')} value={formatDateTimeTR(task.completedAt)} /> : null}
+        <InfoRow themeColor={theme.border} label={t('taskDetail.status')} value={state === 'overdue' ? t('taskCard.statusOverdue') : state === 'snoozed' ? t('taskCard.statusSnoozed') : state === 'completed' ? t('taskCard.statusCompleted') : t('taskCard.statusActive')} />
+        {!isTodo && task.startReminderWeekday !== null ? <InfoRow themeColor={theme.border} label={t('taskDetail.weekday')} value={weekdayName(task.startReminderWeekday)} /> : null}
+        {tags.length > 0 ? <InfoRow themeColor={theme.border} label={t('taskDetail.tags')} value={tags.join(', ')} /> : null}
         {isTodo ? <Text style={[styles.recurringNote, { color: theme.mutedText }]}>{t('taskDetail.todoNote')}</Text> : null}
         {isRecurring ? <Text style={[styles.recurringNote, { color: theme.mutedText }]}>{t('taskDetail.recurringNote')}</Text> : null}
       </Card>
@@ -89,9 +89,9 @@ export default function TaskDetailScreen() {
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+function InfoRow({ label, value, themeColor }: { label: string; value: string; themeColor: string }) {
   return (
-    <View style={styles.infoRow}>
+    <View style={[styles.infoRow, { borderBottomColor: themeColor }]}>
       <Text style={styles.infoLabel}>{label}</Text>
       <Text style={styles.infoValue}>{value}</Text>
     </View>
@@ -125,8 +125,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 12,
     paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#00000020'
+    borderBottomWidth: StyleSheet.hairlineWidth
   },
   infoLabel: {
     fontSize: 13,

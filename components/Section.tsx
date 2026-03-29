@@ -28,6 +28,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: '800'
+    fontWeight: '800',
+    letterSpacing: 0.2
   }
 });

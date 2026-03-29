@@ -60,10 +60,10 @@ export default function SettingsScreen() {
   };
 
   return (
-    <Screen scrollRef={scrollRef} animateOnFocus>
+    <Screen scrollRef={scrollRef} animateOnFocus tabHref="/settings">
       {!notificationGranted ? (
         <Section title={t('settings.permissionTitle')}>
-          <View style={[styles.permissionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <View style={[styles.permissionCard, { backgroundColor: theme.surface, borderColor: theme.border, shadowColor: theme.shadow }]}>
             <Text style={[styles.permissionTitle, { color: theme.text }]}>{t('settings.permissionCardTitle')}</Text>
             <Text style={[styles.permissionText, { color: theme.mutedText }]}>{t('settings.permissionText')}</Text>
             <Button label={t('settings.permissionButton')} onPress={() => void requestNotificationPermission()} />
@@ -129,7 +129,7 @@ export default function SettingsScreen() {
           onPress={toggleImport}
           style={({ pressed }) => [
             styles.importHeader,
-            { backgroundColor: theme.surface, borderColor: theme.border, opacity: pressed ? 0.9 : 1 }
+            { backgroundColor: theme.surface, borderColor: theme.border, shadowColor: theme.shadow, opacity: pressed ? 0.9 : 1 }
           ]}
         >
           <Text style={[styles.importHeaderTitle, { color: theme.text }]}>{t('settings.backupImportTitle')}</Text>
@@ -158,9 +158,13 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   permissionCard: {
     borderWidth: 1,
-    borderRadius: 20,
+    borderRadius: 18,
     padding: 16,
-    marginBottom: 16
+    marginBottom: 16,
+    shadowOpacity: 0.04,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 1
   },
   permissionTitle: {
     fontSize: 16,
@@ -180,14 +184,14 @@ const styles = StyleSheet.create({
   input: {
     minHeight: 48,
     borderWidth: 1,
-    borderRadius: 16,
+    borderRadius: 18,
     paddingHorizontal: 14,
     marginBottom: 12
   },
   multiline: {
     minHeight: 140,
     borderWidth: 1,
-    borderRadius: 16,
+    borderRadius: 18,
     paddingHorizontal: 14,
     paddingVertical: 12,
     textAlignVertical: 'top',
@@ -211,12 +215,16 @@ const styles = StyleSheet.create({
   importHeader: {
     minHeight: 48,
     borderWidth: 1,
-    borderRadius: 16,
+    borderRadius: 18,
     paddingHorizontal: 14,
     paddingVertical: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 1
   },
   importHeaderTitle: {
     fontSize: 14,

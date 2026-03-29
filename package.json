@@ -8,6 +8,7 @@
     "android": "expo run:android",
     "ios": "node scripts/run-native-ios.mjs",
     "web": "expo start --web",
+    "postinstall": "node scripts/patch-draggable-flatlist.mjs",
     "test": "node scripts/run-vitest.mjs",
     "typecheck": "tsc --noEmit"
   },

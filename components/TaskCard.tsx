@@ -71,6 +71,7 @@ export function TaskCard({
           {
             backgroundColor: theme.surface,
             borderColor: dragging ? theme.primary : theme.border,
+            shadowColor: theme.shadow,
             opacity: pressed || dragging ? 0.88 : task.status === 'completed' ? 0.7 : 1,
             transform: [{ scale: dragging ? 0.985 : 1 }]
           }
@@ -119,9 +120,13 @@ export function TaskCard({
 const styles = StyleSheet.create({
   card: {
     borderWidth: 1,
-    borderRadius: 20,
+    borderRadius: 18,
     padding: 16,
-    marginBottom: 12
+    marginBottom: 12,
+    shadowOpacity: 0.04,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 1
   },
   header: {
     flexDirection: 'row',
@@ -192,7 +197,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginBottom: 12,
     borderRadius: 18,
-    marginHorizontal: 4
+    marginHorizontal: 4,
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 1
   },
   actionLabel: {
     color: '#FFFFFF',

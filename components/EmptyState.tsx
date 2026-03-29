@@ -13,7 +13,7 @@ export function EmptyState({
 }) {
   const { theme } = useApp();
   return (
-    <View style={[styles.wrap, { backgroundColor: theme.surfaceAlt, borderColor: theme.border }]}>
+    <View style={[styles.wrap, { backgroundColor: theme.surfaceAlt, borderColor: theme.border, shadowColor: theme.shadow }]}>
       <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
       <Text style={[styles.description, { color: theme.mutedText }]}>{description}</Text>
       {action}
@@ -24,10 +24,14 @@ export function EmptyState({
 const styles = StyleSheet.create({
   wrap: {
     padding: 20,
-    borderRadius: 20,
+    borderRadius: 18,
     borderWidth: 1,
     alignItems: 'center',
-    gap: 12
+    gap: 12,
+    shadowOpacity: 0.04,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 1
   },
   title: {
     fontSize: 18,

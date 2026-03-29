@@ -22,7 +22,7 @@ export function StatusPill({
 
   return (
     <View style={[styles.pill, { backgroundColor }]}>
-      <Text style={[styles.label, { color: tone === 'default' ? '#1B1B1B' : '#FFFFFF' }]}>{label}</Text>
+      <Text style={[styles.label, { color: tone === 'default' ? theme.text : '#FFFFFF' }]}>{label}</Text>
     </View>
   );
 }

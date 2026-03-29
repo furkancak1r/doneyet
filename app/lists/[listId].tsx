@@ -77,7 +77,7 @@ export default function ListDetailScreen() {
 const styles = StyleSheet.create({
   content: {
     padding: 16,
-    paddingBottom: 36
+    paddingBottom: 44
   },
   header: {
     flexDirection: 'row',

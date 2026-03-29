@@ -68,6 +68,7 @@ export function ListForm({
                 {
                   backgroundColor: item,
                   borderColor: color === item ? theme.text : theme.border,
+                  shadowColor: theme.shadow,
                   opacity: pressed ? 0.88 : 1
                 }
               ]}
@@ -88,13 +89,14 @@ export function ListForm({
                 key={item.name}
                 onPress={() => setIcon(item.name)}
                 style={({ pressed }) => [
-                  styles.iconButton,
-                  {
-                    backgroundColor: isSelected ? color : theme.surfaceAlt,
-                    borderColor: isSelected ? color : theme.border,
-                    opacity: pressed ? 0.9 : 1
-                  }
-                ]}
+                styles.iconButton,
+                {
+                  backgroundColor: isSelected ? color : theme.surfaceAlt,
+                  borderColor: isSelected ? color : theme.border,
+                  shadowColor: theme.shadow,
+                  opacity: pressed ? 0.9 : 1
+                }
+              ]}
               >
                 <Ionicons name={item.name as any} size={20} color={isSelected ? '#FFFFFF' : theme.text} />
                 <Text style={[styles.iconLabel, { color: isSelected ? '#FFFFFF' : theme.text }]}>{t(item.labelKey)}</Text>
@@ -104,7 +106,7 @@ export function ListForm({
         </View>
       </View>
 
-      <View style={[styles.preview, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+      <View style={[styles.preview, { backgroundColor: theme.surface, borderColor: theme.border, shadowColor: theme.shadow }]}>
         <View style={[styles.previewBadge, { backgroundColor: color }]}>
           <Ionicons name={selectedIcon.name as any} size={20} color="#FFFFFF" />
         </View>
@@ -142,10 +144,14 @@ const styles = StyleSheet.create({
   colorButton: {
     width: 44,
     height: 44,
-    borderRadius: 16,
+    borderRadius: 14,
     borderWidth: 2,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 1
   },
   iconGrid: {
     flexDirection: 'row',
@@ -158,7 +164,11 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     padding: 12,
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 1
   },
   iconLabel: {
     fontSize: 13,
@@ -171,7 +181,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     alignItems: 'center',
-    marginBottom: 16
+    marginBottom: 16,
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 1
   },
   previewBadge: {
     width: 48,

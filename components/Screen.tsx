@@ -1,26 +1,66 @@
-import { ReactNode, RefObject, useEffect } from 'react';
+import { ReactNode, RefObject, useCallback, useEffect, useMemo } from 'react';
 import { useIsFocused } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { Easing, interpolate, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { router } from 'expo-router';
+import { runOnJS } from 'react-native-reanimated';
 import { useApp } from '@/hooks/useApp';
+import { getAdjacentTabHref, type TabHref } from '@/constants/tabNavigation';
 
 export function Screen({
   children,
   scroll = true,
   padded = true,
   scrollRef,
-  animateOnFocus = false
+  animateOnFocus = false,
+  tabHref
 }: {
   children?: ReactNode;
   scroll?: boolean;
   padded?: boolean;
   scrollRef?: RefObject<ScrollView | null>;
   animateOnFocus?: boolean;
+  tabHref?: TabHref;
 }) {
   const { theme } = useApp();
   const isFocused = useIsFocused();
   const focusProgress = useSharedValue(isFocused ? 1 : 0);
+  const previousTabHref = tabHref ? getAdjacentTabHref(tabHref, 'previous') : null;
+  const nextTabHref = tabHref ? getAdjacentTabHref(tabHref, 'next') : null;
+
+  const navigateToTab = useCallback((href: TabHref) => {
+    router.navigate(href);
+  }, []);
+
+  const swipeGesture = useMemo(() => {
+    if (!tabHref) {
+      return null;
+    }
+
+    return Gesture.Pan()
+      .activeOffsetX([-16, 16])
+      .failOffsetY([-14, 14])
+      .onEnd(({ translationX, velocityX }) => {
+        'worklet';
+        const swipeDistance = 72;
+        const swipeVelocity = 650;
+
+        if (translationX > swipeDistance || velocityX > swipeVelocity) {
+          if (previousTabHref) {
+            runOnJS(navigateToTab)(previousTabHref);
+          }
+          return;
+        }
+
+        if (translationX < -swipeDistance || velocityX < -swipeVelocity) {
+          if (nextTabHref) {
+            runOnJS(navigateToTab)(nextTabHref);
+          }
+        }
+      });
+  }, [navigateToTab, nextTabHref, previousTabHref, tabHref]);
 
   useEffect(() => {
     if (!animateOnFocus) {
@@ -52,7 +92,7 @@ export function Screen({
   }, [animateOnFocus]);
 
   const content = scroll ? (
-      <ScrollView
+    <ScrollView
       ref={scrollRef}
       keyboardShouldPersistTaps="handled"
       contentContainerStyle={[styles.scrollContent, padded && styles.padded, { backgroundColor: theme.background }]}
@@ -63,9 +103,11 @@ export function Screen({
     <View style={[styles.flex, padded && styles.padded, { backgroundColor: theme.background }]}>{children}</View>
   );
 
+  const animatedContent = <Animated.View style={[styles.flex, { backgroundColor: theme.background }, animatedStyle]}>{content}</Animated.View>;
+
   return (
     <SafeAreaView edges={['left', 'right', 'bottom']} style={[styles.flex, { backgroundColor: theme.background }]}>
-      <Animated.View style={[styles.flex, animatedStyle]}>{content}</Animated.View>
+      {swipeGesture ? <GestureDetector gesture={swipeGesture}>{animatedContent}</GestureDetector> : animatedContent}
     </SafeAreaView>
   );
 }

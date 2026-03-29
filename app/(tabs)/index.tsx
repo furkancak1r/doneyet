@@ -28,6 +28,7 @@ function StatCard({ title, value, tone, onPress }: { title: string; value: numbe
         {
           backgroundColor: theme.surface,
           borderColor: theme.border,
+          shadowColor: theme.shadow,
           opacity: pressed ? 0.88 : 1
         }
       ]}
@@ -67,7 +68,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <Screen scroll={false} padded={false} animateOnFocus>
+    <Screen scroll={false} padded={false} animateOnFocus tabHref="/">
       <NestableScrollContainer ref={scrollRef} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {!notificationGranted ? (
           <Card>
@@ -140,7 +141,10 @@ export default function HomeScreen() {
         </View>
 
         <View
-          onLayout={(event) => setSectionOffsets((current) => ({ ...current, today: event.nativeEvent.layout.y }))}
+          onLayout={(event) => {
+            const todayOffset = event.nativeEvent.layout.y;
+            setSectionOffsets((current) => ({ ...current, today: todayOffset }));
+          }}
           style={styles.section}
         >
           <View style={styles.sectionHeader}>
@@ -161,7 +165,10 @@ export default function HomeScreen() {
         </View>
 
         <View
-          onLayout={(event) => setSectionOffsets((current) => ({ ...current, overdue: event.nativeEvent.layout.y }))}
+          onLayout={(event) => {
+            const overdueOffset = event.nativeEvent.layout.y;
+            setSectionOffsets((current) => ({ ...current, overdue: overdueOffset }));
+          }}
           style={styles.section}
         >
           <View style={styles.sectionHeader}>
@@ -188,7 +195,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   content: {
     padding: 16,
-    paddingBottom: 36
+    paddingBottom: 44
   },
   hero: {
     marginBottom: 16
@@ -211,9 +218,13 @@ const styles = StyleSheet.create({
   statCard: {
     flex: 1,
     borderWidth: 1,
-    borderRadius: 20,
+    borderRadius: 18,
     padding: 16,
-    marginBottom: 0
+    marginBottom: 0,
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 1
   },
   statValue: {
     fontSize: 24,

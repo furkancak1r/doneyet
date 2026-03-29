@@ -1,10 +1,11 @@
-import '@/i18n';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppProvider, NotificationBridge, useApp } from '@/context/AppContext';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { I18nextProvider } from 'react-i18next';
+import i18n from '@/i18n';
 
 function AppShell() {
   const { ready, theme } = useApp();
@@ -28,6 +29,7 @@ function AppShell() {
           headerStyle: { backgroundColor: theme.surface },
           headerTintColor: theme.text,
           contentStyle: { backgroundColor: theme.background },
+          headerShadowVisible: false,
           headerTitleStyle: { fontWeight: '800' },
           headerBackTitle: ''
         }}
@@ -45,9 +47,11 @@ function AppShell() {
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <AppProvider>
-        <AppShell />
-      </AppProvider>
+      <I18nextProvider i18n={i18n}>
+        <AppProvider>
+          <AppShell />
+        </AppProvider>
+      </I18nextProvider>
     </GestureHandlerRootView>
   );
 }

@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '@/hooks/useApp';
 import { Task, TaskFormValues, TaskMode } from '@/types/domain';
+import { Card } from '@/components/Card';
 import { Chip } from '@/components/Chip';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
@@ -38,6 +40,79 @@ function parseTags(text: string): string[] {
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function hexToRgba(hex: string, alpha: number) {
+  const normalized = hex.replace('#', '');
+  const expanded = normalized.length === 3 ? normalized.split('').map((char) => char + char).join('') : normalized;
+  const value = Number.parseInt(expanded, 16);
+
+  if (Number.isNaN(value)) {
+    return `rgba(0, 0, 0, ${alpha})`;
+  }
+
+  const red = (value >> 16) & 255;
+  const green = (value >> 8) & 255;
+  const blue = value & 255;
+
+  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+}
+
+function TaskModeCard({
+  active,
+  badge,
+  description,
+  icon,
+  label,
+  accentColor,
+  backgroundColor,
+  onPress
+}: {
+  active: boolean;
+  badge: string;
+  description: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  accentColor: string;
+  backgroundColor: string;
+  onPress: () => void;
+}) {
+  const { theme } = useApp();
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.modeCard,
+        {
+          backgroundColor,
+          borderColor: active ? accentColor : theme.border,
+          shadowColor: theme.shadow,
+          opacity: pressed ? 0.94 : 1
+        }
+      ]}
+    >
+      <View style={[styles.modeIconWrap, { backgroundColor: hexToRgba(accentColor, active ? 0.18 : 0.12) }]}>
+        <Ionicons name={icon} size={20} color={accentColor} />
+      </View>
+
+      <View style={styles.modeBody}>
+        <View style={styles.modeHeader}>
+          <Text style={[styles.modeLabel, { color: theme.text }]}>{label}</Text>
+          <View style={[styles.modeBadge, { backgroundColor: hexToRgba(accentColor, active ? 0.18 : 0.1) }]}>
+            <Text style={[styles.modeBadgeText, { color: accentColor }]}>{badge}</Text>
+          </View>
+        </View>
+        <Text style={[styles.modeDescription, { color: theme.mutedText }]}>{description}</Text>
+      </View>
+
+      <View style={[styles.modeCheck, { borderColor: active ? accentColor : theme.border, backgroundColor: active ? accentColor : 'transparent' }]}>
+        <Ionicons name={active ? 'checkmark' : 'ellipse-outline'} size={14} color={active ? '#FFFFFF' : theme.mutedText} />
+      </View>
+    </Pressable>
+  );
 }
 
 export function TaskForm({
@@ -139,27 +214,55 @@ export function TaskForm({
       <TextField label={t('taskForm.title')} value={title} onChangeText={setTitle} placeholder={t('taskForm.titlePlaceholder')} />
       <TextField label={t('taskForm.description')} value={description} onChangeText={setDescription} placeholder={t('taskForm.descriptionPlaceholder')} multiline />
 
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('taskForm.typeSection')}</Text>
-        <View style={styles.chipWrap}>
-          <Chip label={t('taskForm.reminder')} selected={!isTodo} onPress={() => setTaskMode(reminderTaskMode)} />
-          <Chip label={t('taskForm.todo')} tone="primary" selected={isTodo} onPress={() => setTaskMode('todo')} />
+      <Card style={[styles.blockCard, { backgroundColor: theme.surfaceAlt, borderColor: theme.border, shadowColor: theme.shadow }]}>
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('taskForm.typeSection')}</Text>
+          <Text style={[styles.sectionHint, { color: theme.mutedText }]}>{t('taskForm.typeHint')}</Text>
+          <View style={styles.modeStack}>
+            <TaskModeCard
+              active={!isTodo}
+              label={t('taskForm.reminder')}
+              badge={t('taskForm.reminderCardBadge')}
+              description={t('taskForm.reminderCardDescription')}
+              icon="notifications-outline"
+              accentColor={theme.primary}
+              backgroundColor={!isTodo ? theme.primarySoft : theme.surface}
+              onPress={() => setTaskMode(reminderTaskMode)}
+            />
+            <TaskModeCard
+              active={isTodo}
+              label={t('taskForm.todo')}
+              badge={t('taskForm.todoCardBadge')}
+              description={t('taskForm.todoCardDescription')}
+              icon="checkmark-done-outline"
+              accentColor={theme.success}
+              backgroundColor={isTodo ? hexToRgba(theme.success, 0.1) : theme.surface}
+              onPress={() => setTaskMode('todo')}
+            />
+          </View>
+          {isTodo ? (
+            <Text style={[styles.helper, { color: theme.mutedText }]}>{t('taskForm.todoHelper')}</Text>
+          ) : (
+            <Text style={[styles.helper, { color: theme.mutedText }]}>{t('taskForm.reminderHelper')}</Text>
+          )}
         </View>
-        {isTodo ? (
-          <Text style={[styles.helper, { color: theme.mutedText }]}>{t('taskForm.todoHelper')}</Text>
-        ) : (
-          <Text style={[styles.helper, { color: theme.mutedText }]}>{t('taskForm.reminderHelper')}</Text>
-        )}
+      </Card>
+
+      <View style={[styles.sectionDivider, { borderTopColor: theme.border }]}>
+        <Text style={[styles.sectionDividerText, { color: theme.mutedText, backgroundColor: theme.background }]}>{t('taskForm.sectionDivider')}</Text>
       </View>
 
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('taskForm.listSection')}</Text>
-        <View style={styles.chipWrap}>
-          {listChoices.map((list) => (
-            <Chip key={list.id} label={list.name} selected={listId === list.id} onPress={() => setListId(list.id)} />
-          ))}
+      <Card style={[styles.blockCard, { backgroundColor: theme.surface, borderColor: theme.border, shadowColor: theme.shadow }]}>
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('taskForm.listSection')}</Text>
+          <Text style={[styles.sectionHint, { color: theme.mutedText }]}>{t('taskForm.listHint')}</Text>
+          <View style={styles.chipWrap}>
+            {listChoices.map((list) => (
+              <Chip key={list.id} label={list.name} selected={listId === list.id} onPress={() => setListId(list.id)} />
+            ))}
+          </View>
         </View>
-      </View>
+      </Card>
 
       {!isTodo ? (
         <>
@@ -311,7 +414,8 @@ export function TaskForm({
 
 const styles = StyleSheet.create({
   content: {
-    paddingBottom: 40
+    paddingBottom: 40,
+    gap: 2
   },
   section: {
     marginBottom: 18
@@ -321,10 +425,100 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     marginBottom: 10
   },
+  sectionHint: {
+    fontSize: 12,
+    lineHeight: 18,
+    fontWeight: '600',
+    marginBottom: 12
+  },
+  sectionDivider: {
+    borderTopWidth: 1,
+    marginVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  sectionDividerText: {
+    marginTop: -10,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    borderRadius: 999,
+    backgroundColor: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.25
+  },
   helper: {
     marginTop: 8,
     fontSize: 13,
     fontWeight: '600'
+  },
+  blockCard: {
+    padding: 16,
+    borderWidth: 1,
+    borderRadius: 24,
+    marginBottom: 0
+  },
+  modeStack: {
+    gap: 12
+  },
+  modeCard: {
+    borderWidth: 1,
+    borderRadius: 22,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 1
+  },
+  modeIconWrap: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12
+  },
+  modeBody: {
+    flex: 1
+  },
+  modeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginBottom: 6
+  },
+  modeLabel: {
+    fontSize: 16,
+    fontWeight: '800',
+    flexShrink: 1
+  },
+  modeBadge: {
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4
+  },
+  modeBadgeText: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.2
+  },
+  modeDescription: {
+    fontSize: 13,
+    lineHeight: 19,
+    fontWeight: '600'
+  },
+  modeCheck: {
+    width: 22,
+    height: 22,
+    borderRadius: 999,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 10,
+    marginTop: 2
   },
   chipWrap: {
     flexDirection: 'row',
