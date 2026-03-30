@@ -6,7 +6,6 @@ import { useApp } from '@/hooks/useApp';
 import { Task } from '@/types/domain';
 import { AppList } from '@/types/domain';
 import { getVisibleTaskState, formatDateTimeTR } from '@/utils/date';
-import { safeParseJson } from '@/utils/json';
 import { StatusPill } from '@/components/StatusPill';
 import { useTranslation } from 'react-i18next';
 
@@ -40,7 +39,6 @@ export function TaskCard({
   const { theme } = useApp();
   const { t } = useTranslation();
   const state = useMemo(() => getVisibleTaskState(task), [task]);
-  const tags = safeParseJson<string[]>(task.tagsJson, []);
   const isTodo = task.taskMode === 'todo';
 
   const rightActions = () => (
@@ -103,15 +101,6 @@ export function TaskCard({
           <Text style={[styles.meta, { color: theme.mutedText }]}>{list?.name ?? t('common.noList')}</Text>
           <Text style={[styles.meta, { color: theme.mutedText }]}>{isTodo ? t('common.noNotification') : formatDateTimeTR(task.nextNotificationAt ?? task.startDateTime)}</Text>
         </View>
-        {tags.length > 0 ? (
-          <View style={styles.tagRow}>
-            {tags.slice(0, 3).map((tag) => (
-              <View key={tag} style={[styles.tag, { backgroundColor: theme.surfaceAlt, borderColor: theme.border }]}>
-                <Text style={[styles.tagText, { color: theme.text }]}>{tag}</Text>
-              </View>
-            ))}
-          </View>
-        ) : null}
       </Pressable>
     </Swipeable>
   );
@@ -171,22 +160,6 @@ const styles = StyleSheet.create({
     marginBottom: 10
   },
   meta: {
-    fontSize: 12,
-    fontWeight: '600'
-  },
-  tagRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap'
-  },
-  tag: {
-    borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    marginRight: 8,
-    marginBottom: 6
-  },
-  tagText: {
     fontSize: 12,
     fontWeight: '600'
   },

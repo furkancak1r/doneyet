@@ -38,7 +38,6 @@ export function mapTaskRow(row: Record<string, unknown>): Task {
     lastNotificationAt: row.lastNotificationAt ? String(row.lastNotificationAt) : null,
     nextNotificationAt: row.nextNotificationAt ? String(row.nextNotificationAt) : null,
     snoozedUntil: row.snoozedUntil ? String(row.snoozedUntil) : null,
-    tagsJson: String(row.tagsJson ?? '[]'),
     notificationIdsJson: String(row.notificationIdsJson ?? '[]'),
     completedAt: row.completedAt ? String(row.completedAt) : null
   };

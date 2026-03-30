@@ -3,12 +3,12 @@ import { getAdjacentTabHref } from '../constants/tabNavigation';
 
 describe('tab navigation helpers', () => {
   it('returns the next tab in order', () => {
-    expect(getAdjacentTabHref('/today', 'next')).toBe('/upcoming');
-    expect(getAdjacentTabHref('/upcoming', 'next')).toBe('/completed');
+    expect(getAdjacentTabHref('/today', 'next')).toBe('/calendar');
+    expect(getAdjacentTabHref('/calendar', 'next')).toBe('/upcoming');
   });
 
   it('returns the previous tab in order', () => {
-    expect(getAdjacentTabHref('/completed', 'previous')).toBe('/upcoming');
+    expect(getAdjacentTabHref('/upcoming', 'previous')).toBe('/calendar');
     expect(getAdjacentTabHref('/settings', 'previous')).toBe('/completed');
   });
 

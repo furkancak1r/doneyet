@@ -12,6 +12,7 @@ import { Chip } from '@/components/Chip';
 import { QuickAddTaskCard } from '@/features/tasks/QuickAddTaskCard';
 import { TaskListView } from '@/features/tasks/TaskListView';
 import { countTasksByState, getListTaskCounts, filterTasks, sortTasks } from '@/utils/taskFilters';
+import { getLayoutYOffset } from '@/utils/layout';
 import { useTranslation } from 'react-i18next';
 
 type SectionKey = 'active' | 'today' | 'overdue';
@@ -67,6 +68,16 @@ export default function HomeScreen() {
     });
   };
 
+  const setSectionOffset = (section: SectionKey, event: Parameters<typeof getLayoutYOffset>[0]) => {
+    const offset = getLayoutYOffset(event);
+
+    if (offset === null) {
+      return;
+    }
+
+    setSectionOffsets((current) => ({ ...current, [section]: offset }));
+  };
+
   return (
     <Screen scroll={false} padded={false} animateOnFocus>
       <NestableScrollContainer ref={scrollRef} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
@@ -93,10 +104,7 @@ export default function HomeScreen() {
           <StatCard title={t('home.statsOverdue')} value={countTasksByState(tasks, 'overdue')} tone={theme.danger} onPress={() => scrollToSection('overdue')} />
         </View>
 
-        <View
-          onLayout={(event) => setSectionOffsets((current) => ({ ...current, active: event.nativeEvent.layout.y }))}
-          style={styles.section}
-        >
+        <View onLayout={(event) => setSectionOffset('active', event)} style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('home.sectionActiveTitle')}</Text>
             <Text style={[styles.sectionAction, { color: theme.primary }]}>{t('home.sectionActiveAction')}</Text>
@@ -140,13 +148,7 @@ export default function HomeScreen() {
           )}
         </View>
 
-        <View
-          onLayout={(event) => {
-            const todayOffset = event.nativeEvent.layout.y;
-            setSectionOffsets((current) => ({ ...current, today: todayOffset }));
-          }}
-          style={styles.section}
-        >
+        <View onLayout={(event) => setSectionOffset('today', event)} style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('home.sectionTodayTitle')}</Text>
             <Link href="/today" style={[styles.sectionAction, { color: theme.primary }]}>
@@ -164,13 +166,7 @@ export default function HomeScreen() {
           />
         </View>
 
-        <View
-          onLayout={(event) => {
-            const overdueOffset = event.nativeEvent.layout.y;
-            setSectionOffsets((current) => ({ ...current, overdue: overdueOffset }));
-          }}
-          style={styles.section}
-        >
+        <View onLayout={(event) => setSectionOffset('overdue', event)} style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('home.sectionOverdueTitle')}</Text>
             <Link href="/upcoming" style={[styles.sectionAction, { color: theme.primary }]}>

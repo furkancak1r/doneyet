@@ -4,9 +4,9 @@
     "slug": "doneyet",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.jpeg",
+    "icon": "./assets/icon.png",
     "splash": {
-      "image": "./assets/icon.jpeg",
+      "image": "./assets/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#F4F0E8"
     },
@@ -25,12 +25,18 @@
       "package": "com.doneyet.app",
       "allowBackup": true,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.jpeg",
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#1F5C52"
       }
     },
     "plugins": [
       "expo-asset"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "1e54e95d-a6ea-4673-b02b-57ae718bc7aa"
+      }
+    },
+    "owner": "mxa123"
   }
 }

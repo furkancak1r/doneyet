@@ -12,7 +12,8 @@ type TabScreen = {
 export const TAB_SCREENS = [
   { name: 'index', href: '/', titleKey: 'tabs.home', icon: 'home-outline' },
   { name: 'today', href: '/today', titleKey: 'tabs.today', icon: 'today-outline' },
-  { name: 'upcoming', href: '/upcoming', titleKey: 'tabs.upcoming', icon: 'calendar-outline' },
+  { name: 'calendar', href: '/calendar', titleKey: 'tabs.calendar', icon: 'calendar-outline' },
+  { name: 'upcoming', href: '/upcoming', titleKey: 'tabs.upcoming', icon: 'time-outline' },
   { name: 'completed', href: '/completed', titleKey: 'tabs.completed', icon: 'checkmark-done-outline' },
   { name: 'settings', href: '/settings', titleKey: 'tabs.settings', icon: 'settings-outline' }
 ] as const satisfies readonly TabScreen[];

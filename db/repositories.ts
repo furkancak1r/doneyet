@@ -68,8 +68,8 @@ export async function saveTask(task: Task): Promise<void> {
         id, title, description, listId, sortOrder, createdAt, updatedAt, startReminderType, startDateTime,
         startReminderWeekday, startReminderDayOfMonth, startReminderTime, startReminderUsesLastDay, taskMode,
         repeatIntervalType, repeatIntervalValue, repeatIntervalUnit, status, lastNotificationAt,
-        nextNotificationAt, snoozedUntil, tagsJson, notificationIdsJson, completedAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        nextNotificationAt, snoozedUntil, notificationIdsJson, completedAt
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
         title = excluded.title,
         description = excluded.description,
@@ -90,7 +90,6 @@ export async function saveTask(task: Task): Promise<void> {
         lastNotificationAt = excluded.lastNotificationAt,
         nextNotificationAt = excluded.nextNotificationAt,
         snoozedUntil = excluded.snoozedUntil,
-        tagsJson = excluded.tagsJson,
         notificationIdsJson = excluded.notificationIdsJson,
         completedAt = excluded.completedAt`,
       [
@@ -115,7 +114,6 @@ export async function saveTask(task: Task): Promise<void> {
         task.lastNotificationAt,
         task.nextNotificationAt,
         task.snoozedUntil,
-        task.tagsJson,
         task.notificationIdsJson,
         task.completedAt
       ]
@@ -199,35 +197,5 @@ export async function saveSettings(settings: AppSettings): Promise<void> {
       'singleton',
       stableStringify(settings)
     ]);
-  });
-}
-
-export async function fetchTagsForTask(taskId: string): Promise<string[]> {
-  return withDatabase(async (db) => {
-    const rows = (await db.getAllAsync(
-      `SELECT tags.name
-       FROM tags
-       INNER JOIN task_tags ON task_tags.tagId = tags.id
-       WHERE task_tags.taskId = ?
-       ORDER BY tags.name ASC`,
-      [taskId]
-    )) as Record<string, unknown>[];
-    return rows.map((row: Record<string, unknown>) => String(row.name));
-  });
-}
-
-export async function replaceTagsForTask(taskId: string, tagNames: string[]): Promise<void> {
-  await withDatabase(async (db) => {
-    await db.runAsync('DELETE FROM task_tags WHERE taskId = ?', [taskId]);
-    for (const tagName of tagNames) {
-      const tagId = `tag_${tagName.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`;
-      await db.runAsync(
-        `INSERT INTO tags (id, name, createdAt)
-         VALUES (?, ?, ?)
-         ON CONFLICT(name) DO UPDATE SET name = excluded.name`,
-        [tagId, tagName, new Date().toISOString()]
-      );
-      await db.runAsync('INSERT OR IGNORE INTO task_tags (taskId, tagId) VALUES (?, ?)', [taskId, tagId]);
-    }
   });
 }

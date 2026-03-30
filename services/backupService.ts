@@ -37,7 +37,7 @@ export async function createBackupPayload(): Promise<BackupPayload> {
   ]);
 
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     exportedAt: new Date().toISOString(),
     lists,
     tasks,

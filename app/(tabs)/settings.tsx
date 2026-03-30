@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react';
 import { Alert, Pressable, ScrollView, Share, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useApp } from '@/hooks/useApp';
 import { Screen } from '@/components/Screen';
 import { Section } from '@/components/Section';
@@ -151,6 +153,23 @@ export default function SettingsScreen() {
           </View>
         ) : null}
       </Section>
+
+      <Section title={t('settings.aboutSection')}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push('/settings/about')}
+          style={({ pressed }) => [
+            styles.aboutRow,
+            { backgroundColor: theme.surface, borderColor: theme.border, shadowColor: theme.shadow, opacity: pressed ? 0.9 : 1 }
+          ]}
+        >
+          <View style={styles.aboutTextWrap}>
+            <Text style={[styles.aboutTitle, { color: theme.text }]}>{t('settings.aboutMenuTitle')}</Text>
+            <Text style={[styles.aboutDescription, { color: theme.mutedText }]}>{t('settings.aboutMenuDescription')}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={theme.mutedText} />
+        </Pressable>
+      </Section>
     </Screen>
   );
 }
@@ -242,5 +261,32 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     marginBottom: 12,
     fontWeight: '600'
+  },
+  aboutRow: {
+    minHeight: 72,
+    borderWidth: 1,
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 1
+  },
+  aboutTextWrap: {
+    flex: 1
+  },
+  aboutTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    marginBottom: 4
+  },
+  aboutDescription: {
+    fontSize: 13,
+    lineHeight: 18
   }
 });

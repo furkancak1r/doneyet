@@ -7,7 +7,6 @@ import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { TaskCard } from '@/components/TaskCard';
 import { formatDateTimeTR, getVisibleTaskState } from '@/utils/date';
-import { safeParseJson } from '@/utils/json';
 import { weekdayName } from '@/utils/date';
 import { snoozeEveningTime } from '@/constants/settings';
 import { useTranslation } from 'react-i18next';
@@ -24,7 +23,6 @@ export default function TaskDetailScreen() {
   }
 
   const list = lists.find((item) => item.id === task.listId);
-  const tags = safeParseJson<string[]>(task.tagsJson, []);
   const state = getVisibleTaskState(task);
   const isRecurring = task.taskMode === 'recurring';
   const isTodo = task.taskMode === 'todo';
@@ -47,16 +45,15 @@ export default function TaskDetailScreen() {
 
       <Card>
         <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('taskDetail.infoSection')}</Text>
-        <InfoRow themeColor={theme.border} label={t('taskDetail.list')} value={list?.name ?? t('common.noList')} />
-        <InfoRow themeColor={theme.border} label={t('taskDetail.taskType')} value={isTodo ? t('taskCard.modeTodo') : task.taskMode === 'recurring' ? t('taskCard.modeRecurring') : t('taskCard.modeSingle')} />
-        {isTodo ? <InfoRow themeColor={theme.border} label={t('taskDetail.notification')} value={t('common.none')} /> : <InfoRow themeColor={theme.border} label={t('taskDetail.start')} value={formatDateTimeTR(task.startDateTime)} />}
-        {isTodo ? <InfoRow themeColor={theme.border} label={t('taskDetail.created')} value={formatDateTimeTR(task.createdAt)} /> : null}
-        {!isTodo ? <InfoRow themeColor={theme.border} label={t('taskDetail.lastNotification')} value={formatDateTimeTR(task.lastNotificationAt)} /> : null}
-        {!isTodo ? <InfoRow themeColor={theme.border} label={t('taskDetail.nextNotification')} value={formatDateTimeTR(task.nextNotificationAt)} /> : null}
-        {isRecurring ? <InfoRow themeColor={theme.border} label={t('taskDetail.completedCycle')} value={formatDateTimeTR(task.completedAt)} /> : null}
-        <InfoRow themeColor={theme.border} label={t('taskDetail.status')} value={state === 'overdue' ? t('taskCard.statusOverdue') : state === 'snoozed' ? t('taskCard.statusSnoozed') : state === 'completed' ? t('taskCard.statusCompleted') : t('taskCard.statusActive')} />
-        {!isTodo && task.startReminderWeekday !== null ? <InfoRow themeColor={theme.border} label={t('taskDetail.weekday')} value={weekdayName(task.startReminderWeekday)} /> : null}
-        {tags.length > 0 ? <InfoRow themeColor={theme.border} label={t('taskDetail.tags')} value={tags.join(', ')} /> : null}
+        <InfoRow labelColor={theme.mutedText} themeColor={theme.border} valueColor={theme.text} label={t('taskDetail.list')} value={list?.name ?? t('common.noList')} />
+        <InfoRow labelColor={theme.mutedText} themeColor={theme.border} valueColor={theme.text} label={t('taskDetail.taskType')} value={isTodo ? t('taskCard.modeTodo') : task.taskMode === 'recurring' ? t('taskCard.modeRecurring') : t('taskCard.modeSingle')} />
+        {isTodo ? <InfoRow labelColor={theme.mutedText} themeColor={theme.border} valueColor={theme.text} label={t('taskDetail.notification')} value={t('common.none')} /> : <InfoRow labelColor={theme.mutedText} themeColor={theme.border} valueColor={theme.text} label={t('taskDetail.start')} value={formatDateTimeTR(task.startDateTime)} />}
+        {isTodo ? <InfoRow labelColor={theme.mutedText} themeColor={theme.border} valueColor={theme.text} label={t('taskDetail.created')} value={formatDateTimeTR(task.createdAt)} /> : null}
+        {!isTodo ? <InfoRow labelColor={theme.mutedText} themeColor={theme.border} valueColor={theme.text} label={t('taskDetail.lastNotification')} value={formatDateTimeTR(task.lastNotificationAt)} /> : null}
+        {!isTodo ? <InfoRow labelColor={theme.mutedText} themeColor={theme.border} valueColor={theme.text} label={t('taskDetail.nextNotification')} value={formatDateTimeTR(task.nextNotificationAt)} /> : null}
+        {isRecurring ? <InfoRow labelColor={theme.mutedText} themeColor={theme.border} valueColor={theme.text} label={t('taskDetail.completedCycle')} value={formatDateTimeTR(task.completedAt)} /> : null}
+        <InfoRow labelColor={theme.mutedText} themeColor={theme.border} valueColor={theme.text} label={t('taskDetail.status')} value={state === 'overdue' ? t('taskCard.statusOverdue') : state === 'snoozed' ? t('taskCard.statusSnoozed') : state === 'completed' ? t('taskCard.statusCompleted') : t('taskCard.statusActive')} />
+        {!isTodo && task.startReminderWeekday !== null ? <InfoRow labelColor={theme.mutedText} themeColor={theme.border} valueColor={theme.text} label={t('taskDetail.weekday')} value={weekdayName(task.startReminderWeekday)} /> : null}
         {isTodo ? <Text style={[styles.recurringNote, { color: theme.mutedText }]}>{t('taskDetail.todoNote')}</Text> : null}
         {isRecurring ? <Text style={[styles.recurringNote, { color: theme.mutedText }]}>{t('taskDetail.recurringNote')}</Text> : null}
       </Card>
@@ -89,11 +86,23 @@ export default function TaskDetailScreen() {
   );
 }
 
-function InfoRow({ label, value, themeColor }: { label: string; value: string; themeColor: string }) {
+function InfoRow({
+  label,
+  value,
+  themeColor,
+  labelColor,
+  valueColor
+}: {
+  label: string;
+  value: string;
+  themeColor: string;
+  labelColor: string;
+  valueColor: string;
+}) {
   return (
     <View style={[styles.infoRow, { borderBottomColor: themeColor }]}>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{value}</Text>
+      <Text style={[styles.infoLabel, { color: labelColor }]}>{label}</Text>
+      <Text style={[styles.infoValue, { color: valueColor }]}>{value}</Text>
     </View>
   );
 }

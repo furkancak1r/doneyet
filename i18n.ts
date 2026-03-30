@@ -21,7 +21,7 @@ const resources = {
   en: { translation: translations.en }
 };
 
-function normalizeLanguage(value?: string | null): AppLanguage {
+export function normalizeLanguage(value?: string | null): AppLanguage {
   const language = (value ?? '').toLowerCase();
   return language.startsWith('tr') ? 'tr' : 'en';
 }
@@ -47,8 +47,8 @@ export function resolveAppLanguage(language: AppLanguageSetting | undefined): Ap
   return getDeviceLanguage();
 }
 
-export function getLocaleForLanguage(language: AppLanguageSetting | AppLanguage | undefined): string {
-  return resolveAppLanguage(language as AppLanguageSetting | undefined) === 'tr' ? 'tr-TR' : 'en-US';
+export function getLocaleForLanguage(language: string | undefined): string {
+  return normalizeLanguage(language) === 'tr' ? 'tr-TR' : 'en-US';
 }
 
 export async function setAppLanguage(language: AppLanguageSetting | undefined): Promise<AppLanguage> {

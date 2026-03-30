@@ -1,6 +1,5 @@
 import { AppList, Task } from '@/types/domain';
 import { getVisibleTaskState, startOfDay, addDays } from '@/utils/date';
-import { safeParseJson } from '@/utils/json';
 
 export type TaskFilter = 'all' | 'active' | 'completed' | 'today' | 'week' | 'overdue';
 export type TaskSort = 'startDate' | 'nextNotification' | 'createdAt' | 'manual';
@@ -9,20 +8,10 @@ export interface TaskQuery {
   filter: TaskFilter;
   sort: TaskSort;
   listId?: string | null;
-  tag?: string | null;
 }
 
 function matchesList(task: Task, listId?: string | null): boolean {
   return !listId || task.listId === listId;
-}
-
-function matchesTag(task: Task, tag?: string | null): boolean {
-  if (!tag) {
-    return true;
-  }
-
-  const tags = safeParseJson<string[]>(task.tagsJson || '[]', []);
-  return tags.some((value) => value.toLowerCase() === tag.toLowerCase());
 }
 
 export function filterTasks(tasks: Task[], query: TaskQuery, reference = new Date()): Task[] {
@@ -30,10 +19,6 @@ export function filterTasks(tasks: Task[], query: TaskQuery, reference = new Dat
 
   return tasks.filter((task) => {
     if (!matchesList(task, query.listId)) {
-      return false;
-    }
-
-    if (!matchesTag(task, query.tag)) {
       return false;
     }
 

@@ -7,19 +7,7 @@ import { AppList } from '@/types/domain';
 import i18n from '@/i18n';
 import { resolveDefaultSeedKey } from '@/utils/defaultLists';
 
-const schemaStatements = [
-  `PRAGMA foreign_keys = ON;`,
-  `CREATE TABLE IF NOT EXISTS lists (
-    id TEXT PRIMARY KEY NOT NULL,
-    name TEXT NOT NULL,
-    color TEXT NOT NULL,
-    icon TEXT NOT NULL,
-    sortOrder INTEGER NOT NULL DEFAULT 0,
-    createdAt TEXT NOT NULL,
-    seedKey TEXT,
-    seedNameLocked INTEGER NOT NULL DEFAULT 0
-  );`,
-  `CREATE TABLE IF NOT EXISTS tasks (
+const taskTableColumns = `
     id TEXT PRIMARY KEY NOT NULL,
     title TEXT NOT NULL,
     description TEXT NOT NULL DEFAULT '',
@@ -41,10 +29,25 @@ const schemaStatements = [
     lastNotificationAt TEXT,
     nextNotificationAt TEXT,
     snoozedUntil TEXT,
-    tagsJson TEXT NOT NULL DEFAULT '[]',
     notificationIdsJson TEXT NOT NULL DEFAULT '[]',
     completedAt TEXT,
     FOREIGN KEY(listId) REFERENCES lists(id) ON DELETE CASCADE
+  `;
+
+const schemaStatements = [
+  `PRAGMA foreign_keys = ON;`,
+  `CREATE TABLE IF NOT EXISTS lists (
+    id TEXT PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
+    color TEXT NOT NULL,
+    icon TEXT NOT NULL,
+    sortOrder INTEGER NOT NULL DEFAULT 0,
+    createdAt TEXT NOT NULL,
+    seedKey TEXT,
+    seedNameLocked INTEGER NOT NULL DEFAULT 0
+  );`,
+  `CREATE TABLE IF NOT EXISTS tasks (
+  ${taskTableColumns}
   );`,
   `CREATE TABLE IF NOT EXISTS task_notifications (
     id TEXT PRIMARY KEY NOT NULL,
@@ -59,18 +62,6 @@ const schemaStatements = [
   `CREATE TABLE IF NOT EXISTS settings (
     id TEXT PRIMARY KEY NOT NULL,
     value TEXT NOT NULL
-  );`,
-  `CREATE TABLE IF NOT EXISTS tags (
-    id TEXT PRIMARY KEY NOT NULL,
-    name TEXT NOT NULL UNIQUE,
-    createdAt TEXT NOT NULL
-  );`,
-  `CREATE TABLE IF NOT EXISTS task_tags (
-    taskId TEXT NOT NULL,
-    tagId TEXT NOT NULL,
-    PRIMARY KEY (taskId, tagId),
-    FOREIGN KEY(taskId) REFERENCES tasks(id) ON DELETE CASCADE,
-    FOREIGN KEY(tagId) REFERENCES tags(id) ON DELETE CASCADE
   );`
 ];
 
@@ -126,6 +117,52 @@ async function ensureTaskSortOrderColumn(): Promise<boolean> {
   }
 
   return false;
+}
+
+async function cleanupLegacyTagSchema(): Promise<void> {
+  const database = await withDatabase(async (db) => db);
+  const columns = (await database.getAllAsync('PRAGMA table_info(tasks)')) as Record<string, unknown>[];
+  const hasTagColumn = columns.some((column) => String(column.name) === 'tagsJson');
+
+  await database.execAsync('PRAGMA foreign_keys = OFF;');
+  try {
+    await database.execAsync('BEGIN TRANSACTION;');
+    try {
+      await database.execAsync('DROP TABLE IF EXISTS tasks_new;');
+      if (hasTagColumn) {
+        await database.execAsync(
+          `CREATE TABLE tasks_new (
+  ${taskTableColumns}
+  );`
+        );
+        await database.execAsync(
+          `INSERT INTO tasks_new (
+            id, title, description, listId, sortOrder, createdAt, updatedAt, startReminderType, startDateTime,
+            startReminderWeekday, startReminderDayOfMonth, startReminderTime, startReminderUsesLastDay, taskMode,
+            repeatIntervalType, repeatIntervalValue, repeatIntervalUnit, status, lastNotificationAt,
+            nextNotificationAt, snoozedUntil, notificationIdsJson, completedAt
+          )
+          SELECT
+            id, title, description, listId, sortOrder, createdAt, updatedAt, startReminderType, startDateTime,
+            startReminderWeekday, startReminderDayOfMonth, startReminderTime, startReminderUsesLastDay, taskMode,
+            repeatIntervalType, repeatIntervalValue, repeatIntervalUnit, status, lastNotificationAt,
+            nextNotificationAt, snoozedUntil, notificationIdsJson, completedAt
+          FROM tasks;`
+        );
+        await database.execAsync('DROP TABLE IF EXISTS tasks;');
+        await database.execAsync('ALTER TABLE tasks_new RENAME TO tasks;');
+      }
+
+      await database.execAsync('DROP TABLE IF EXISTS task_tags;');
+      await database.execAsync('DROP TABLE IF EXISTS tags;');
+      await database.execAsync('COMMIT;');
+    } catch (error) {
+      await database.execAsync('ROLLBACK;');
+      throw error;
+    }
+  } finally {
+    await database.execAsync('PRAGMA foreign_keys = ON;');
+  }
 }
 
 async function backfillListSortOrder(): Promise<void> {
@@ -228,6 +265,7 @@ export async function initializeDatabase(): Promise<void> {
   const listSortOrderAdded = await ensureListSortOrderColumn();
   const taskSortOrderAdded = await ensureTaskSortOrderColumn();
   const listMetadataAdded = await ensureListMetadataColumns();
+  await cleanupLegacyTagSchema();
   if (listSortOrderAdded) {
     await backfillListSortOrder();
   }

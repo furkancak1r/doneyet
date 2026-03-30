@@ -3,6 +3,7 @@ import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useApp } from '@/hooks/useApp';
 import { formatDateTimeTR, formatDateTR, formatTimeDisplay } from '@/utils/date';
+import { getCurrentLocale } from '@/utils/locale';
 
 export function DateTimeField({
   label,
@@ -17,6 +18,7 @@ export function DateTimeField({
 }) {
   const { theme } = useApp();
   const [open, setOpen] = useState(false);
+  const locale = getCurrentLocale();
 
   const handleChange = (_event: DateTimePickerEvent, selected?: Date) => {
     if (selected) {
@@ -40,6 +42,7 @@ export function DateTimeField({
         <DateTimePicker
           value={value}
           mode={mode === 'datetime' ? 'datetime' : mode}
+          locale={Platform.OS === 'ios' ? locale : undefined}
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={handleChange}
           style={Platform.OS === 'ios' ? styles.iosPicker : undefined}

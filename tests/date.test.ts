@@ -1,7 +1,27 @@
-import { describe, expect, it } from 'vitest';
-import { daysInMonth, getNextStartDateTime, isLeapYear } from '../utils/date';
+import { afterEach, describe, expect, it } from 'vitest';
+import i18n from '../i18n';
+import { daysInMonth, formatDateTR, formatDurationLabel, getNextStartDateTime, isLeapYear } from '../utils/date';
+
+function expectLocalDateTime(
+  date: Date,
+  year: number,
+  monthIndex: number,
+  day: number,
+  hour: number,
+  minute: number
+): void {
+  expect(date.getFullYear()).toBe(year);
+  expect(date.getMonth()).toBe(monthIndex);
+  expect(date.getDate()).toBe(day);
+  expect(date.getHours()).toBe(hour);
+  expect(date.getMinutes()).toBe(minute);
+}
 
 describe('date helpers', () => {
+  afterEach(async () => {
+    await i18n.changeLanguage('en');
+  });
+
   it('detects leap years', () => {
     expect(isLeapYear(2024)).toBe(true);
     expect(isLeapYear(2025)).toBe(false);
@@ -49,10 +69,72 @@ describe('date helpers', () => {
     expect(result.getDate()).toBe(30);
   });
 
+  it('moves past today-at-time reminders to the next day at the same clock time', () => {
+    const reference = new Date(2025, 2, 1, 10, 0, 0, 0);
+
+    const result = getNextStartDateTime(
+      'today_at_time',
+      new Date(2025, 2, 1, 9, 30, 0, 0),
+      null,
+      null,
+      '09:30',
+      false,
+      reference
+    );
+
+    expectLocalDateTime(result, 2025, 2, 2, 9, 30);
+  });
+
+  it('keeps future today-at-time reminders on the same day', () => {
+    const reference = new Date(2025, 2, 1, 10, 0, 0, 0);
+
+    const result = getNextStartDateTime(
+      'today_at_time',
+      new Date(2025, 2, 1, 11, 15, 0, 0),
+      null,
+      null,
+      '11:15',
+      false,
+      reference
+    );
+
+    expectLocalDateTime(result, 2025, 2, 1, 11, 15);
+  });
+
+  it('preserves the existing exact-date fallback for past reminders', () => {
+    const reference = new Date(2025, 2, 1, 10, 0, 0, 0);
+
+    const result = getNextStartDateTime(
+      'exact_date_time',
+      new Date(2025, 2, 1, 9, 0, 0, 0),
+      null,
+      null,
+      '09:00',
+      false,
+      reference
+    );
+
+    expectLocalDateTime(result, 2025, 2, 1, 10, 1);
+  });
+
   it('reports month length correctly', () => {
     expect(daysInMonth(2025, 1)).toBe(28);
     expect(daysInMonth(2024, 1)).toBe(29);
     expect(daysInMonth(2025, 3)).toBe(30);
     expect(daysInMonth(2025, 6)).toBe(31);
+  });
+
+  it('formats dates and duration labels in the active language', async () => {
+    await i18n.changeLanguage('tr');
+
+    expect(formatDateTR(new Date(2025, 0, 15))).toContain('Oca');
+    expect(formatDurationLabel(12, 'minutes')).toBe('12 dk');
+    expect(formatDurationLabel(2, 'hours')).toBe('2 saat');
+
+    await i18n.changeLanguage('en');
+
+    expect(formatDateTR(new Date(2025, 0, 15))).toContain('Jan');
+    expect(formatDurationLabel(12, 'minutes')).toBe('12 min');
+    expect(formatDurationLabel(2, 'hours')).toBe('2 hours');
   });
 });

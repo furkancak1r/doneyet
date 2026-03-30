@@ -1,16 +1,33 @@
 import { defaultSettings } from '@/constants/settings';
-import { fetchTaskById, fetchTasks, replaceTaskNotifications, saveTask } from '@/db/repositories';
+import { fetchTaskById, fetchTaskNotifications, fetchTasks, replaceTaskNotifications, saveTask } from '@/db/repositories';
 import { cancelNotifications, hasNotificationPermission, scheduleTaskReminder } from '@/services/notificationService';
 import { AppSettings, Task } from '@/types/domain';
 import { addRepeatInterval, getNextStartDateTime, toIso } from '@/utils/date';
 import { createId } from '@/utils/id';
 import { safeParseJson, stableStringify } from '@/utils/json';
 
-const MAX_PENDING_NOTIFICATIONS = 60;
-const MAX_HORIZON_DAYS = 30;
+const scheduleLocks = new Map<string, Promise<unknown>>();
 
 function parseTaskNotificationIds(task: Task): string[] {
   return safeParseJson<string[]>(task.notificationIdsJson, []);
+}
+
+async function withTaskScheduleLock<T>(taskId: string, operation: () => Promise<T>): Promise<T> {
+  const existing = scheduleLocks.get(taskId);
+  if (existing) {
+    return existing as Promise<T>;
+  }
+
+  const taskPromise = operation();
+  scheduleLocks.set(taskId, taskPromise as Promise<unknown>);
+
+  try {
+    return await taskPromise;
+  } finally {
+    if (scheduleLocks.get(taskId) === taskPromise) {
+      scheduleLocks.delete(taskId);
+    }
+  }
 }
 
 function deriveAnchor(task: Task, now: Date): Date {
@@ -39,91 +56,81 @@ function deriveAnchor(task: Task, now: Date): Date {
   );
 }
 
-export function calculatePendingSlots(activeTaskCount: number): number {
-  const perTask = Math.floor(MAX_PENDING_NOTIFICATIONS / Math.max(activeTaskCount, 1));
-  return Math.max(3, Math.min(15, perTask));
-}
-
-export function buildUpcomingOccurrences(task: Task, now: Date, maxCount: number): Date[] {
-  const occurrences: Date[] = [];
-  const anchor = deriveAnchor(task, now);
-  const horizon = new Date(now);
-  horizon.setDate(horizon.getDate() + MAX_HORIZON_DAYS);
-
-  const intervalMs = Math.max(60_000, task.repeatIntervalValue * (task.repeatIntervalUnit === 'minutes' ? 60_000 : 3_600_000));
-  let cursor = new Date(Math.max(anchor.getTime(), now.getTime()));
-  while (occurrences.length < maxCount && cursor.getTime() <= horizon.getTime()) {
-    occurrences.push(new Date(cursor));
-    cursor = new Date(cursor.getTime() + intervalMs);
+async function cancelExistingTaskNotifications(task: Task): Promise<void> {
+  const ids = new Set<string>(parseTaskNotificationIds(task));
+  const rows = await fetchTaskNotifications(task.id);
+  for (const row of rows) {
+    if (row.notificationId) {
+      ids.add(row.notificationId);
+    }
   }
 
-  return occurrences;
-}
-
-async function cancelExistingTaskNotifications(task: Task): Promise<void> {
-  const ids = parseTaskNotificationIds(task);
-  if (ids.length > 0) {
-    await cancelNotifications(ids);
+  const uniqueIds = [...ids];
+  if (uniqueIds.length > 0) {
+    await cancelNotifications(uniqueIds);
   }
 }
 
 export async function syncTaskSchedule(taskId: string, settings: AppSettings = defaultSettings): Promise<Task | null> {
-  const task = await fetchTaskById(taskId);
-  if (!task) {
-    return null;
-  }
+  return withTaskScheduleLock(taskId, async () => {
+    const task = await fetchTaskById(taskId);
+    if (!task) {
+      return null;
+    }
 
-  await cancelExistingTaskNotifications(task);
+    await cancelExistingTaskNotifications(task);
 
-  if (task.taskMode === 'todo' || task.status !== 'active') {
-    await replaceTaskNotifications(task.id, []);
-    const cleared: Task = {
-      ...task,
-      nextNotificationAt: null,
-      snoozedUntil: null,
-      notificationIdsJson: stableStringify([]),
-      updatedAt: new Date().toISOString()
-    };
-    await saveTask(cleared);
-    return cleared;
-  }
+    if (task.taskMode === 'todo' || task.status !== 'active') {
+      await replaceTaskNotifications(task.id, []);
+      const cleared: Task = {
+        ...task,
+        nextNotificationAt: null,
+        snoozedUntil: null,
+        notificationIdsJson: stableStringify([]),
+        updatedAt: new Date().toISOString()
+      };
+      await saveTask(cleared);
+      return cleared;
+    }
 
-  const permissionAwareSettings = settings ?? defaultSettings;
-  const now = new Date();
-  const activeTasks = await fetchTasks();
-  const pendingSlots = calculatePendingSlots(activeTasks.filter((item) => item.status === 'active' && item.taskMode !== 'todo').length);
-  const upcomingOccurrences = buildUpcomingOccurrences(task, now, pendingSlots);
-  const rows = [];
-  const notificationIds: string[] = [];
-  const canSchedule = await hasNotificationPermission();
+    const permissionAwareSettings = settings ?? defaultSettings;
+    const now = new Date();
+    const nextNotificationAt = calculateImmediateNextNotification(task, now);
+    const rows: Array<{
+      id: string;
+      taskId: string;
+      notificationId: string;
+      scheduledFor: string;
+      createdAt: string;
+    }> = [];
+    const notificationIds: string[] = [];
+    const canSchedule = await hasNotificationPermission();
 
-  if (canSchedule) {
-    for (const occurrence of upcomingOccurrences) {
-      const notificationId = await scheduleTaskReminder(task, occurrence, Boolean(permissionAwareSettings.soundEnabled));
+    if (canSchedule) {
+      const notificationId = await scheduleTaskReminder(task, nextNotificationAt, Boolean(permissionAwareSettings.soundEnabled));
       notificationIds.push(notificationId);
       rows.push({
         id: createId('task_notif'),
         taskId: task.id,
         notificationId,
-        scheduledFor: occurrence.toISOString(),
+        scheduledFor: nextNotificationAt.toISOString(),
         createdAt: new Date().toISOString()
       });
     }
-  }
 
-  await replaceTaskNotifications(task.id, rows);
+    await replaceTaskNotifications(task.id, rows);
 
-  const nextNotificationAt = upcomingOccurrences[0] ?? deriveAnchor(task, now);
-  const updatedTask: Task = {
-    ...task,
-    nextNotificationAt: toIso(nextNotificationAt),
-    snoozedUntil: task.snoozedUntil && new Date(task.snoozedUntil).getTime() > now.getTime() ? task.snoozedUntil : null,
-    notificationIdsJson: stableStringify(notificationIds),
-    updatedAt: new Date().toISOString()
-  };
+    const updatedTask: Task = {
+      ...task,
+      nextNotificationAt: toIso(nextNotificationAt),
+      snoozedUntil: task.snoozedUntil && new Date(task.snoozedUntil).getTime() > now.getTime() ? task.snoozedUntil : null,
+      notificationIdsJson: stableStringify(notificationIds),
+      updatedAt: new Date().toISOString()
+    };
 
-  await saveTask(updatedTask);
-  return updatedTask;
+    await saveTask(updatedTask);
+    return updatedTask;
+  });
 }
 
 export async function restoreAllTaskSchedules(settings: AppSettings = defaultSettings): Promise<void> {
@@ -139,8 +146,10 @@ export async function rescheduleTaskAfterMutation(taskId: string, settings: AppS
 }
 
 export async function clearTaskSchedule(task: Task): Promise<void> {
-  await cancelExistingTaskNotifications(task);
-  await replaceTaskNotifications(task.id, []);
+  await withTaskScheduleLock(task.id, async () => {
+    await cancelExistingTaskNotifications(task);
+    await replaceTaskNotifications(task.id, []);
+  });
 }
 
 export function computeNextOccurrenceAfterNotification(task: Task, lastNotificationAt: Date): Date {
@@ -148,6 +157,5 @@ export function computeNextOccurrenceAfterNotification(task: Task, lastNotificat
 }
 
 export function calculateImmediateNextNotification(task: Task, now = new Date()): Date {
-  const anchor = deriveAnchor(task, now);
-  return anchor.getTime() > now.getTime() ? anchor : now;
+  return deriveAnchor(task, now);
 }

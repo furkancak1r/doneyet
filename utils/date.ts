@@ -1,6 +1,6 @@
 import { RepeatIntervalUnit, StartReminderType, Task } from '@/types/domain';
 import i18n from '@/i18n';
-import { getCurrentLocale } from '@/utils/locale';
+import { getCurrentAppLanguage, getCurrentLocale } from '@/utils/locale';
 
 export function pad(value: number): string {
   return value.toString().padStart(2, '0');
@@ -93,14 +93,10 @@ export function getWeekdayLabels(): string[] {
 
 export function formatDurationLabel(value: number, unit: RepeatIntervalUnit): string {
   if (unit === 'minutes') {
-    return i18n.language === 'tr' ? `${value} dk` : `${value} min`;
+    return getCurrentAppLanguage() === 'tr' ? `${value} dk` : `${value} min`;
   }
 
-  return i18n.language === 'tr' ? `${value} saat` : `${value} hour${value === 1 ? '' : 's'}`;
-}
-
-export function normalizeTaskTags(value: string[]): string[] {
-  return Array.from(new Set(value.map((tag) => tag.trim()).filter(Boolean)));
+  return getCurrentAppLanguage() === 'tr' ? `${value} saat` : `${value} hour${value === 1 ? '' : 's'}`;
 }
 
 export function toIso(date: Date): string {
@@ -141,7 +137,7 @@ export function getNextStartDateTime(
 
   if (startReminderType === 'today_at_time') {
     const candidate = setTimeOnDate(safeReference, startReminderTime);
-    return candidate.getTime() > safeReference.getTime() ? candidate : addMinutes(safeReference, 1);
+    return candidate.getTime() > safeReference.getTime() ? candidate : setTimeOnDate(addDays(safeReference, 1), startReminderTime);
   }
 
   if (startReminderType === 'tomorrow_at_time') {

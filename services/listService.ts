@@ -4,6 +4,7 @@ import { AppList } from '@/types/domain';
 import { createId } from '@/utils/id';
 import { renumberSortOrders } from '@/utils/order';
 import i18n from '@/i18n';
+import { getCurrentAppLanguage } from '@/utils/locale';
 import { getDefaultSeedName, resolveDefaultSeedKey, shouldLockSeedName } from '@/utils/defaultLists';
 
 function normalizeListName(name: string): string {
@@ -88,7 +89,7 @@ export function getDefaultSeedListNames(): string[] {
 
 export async function syncLocalizedDefaultLists(): Promise<void> {
   const lists = await fetchLists();
-  const nextLanguage = i18n.language === 'tr' ? 'tr' : 'en';
+  const nextLanguage = getCurrentAppLanguage();
   const updates = lists
     .map((list) => {
       const resolvedSeedKey = list.seedKey ?? resolveDefaultSeedKey(list);

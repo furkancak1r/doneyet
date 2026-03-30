@@ -1,7 +1,8 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
-const packageRoot = join(process.cwd(), 'node_modules', 'react-native-draggable-flatlist');
+const draggableFlatListRoot = join(process.cwd(), 'node_modules', 'react-native-draggable-flatlist');
+const reactNativeScreensRoot = join(process.cwd(), 'node_modules', 'react-native-screens');
 
 function patchFile(filePath, replacements) {
   if (!existsSync(filePath)) {
@@ -23,9 +24,9 @@ function patchFile(filePath, replacements) {
   return true;
 }
 
-const sourceFile = join(packageRoot, 'src', 'components', 'NestableDraggableFlatList.tsx');
-const moduleFile = join(packageRoot, 'lib', 'module', 'components', 'NestableDraggableFlatList.js');
-const commonjsFile = join(packageRoot, 'lib', 'commonjs', 'components', 'NestableDraggableFlatList.js');
+const sourceFile = join(draggableFlatListRoot, 'src', 'components', 'NestableDraggableFlatList.tsx');
+const moduleFile = join(draggableFlatListRoot, 'lib', 'module', 'components', 'NestableDraggableFlatList.js');
+const commonjsFile = join(draggableFlatListRoot, 'lib', 'commonjs', 'components', 'NestableDraggableFlatList.js');
 
 const sourcePatched = patchFile(sourceFile, [
   ['import { findNodeHandle, LogBox } from "react-native";', 'import { findNodeHandle, LogBox, UIManager } from "react-native";'],
@@ -51,6 +52,71 @@ const commonjsPatched = patchFile(commonjsFile, [
   ]
 ]);
 
+const screensSourceFile = join(reactNativeScreensRoot, 'src', 'components', 'Screen.tsx');
+const screensModuleFile = join(reactNativeScreensRoot, 'lib', 'module', 'components', 'Screen.js');
+const screensCommonjsFile = join(reactNativeScreensRoot, 'lib', 'commonjs', 'components', 'Screen.js');
+
+const transitionListenerSource = `    const goingForward = React.useRef(new Animated.Value(0)).current;
+
+    React.useEffect(() => {
+      if (!__DEV__ || Platform.OS !== 'ios' || !props.isNativeStack) {
+        return;
+      }
+
+      const values = [progress, closing, goingForward];
+      const subscriptionIds = values.map((value) => value.addListener(() => {}));
+
+      return () => {
+        subscriptionIds.forEach((subscriptionId, index) => {
+          values[index]?.removeListener(subscriptionId);
+        });
+      };
+    }, [closing, goingForward, progress, props.isNativeStack]);`;
+
+const transitionListenerModule = `  const goingForward = React.useRef(new Animated.Value(0)).current;
+  React.useEffect(() => {
+    if (!__DEV__ || Platform.OS !== 'ios' || !props.isNativeStack) {
+      return;
+    }
+    const values = [progress, closing, goingForward];
+    const subscriptionIds = values.map(value => value.addListener(() => {}));
+    return () => {
+      subscriptionIds.forEach((subscriptionId, index) => {
+        values[index]?.removeListener(subscriptionId);
+      });
+    };
+  }, [closing, goingForward, progress, props.isNativeStack]);`;
+
+const transitionListenerCommonjs = `  const goingForward = _react.default.useRef(new _reactNative.Animated.Value(0)).current;
+  _react.default.useEffect(() => {
+    if (!__DEV__ || _reactNative.Platform.OS !== 'ios' || !props.isNativeStack) {
+      return;
+    }
+    const values = [progress, closing, goingForward];
+    const subscriptionIds = values.map(value => value.addListener(() => {}));
+    return () => {
+      subscriptionIds.forEach((subscriptionId, index) => {
+        values[index]?.removeListener(subscriptionId);
+      });
+    };
+  }, [closing, goingForward, progress, props.isNativeStack]);`;
+
+const screensSourcePatched = patchFile(screensSourceFile, [
+  ['    const goingForward = React.useRef(new Animated.Value(0)).current;', transitionListenerSource]
+]);
+
+const screensModulePatched = patchFile(screensModuleFile, [
+  ['  const goingForward = React.useRef(new Animated.Value(0)).current;', transitionListenerModule]
+]);
+
+const screensCommonjsPatched = patchFile(screensCommonjsFile, [
+  ['  const goingForward = _react.default.useRef(new _reactNative.Animated.Value(0)).current;', transitionListenerCommonjs]
+]);
+
 if (sourcePatched || modulePatched || commonjsPatched) {
   console.log('Patched react-native-draggable-flatlist nested measurement warning.');
+}
+
+if (screensSourcePatched || screensModulePatched || screensCommonjsPatched) {
+  console.log('Patched react-native-screens native stack animated value listener warning.');
 }

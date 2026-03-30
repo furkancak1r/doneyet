@@ -55,7 +55,6 @@ export interface Task {
   lastNotificationAt: string | null;
   nextNotificationAt: string | null;
   snoozedUntil: string | null;
-  tagsJson: string;
   notificationIdsJson: string;
   completedAt: string | null;
 }
@@ -66,6 +65,7 @@ export interface AppSettings {
   soundEnabled: 0 | 1;
   vibrationEnabled: 0 | 1;
   autoHideCompletedTasks: 0 | 1;
+  onboardingCompleted: 0 | 1;
   themeMode: ThemeMode;
   language: AppLanguageSetting;
 }
@@ -94,7 +94,6 @@ export interface TaskFormValues {
   repeatIntervalType: RepeatIntervalType;
   repeatIntervalValue: number;
   repeatIntervalUnit: RepeatIntervalUnit;
-  tags: string[];
 }
 
 export interface BackupPayload {

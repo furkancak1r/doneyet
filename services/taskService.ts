@@ -6,17 +6,16 @@ import {
   fetchTaskById,
   fetchTasks,
   fetchTasksByList,
-  saveTask,
-  replaceTagsForTask
+  saveTask
 } from '@/db/repositories';
 import { clearTaskSchedule, rescheduleTaskAfterMutation } from '@/services/schedulerService';
 import { AppSettings, Task, TaskFormValues } from '@/types/domain';
 import { createId } from '@/utils/id';
-import { safeParseJson, stableStringify } from '@/utils/json';
-import { getNextStartDateTime, toIso, normalizeTaskTags } from '@/utils/date';
+import { stableStringify } from '@/utils/json';
+import { getNextStartDateTime, toIso } from '@/utils/date';
 import { mergeVisibleOrder, renumberSortOrders } from '@/utils/order';
 
-function buildTaskFromValues(values: TaskFormValues, settings: AppSettings = defaultSettings, existing?: Task | null): Task {
+function buildTaskFromValues(values: TaskFormValues, existing?: Task | null): Task {
   const now = new Date();
   const isTodo = values.taskMode === 'todo';
   const initialStart = isTodo
@@ -57,7 +56,6 @@ function buildTaskFromValues(values: TaskFormValues, settings: AppSettings = def
     lastNotificationAt: existing?.lastNotificationAt ?? null,
     nextNotificationAt: isTodo ? null : toIso(initialStart),
     snoozedUntil: existing?.snoozedUntil ?? null,
-    tagsJson: stableStringify(normalizeTaskTags(values.tags)),
     notificationIdsJson: existing?.notificationIdsJson ?? stableStringify([]),
     completedAt: existing?.completedAt ?? null
   };
@@ -73,10 +71,9 @@ export async function getTask(taskId: string): Promise<Task | null> {
 
 export async function createTask(values: TaskFormValues, settings: AppSettings = defaultSettings): Promise<Task> {
   const sortOrder = (await fetchMaxTaskSortOrderForList(values.listId)) + 1;
-  const task = buildTaskFromValues(values, settings);
+  const task = buildTaskFromValues(values);
   task.sortOrder = sortOrder;
   await saveTask(task);
-  await replaceTagsForTask(task.id, safeTaskTags(task));
   return (await rescheduleTaskAfterMutation(task.id, settings)) ?? task;
 }
 
@@ -86,7 +83,7 @@ export async function updateTask(taskId: string, values: TaskFormValues, setting
     return null;
   }
 
-  const task = buildTaskFromValues({ ...values, id: taskId }, settings, existing);
+  const task = buildTaskFromValues({ ...values, id: taskId }, existing);
   task.createdAt = existing.createdAt;
   task.status = existing.status;
   task.completedAt = existing.completedAt;
@@ -94,7 +91,6 @@ export async function updateTask(taskId: string, values: TaskFormValues, setting
   task.snoozedUntil = existing.snoozedUntil;
   task.sortOrder = existing.listId === values.listId ? existing.sortOrder : (await fetchMaxTaskSortOrderForList(values.listId)) + 1;
   await saveTask(task);
-  await replaceTagsForTask(task.id, safeTaskTags(task));
   return (await rescheduleTaskAfterMutation(task.id, settings)) ?? task;
 }
 
@@ -236,25 +232,4 @@ export async function reactivateCompletedTask(taskId: string, settings: AppSetti
 
   await saveTask(updated);
   return rescheduleTaskAfterMutation(taskId, settings);
-}
-
-export async function taskExists(taskId: string): Promise<boolean> {
-  return Boolean(await fetchTaskById(taskId));
-}
-
-export async function updateTaskTags(taskId: string, tags: string[]): Promise<void> {
-  await replaceTagsForTask(taskId, normalizeTaskTags(tags));
-}
-
-export async function getTaskTags(taskId: string): Promise<string[]> {
-  const task = await fetchTaskById(taskId);
-  if (!task) {
-    return [];
-  }
-
-  return safeTaskTags(task);
-}
-
-export function safeTaskTags(task: Task): string[] {
-  return normalizeTaskTags(safeParseJson<string[]>(task.tagsJson || '[]', []));
 }

@@ -109,7 +109,12 @@ function getTaskReminderBody(task: Task): string {
 }
 
 export async function scheduleTaskReminder(task: Task, fireAt: Date, soundEnabled = true): Promise<string> {
-  const trigger = { date: fireAt } as any;
+  const trigger: Notifications.DateTriggerInput = {
+    type: Notifications.SchedulableTriggerInputTypes.DATE,
+    date: fireAt,
+    ...(Platform.OS === 'android' ? { channelId: TASK_REMINDER_CHANNEL } : {})
+  };
+
   return Notifications.scheduleNotificationAsync({
     content: {
       title: String(i18n.t('notifications.title')),
@@ -121,7 +126,7 @@ export async function scheduleTaskReminder(task: Task, fireAt: Date, soundEnable
         taskTitle: task.title,
         scheduledFor: fireAt.toISOString()
       }
-    } as any,
+    },
     trigger
   });
 }

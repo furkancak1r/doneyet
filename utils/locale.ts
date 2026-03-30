@@ -1,14 +1,13 @@
-import i18n from '@/i18n';
-import type { AppLanguage, AppLanguageSetting } from '@/i18n';
+import i18n, { getLocaleForLanguage, normalizeLanguage, type AppLanguage, type AppLanguageSetting } from '@/i18n';
 
 export function getCurrentAppLanguage(): AppLanguage {
-  return (i18n.language === 'tr' ? 'tr' : 'en') as AppLanguage;
+  return normalizeLanguage(i18n.language);
 }
 
 export function getCurrentLocale(): string {
-  return getCurrentAppLanguage() === 'tr' ? 'tr-TR' : 'en-US';
+  return getLocaleForLanguage(i18n.language);
 }
 
 export function getLocaleForSetting(language: AppLanguageSetting | undefined): string {
-  return language === 'tr' ? 'tr-TR' : language === 'en' ? 'en-US' : getCurrentLocale();
+  return language === 'system' || language === undefined ? getCurrentLocale() : getLocaleForLanguage(language);
 }

@@ -98,7 +98,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     async function bootstrap(): Promise<void> {
       await initializeDatabase();
       configureNotificationHandling(defaultSettings);
-      await ensureNotificationPermissions();
       const snapshot = await loadAppData();
       if (!mounted) {
         return;

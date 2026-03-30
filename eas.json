@@ -1,0 +1,28 @@
+{
+  "cli": {
+    "version": ">= 18.4.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {
+      "autoIncrement": true
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "6761344539",
+        "ascApiKeyPath": "/Users/furkancakir/.appstoreconnect/private_keys/AuthKey_FYJ34WGVJD.p8",
+        "ascApiKeyIssuerId": "8132fb88-e0ca-4469-b209-c2953ea074a4",
+        "ascApiKeyId": "FYJ34WGVJD"
+      }
+    }
+  }
+}

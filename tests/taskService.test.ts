@@ -5,7 +5,6 @@ const saveTask = vi.fn();
 const fetchTaskById = vi.fn();
 const fetchMaxTaskSortOrderForList = vi.fn();
 const fetchTasksByList = vi.fn();
-const replaceTagsForTask = vi.fn();
 const deleteTaskNotifications = vi.fn();
 const deleteTaskRow = vi.fn();
 const clearTaskSchedule = vi.fn();
@@ -16,7 +15,6 @@ vi.mock('../db/repositories', () => ({
   fetchMaxTaskSortOrderForList: (...args: unknown[]) => fetchMaxTaskSortOrderForList(...args),
   fetchTasksByList: (...args: unknown[]) => fetchTasksByList(...args),
   saveTask: (...args: unknown[]) => saveTask(...args),
-  replaceTagsForTask: (...args: unknown[]) => replaceTagsForTask(...args),
   deleteTaskNotifications: (...args: unknown[]) => deleteTaskNotifications(...args),
   deleteTaskRow: (...args: unknown[]) => deleteTaskRow(...args)
 }));
@@ -55,7 +53,6 @@ describe('task service', () => {
       lastNotificationAt: null,
       nextNotificationAt: '2025-03-01T08:00:00.000Z',
       snoozedUntil: null,
-      tagsJson: '[]',
       notificationIdsJson: '["notif-1"]',
       completedAt: null
     });
@@ -92,7 +89,6 @@ describe('task service', () => {
       lastNotificationAt: null,
       nextNotificationAt: '2025-03-01T08:00:00.000Z',
       snoozedUntil: null,
-      tagsJson: '[]',
       notificationIdsJson: '[]',
       completedAt: null
     });
@@ -130,7 +126,6 @@ describe('task service', () => {
       lastNotificationAt: null,
       nextNotificationAt: null,
       snoozedUntil: null,
-      tagsJson: '[]',
       notificationIdsJson: '[]',
       completedAt: '2025-03-01T09:00:00.000Z'
     });
@@ -168,7 +163,6 @@ describe('task service', () => {
         lastNotificationAt: null,
         nextNotificationAt: '2025-01-31T09:00:00.000Z',
         snoozedUntil: null,
-        tagsJson: '[]',
         notificationIdsJson: '["notif-1"]',
         completedAt: null
       });
@@ -189,7 +183,6 @@ describe('task service', () => {
   it('creates tasks at the end of the target list', async () => {
     fetchMaxTaskSortOrderForList.mockResolvedValue(2);
     saveTask.mockResolvedValue(undefined);
-    replaceTagsForTask.mockResolvedValue(undefined);
 
     await createTask({
       title: 'Yeni görev',
@@ -204,8 +197,7 @@ describe('task service', () => {
       taskMode: 'todo',
       repeatIntervalType: 'preset',
       repeatIntervalValue: 1,
-      repeatIntervalUnit: 'hours',
-      tags: []
+      repeatIntervalUnit: 'hours'
     });
 
     expect(saveTask).toHaveBeenCalledWith(expect.objectContaining({ sortOrder: 3, listId: 'list-1' }));
@@ -235,7 +227,6 @@ describe('task service', () => {
         lastNotificationAt: null,
         nextNotificationAt: '2025-03-01T08:00:00.000Z',
         snoozedUntil: null,
-        tagsJson: '[]',
         notificationIdsJson: '[]',
         completedAt: null
       },
@@ -261,7 +252,6 @@ describe('task service', () => {
         lastNotificationAt: null,
         nextNotificationAt: null,
         snoozedUntil: null,
-        tagsJson: '[]',
         notificationIdsJson: '[]',
         completedAt: '2025-03-01T09:00:00.000Z'
       },
@@ -287,7 +277,6 @@ describe('task service', () => {
         lastNotificationAt: null,
         nextNotificationAt: '2025-03-01T08:00:00.000Z',
         snoozedUntil: null,
-        tagsJson: '[]',
         notificationIdsJson: '[]',
         completedAt: null
       }

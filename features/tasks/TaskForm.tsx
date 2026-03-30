@@ -8,8 +8,7 @@ import { Chip } from '@/components/Chip';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
 import { DateTimeField } from '@/components/DateTimeField';
-import { formatClock } from '@/utils/date';
-import { safeParseJson } from '@/utils/json';
+import { formatClock, setTimeOnDate } from '@/utils/date';
 import { useTranslation } from 'react-i18next';
 
 function getRepeatPresets(t: (key: string) => string) {
@@ -33,13 +32,6 @@ function mergeDateWithClock(base: Date, source: Date): Date {
   next.setFullYear(source.getFullYear(), source.getMonth(), source.getDate());
   next.setHours(source.getHours(), source.getMinutes(), 0, 0);
   return next;
-}
-
-function parseTags(text: string): string[] {
-  return text
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean);
 }
 
 function hexToRgba(hex: string, alpha: number) {
@@ -130,12 +122,13 @@ export function TaskForm({
   initialTitle?: string;
   initialTaskMode?: TaskMode;
 }) {
-  const { lists, theme } = useApp();
+  const { lists, settings, theme } = useApp();
   const { t } = useTranslation();
   const listChoices = useMemo(() => (lists.length > 0 ? lists : []), [lists]);
   const repeatPresets = useMemo(() => getRepeatPresets(t), [t]);
+  const monthlyDays = useMemo(() => Array.from({ length: 31 }, (_, index) => index + 1), []);
   const weekdayLabels = useMemo(() => Array.from({ length: 7 }, (_, index) => t(`weekdays.${index}`)), [t]);
-  const initialStart = initialTask ? new Date(initialTask.startDateTime) : new Date();
+  const initialStart = initialTask ? new Date(initialTask.startDateTime) : setTimeOnDate(new Date(), settings.defaultStartTime);
   const [title, setTitle] = useState(initialTask?.title ?? initialTitle ?? '');
   const [description, setDescription] = useState(initialTask?.description ?? '');
   const [listId, setListId] = useState(initialTask?.listId ?? defaultListId ?? listChoices[0]?.id ?? '');
@@ -144,12 +137,11 @@ export function TaskForm({
   const [startReminderType, setStartReminderType] = useState(initialTask?.startReminderType ?? 'today_at_time');
   const [startDateTime, setStartDateTime] = useState(initialStart);
   const [weekday, setWeekday] = useState<number>(initialTask?.startReminderWeekday ?? 1);
-  const [dayOfMonth, setDayOfMonth] = useState<string>(String(initialTask?.startReminderDayOfMonth ?? startDateTime.getDate()));
-  const [useLastDay, setUseLastDay] = useState(Boolean(initialTask?.startReminderUsesLastDay));
+  const [dayOfMonth, setDayOfMonth] = useState<number>(initialTask?.startReminderDayOfMonth ?? initialStart.getDate());
+  const [useLastDay, setUseLastDay] = useState(Boolean(initialTask?.startReminderUsesLastDay || initialTask?.startReminderType === 'monthly_on_last_day'));
   const [repeatIntervalValue, setRepeatIntervalValue] = useState(initialTask ? String(initialTask.repeatIntervalValue) : '');
   const [repeatIntervalUnit, setRepeatIntervalUnit] = useState(initialTask?.repeatIntervalUnit ?? 'minutes');
   const [repeatIntervalType, setRepeatIntervalType] = useState<TaskFormValues['repeatIntervalType'] | null>(initialTask?.repeatIntervalType ?? null);
-  const [tagsText, setTagsText] = useState(initialTask ? safeParseJson<string[]>(initialTask.tagsJson || '[]', []).join(', ') : '');
   const [clockTime, setClockTime] = useState(toTimeString(initialStart));
   const [error, setError] = useState<string | null>(null);
 
@@ -166,6 +158,7 @@ export function TaskForm({
   }, [startReminderType, taskMode]);
 
   const isTodo = taskMode === 'todo';
+  const isMonthly = startReminderType === 'monthly_on_day' || startReminderType === 'monthly_on_last_day';
 
   const handleSubmit = async () => {
     const trimmedTitle = title.trim();
@@ -188,22 +181,29 @@ export function TaskForm({
       return;
     }
 
+    const nextStartReminderType = isTodo
+      ? 'today_at_time'
+      : isMonthly
+        ? useLastDay
+          ? 'monthly_on_last_day'
+          : 'monthly_on_day'
+        : startReminderType;
+
     const values: TaskFormValues = {
       id: initialTask?.id,
       title: trimmedTitle,
       description: description.trim(),
       listId,
       taskMode,
-      startReminderType: isTodo ? 'today_at_time' : startReminderType,
+      startReminderType: nextStartReminderType,
       startDateTime: isTodo ? (initialTask ? new Date(initialTask.startDateTime) : new Date()) : startDateTime,
       startReminderWeekday: !isTodo && startReminderType === 'weekly_on_weekday' ? weekday : null,
-      startReminderDayOfMonth: !isTodo && startReminderType === 'monthly_on_day' ? Number(dayOfMonth) || null : null,
+      startReminderDayOfMonth: !isTodo && nextStartReminderType === 'monthly_on_day' ? dayOfMonth : null,
       startReminderTime: clockTime,
-      startReminderUsesLastDay: !isTodo && startReminderType === 'monthly_on_last_day' ? useLastDay : false,
+      startReminderUsesLastDay: !isTodo && nextStartReminderType === 'monthly_on_last_day',
       repeatIntervalType: nextRepeatIntervalType ?? 'preset',
       repeatIntervalValue: nextRepeatIntervalValue,
-      repeatIntervalUnit,
-      tags: parseTags(tagsText)
+      repeatIntervalUnit
     };
 
     await onSubmit(values);
@@ -266,7 +266,7 @@ export function TaskForm({
 
       {!isTodo ? (
         <>
-          <View style={styles.section}>
+          <View style={[styles.section, styles.subtypeSection]}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('taskForm.subtypeSection')}</Text>
             <View style={styles.chipWrap}>
               <Chip
@@ -301,8 +301,13 @@ export function TaskForm({
               <Chip label={t('taskForm.startToday')} selected={startReminderType === 'today_at_time'} onPress={() => setStartReminderType('today_at_time')} />
               <Chip label={t('taskForm.startTomorrow')} selected={startReminderType === 'tomorrow_at_time'} onPress={() => setStartReminderType('tomorrow_at_time')} />
               <Chip label={t('taskForm.startWeekly')} selected={startReminderType === 'weekly_on_weekday'} onPress={() => setStartReminderType('weekly_on_weekday')} />
-              <Chip label={t('taskForm.startMonthly')} selected={startReminderType === 'monthly_on_day'} onPress={() => setStartReminderType('monthly_on_day')} />
-              <Chip label={t('taskForm.startMonthLastDay')} selected={startReminderType === 'monthly_on_last_day'} onPress={() => setStartReminderType('monthly_on_last_day')} />
+              <Chip
+                label={t('taskForm.startMonthly')}
+                selected={isMonthly}
+                onPress={() => {
+                  setStartReminderType(useLastDay ? 'monthly_on_last_day' : 'monthly_on_day');
+                }}
+              />
             </View>
             {taskMode === 'recurring' ? <Text style={[styles.helper, { color: theme.mutedText }]}>{t('taskForm.recurringStartHelper')}</Text> : null}
           </View>
@@ -352,15 +357,31 @@ export function TaskForm({
             </View>
           ) : null}
 
-          {startReminderType === 'monthly_on_day' ? (
-            <TextField label={t('taskForm.monthlyDay')} value={dayOfMonth} onChangeText={setDayOfMonth} placeholder={t('taskForm.monthlyDayPlaceholder')} />
-          ) : null}
-
-          {startReminderType === 'monthly_on_last_day' ? (
+          {isMonthly ? (
             <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('taskForm.monthlyLastDaySection')}</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('taskForm.monthlyDay')}</Text>
               <View style={styles.chipWrap}>
-                <Chip label={t('taskForm.monthlyLastDayToggle')} selected={useLastDay} onPress={() => setUseLastDay((current) => !current)} />
+                {monthlyDays.map((day) => (
+                  <Chip
+                    key={day}
+                    label={String(day)}
+                    selected={!useLastDay && dayOfMonth === day}
+                    onPress={() => {
+                      setDayOfMonth(day);
+                      setUseLastDay(false);
+                      setStartReminderType('monthly_on_day');
+                    }}
+                  />
+                ))}
+                <Chip
+                  label={t('taskForm.monthlyLastDayToggle')}
+                  tone="primary"
+                  selected={useLastDay}
+                  onPress={() => {
+                    setUseLastDay(true);
+                    setStartReminderType('monthly_on_last_day');
+                  }}
+                />
               </View>
             </View>
           ) : null}
@@ -401,8 +422,6 @@ export function TaskForm({
         <Text style={[styles.helper, { color: theme.mutedText, marginBottom: 10 }]}>{t('taskForm.validationFieldsHidden')}</Text>
       )}
 
-      <TextField label={t('taskForm.tags')} value={tagsText} onChangeText={setTagsText} placeholder={t('taskForm.tagsPlaceholder')} />
-
       {error ? <Text style={[styles.error, { color: theme.danger }]}>{error}</Text> : null}
 
       <View style={styles.actions}>
@@ -419,6 +438,9 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: 18
+  },
+  subtypeSection: {
+    marginTop: 8
   },
   sectionTitle: {
     fontSize: 15,

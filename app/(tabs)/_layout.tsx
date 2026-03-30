@@ -12,6 +12,7 @@ export default function TabsLayout() {
 
   return (
     <Tabs
+      initialRouteName="index"
       detachInactiveScreens={false}
       screenOptions={{
         headerStyle: { backgroundColor: theme.surface },

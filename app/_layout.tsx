@@ -25,6 +25,7 @@ function AppShell() {
       <StatusBar style="auto" />
       <NotificationBridge />
       <Stack
+        initialRouteName="index"
         screenOptions={{
           headerStyle: { backgroundColor: theme.surface },
           headerTintColor: theme.text,
@@ -32,15 +33,16 @@ function AppShell() {
           headerShadowVisible: false,
           headerTitleStyle: { fontWeight: '800' },
           headerBackTitle: '',
-          headerBackTitleVisible: false,
           headerBackButtonDisplayMode: 'minimal'
         }}
       >
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false, animation: 'none' }} />
+        <Stack.Screen name="onboarding" options={{ headerShown: false, animation: 'none' }} />
         <Stack.Screen name="tasks/new" options={{ title: t('routes.newTask') }} />
         <Stack.Screen name="lists/new" options={{ title: t('routes.newList') }} />
         <Stack.Screen name="tasks/[taskId]/edit" options={{ title: t('routes.editTask') }} />
         <Stack.Screen name="lists/[listId]" options={{ title: t('routes.listDetail') }} />
+        <Stack.Screen name="settings/about" options={{ title: t('about.title') }} />
       </Stack>
     </>
   );

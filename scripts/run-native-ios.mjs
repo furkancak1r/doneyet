@@ -4,6 +4,14 @@ import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import {
+  listAvailableSimulators,
+  listConnectedPhysicalDevices,
+  resolveDefaultIosLaunchTarget,
+  resolveExpoHostMode,
+  resolveLaunchTargetFromArgs
+} from './ios-metro-host.mjs';
+import { waitForExpoIosBundleReady } from './run-native-ios-readiness.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const iosDir = path.join(root, 'ios');
@@ -30,6 +38,25 @@ function run(command, args, options = {}) {
 
 const extraArgs = process.argv.slice(2);
 const wantsHelp = extraArgs.includes('--help') || extraArgs.includes('-h');
+const connectedPhysicalDevices = listConnectedPhysicalDevices();
+const availableSimulators = listAvailableSimulators();
+const explicitLaunchTarget = resolveLaunchTargetFromArgs(extraArgs, connectedPhysicalDevices, availableSimulators);
+const defaultLaunchTarget = resolveDefaultIosLaunchTarget({
+  connectedPhysicalDevices,
+  preferredDeviceName: process.env.IOS_DEVICE_NAME,
+  simulators: availableSimulators
+});
+const launchTarget = explicitLaunchTarget ?? defaultLaunchTarget;
+const metroHostMode = resolveExpoHostMode({
+  targetKind: launchTarget?.kind,
+  override: process.env.IOS_METRO_HOST_MODE
+});
+const defaultMetroPort = Number(process.env.IOS_METRO_PORT || 8081);
+let metroPortPlan = { needsServer: true, port: defaultMetroPort };
+
+if (!wantsHelp) {
+  metroPortPlan = await prepareMetroPort(defaultMetroPort, metroHostMode);
+}
 
 function startBackground(command, args, options = {}) {
   const child = spawn(command, args, {
@@ -42,6 +69,117 @@ function startBackground(command, args, options = {}) {
 
   child.unref();
   return child;
+}
+
+function getListeningPids(port) {
+  const result = spawnSync('lsof', ['-nP', `-iTCP:${port}`, '-sTCP:LISTEN', '-t'], {
+    cwd: root,
+    encoding: 'utf8',
+    shell: false
+  });
+
+  if (result.error || typeof result.stdout !== 'string') {
+    return [];
+  }
+
+  return result.stdout
+    .trim()
+    .split(/\s+/)
+    .map((value) => Number(value))
+    .filter((value) => Number.isInteger(value) && value > 0);
+}
+
+function getProcessCommand(pid) {
+  const result = spawnSync('ps', ['-p', String(pid), '-o', 'command='], {
+    cwd: root,
+    encoding: 'utf8',
+    shell: false
+  });
+
+  if (result.error || typeof result.stdout !== 'string') {
+    return '';
+  }
+
+  return result.stdout.trim();
+}
+
+function commandBelongsToCurrentProject(command) {
+  return command.includes('expo start') && command.includes(root);
+}
+
+function commandUsesHostMode(command, hostMode) {
+  if (hostMode === 'localhost') {
+    return command.includes('--localhost') || command.includes('--host localhost');
+  }
+
+  if (hostMode === 'lan') {
+    return command.includes('--lan') || command.includes('--host lan');
+  }
+
+  if (hostMode === 'tunnel') {
+    return command.includes('--tunnel') || command.includes('--host tunnel');
+  }
+
+  return false;
+}
+
+function killProcesses(pids) {
+  for (const pid of pids) {
+    try {
+      process.kill(pid, 'SIGTERM');
+    } catch {
+      // Ignore processes that already exited between lookup and kill.
+    }
+  }
+}
+
+async function waitForPortToClear(port) {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    if (getListeningPids(port).length === 0) {
+      return;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+
+  const remainingPids = getListeningPids(port);
+  if (remainingPids.length > 0) {
+    killProcesses(remainingPids);
+  }
+
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    if (getListeningPids(port).length === 0) {
+      return;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+
+  throw new Error(`Port ${port} is still in use.`);
+}
+
+async function prepareMetroPort(startPort, hostMode) {
+  for (let port = startPort; port < startPort + 6; port += 1) {
+    const listeningPids = getListeningPids(port);
+    if (listeningPids.length === 0) {
+      return { needsServer: true, port };
+    }
+
+    const commands = listeningPids.map(getProcessCommand).filter(Boolean);
+    if (commands.length > 0 && commands.every(commandBelongsToCurrentProject)) {
+      const matchingHost = commands.some((command) => commandUsesHostMode(command, hostMode));
+      if (matchingHost) {
+        return { needsServer: false, port };
+      }
+
+      console.log(`Stopping the existing Expo dev server on port ${port} so we can restart it in ${hostMode} mode...`);
+      killProcesses(listeningPids);
+      await waitForPortToClear(port);
+      return { needsServer: true, port };
+    }
+  }
+
+  throw new Error(`No free Metro port found starting from ${startPort}.`);
 }
 
 function ensureNativeProject() {
@@ -59,28 +197,19 @@ function installPods() {
 }
 
 function startMetro() {
-  console.log('Starting Expo dev server in the background...');
-  startBackground('npx', ['expo', 'start', '--dev-client', '--localhost', '--port', '8081', '--clear'], {
+  if (!metroPortPlan.needsServer) {
+    console.log(`Reusing existing Expo dev server on port ${metroPortPlan.port} (${metroHostMode})...`);
+    return;
+  }
+
+  console.log(`Starting Expo dev server in the background (${metroHostMode}) on port ${metroPortPlan.port}...`);
+  startBackground('npx', ['expo', 'start', '--dev-client', '--host', metroHostMode, '--port', String(metroPortPlan.port), '--clear'], {
     cwd: root
   });
 }
 
 async function waitForMetro() {
-  const endpoint = 'http://127.0.0.1:8081/status';
-  for (let attempt = 0; attempt < 60; attempt += 1) {
-    try {
-      const response = await fetch(endpoint);
-      const status = await response.text();
-      if (status.trim() === 'packager-status:running') {
-        return;
-      }
-    } catch {
-      // Keep waiting until Metro is ready.
-    }
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-  }
-
-  throw new Error('Metro bundler did not become ready on port 8081.');
+  await waitForExpoIosBundleReady({ port: metroPortPlan.port });
 }
 
 function launchNativeBuild() {
@@ -89,9 +218,25 @@ function launchNativeBuild() {
     return;
   }
 
-  const deviceName = process.env.IOS_DEVICE_NAME || 'iPhone';
-  const args = ['react-native', 'run-ios', '--device', deviceName, '--no-packager', '--port', '8081', ...extraArgs];
-  run('npx', args, { cwd: root });
+  const defaultTargetArgs = explicitLaunchTarget
+    ? []
+    : launchTarget?.kind === 'simulator' && launchTarget.udid
+      ? ['--udid', launchTarget.udid]
+      : launchTarget?.kind === 'device' && launchTarget.udid
+        ? ['--udid', launchTarget.udid]
+        : launchTarget?.kind === 'simulator' && launchTarget.name
+          ? ['--simulator', launchTarget.name]
+          : launchTarget?.kind === 'device' && launchTarget.name
+            ? ['--device', launchTarget.name]
+            : [];
+
+  const args = ['react-native', 'run-ios', ...defaultTargetArgs, '--no-packager', '--port', String(metroPortPlan.port), ...extraArgs];
+  run('npx', args, {
+    cwd: root,
+    env: {
+      RCT_METRO_PORT: String(metroPortPlan.port)
+    }
+  });
 }
 
 if (wantsHelp) {
