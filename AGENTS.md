@@ -60,6 +60,11 @@ This file applies to the repository root and everything under it.
 - If that `kind` is missing, target selection and host-mode resolution can silently break.
 - `ios/DoneYet/AppDelegate.swift` uses `.expo/.virtual-metro-entry` as the bundle root in debug builds. Keep launcher assumptions in sync with that.
 
+## Notification invariant
+
+- `expo-notifications` foreground handlers should not use deprecated `shouldShowAlert`.
+- Use `shouldShowBanner` and / or `shouldShowList` to control foreground presentation instead.
+
 ## Useful checks
 
 - Run `npm run typecheck` after code changes.

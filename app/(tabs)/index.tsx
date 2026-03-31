@@ -2,6 +2,8 @@ import { useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Link, router } from 'expo-router';
 import { NestableDraggableFlatList, NestableScrollContainer } from 'react-native-draggable-flatlist';
+import { useScrollToTop } from '@react-navigation/native';
+import type { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
 import { useApp } from '@/hooks/useApp';
 import { Screen } from '@/components/Screen';
 import { Card } from '@/components/Card';
@@ -43,12 +45,14 @@ function StatCard({ title, value, tone, onPress }: { title: string; value: numbe
 export default function HomeScreen() {
   const { tasks, lists, theme, completeTask, snoozeTask, notificationGranted, requestNotificationPermission, reorderLists } = useApp();
   const { t } = useTranslation();
-  const scrollRef = useRef<any>(null);
+  const scrollRef = useRef<GestureHandlerScrollView | null>(null);
   const [sectionOffsets, setSectionOffsets] = useState<Record<SectionKey, number | null>>({
     active: null,
     today: null,
     overdue: null
   });
+
+  useScrollToTop(scrollRef);
 
   const activeTasks = useMemo(() => sortTasks(filterTasks(tasks, { filter: 'active', sort: 'nextNotification' }), 'nextNotification'), [tasks]);
   const todayTasks = useMemo(() => sortTasks(filterTasks(tasks, { filter: 'today', sort: 'nextNotification' }), 'nextNotification'), [tasks]);
@@ -79,7 +83,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <Screen scroll={false} padded={false} animateOnFocus>
+    <Screen scroll={false} padded={false} animateOnFocus testID="home-screen">
       <NestableScrollContainer ref={scrollRef} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {!notificationGranted ? (
           <Card>
@@ -107,7 +111,6 @@ export default function HomeScreen() {
         <View onLayout={(event) => setSectionOffset('active', event)} style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('home.sectionActiveTitle')}</Text>
-            <Text style={[styles.sectionAction, { color: theme.primary }]}>{t('home.sectionActiveAction')}</Text>
           </View>
           <Text style={[styles.sectionHint, { color: theme.mutedText }]}>{t('home.sectionActiveHint')}</Text>
           <TaskListView

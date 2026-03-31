@@ -5,7 +5,7 @@ import { useApp } from '@/hooks/useApp';
 import { useTranslation } from 'react-i18next';
 
 export default function NewTaskScreen() {
-  const { createTask } = useApp();
+  const { createTask, requestQuickAddReset } = useApp();
   const { t } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams<{ listId?: string; title?: string; taskMode?: string }>();
@@ -20,7 +20,8 @@ export default function NewTaskScreen() {
         submitLabel={t('common.save')}
         onSubmit={async (values) => {
           await createTask(values);
-          router.back();
+          requestQuickAddReset();
+          router.replace('/(tabs)');
         }}
       />
     </Screen>

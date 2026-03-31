@@ -10,7 +10,8 @@ export function ListCard({
   onPress,
   onLongPress,
   dragging = false,
-  showDragHandle = false
+  showDragHandle = false,
+  testID
 }: {
   list: AppList;
   count: number;
@@ -18,15 +19,18 @@ export function ListCard({
   onLongPress?: () => void;
   dragging?: boolean;
   showDragHandle?: boolean;
+  testID?: string;
 }) {
   const { theme } = useApp();
   const { t } = useTranslation();
 
   return (
     <Pressable
+      accessibilityLabel={list.name}
       onPress={onPress}
       onLongPress={onLongPress}
       delayLongPress={180}
+      testID={testID ?? `list-card-${list.id}`}
       style={({ pressed }) => [
         styles.card,
         {

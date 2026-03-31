@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { getAdjacentTabHref } from '../constants/tabNavigation';
+import { getAdjacentTabHref, TABS_FREEZE_ON_BLUR } from '../constants/tabNavigation';
 
 describe('tab navigation helpers', () => {
+  it('keeps tab screens interactive when returning from stack screens', () => {
+    expect(TABS_FREEZE_ON_BLUR).toBe(false);
+  });
+
   it('returns the next tab in order', () => {
     expect(getAdjacentTabHref('/today', 'next')).toBe('/calendar');
     expect(getAdjacentTabHref('/calendar', 'next')).toBe('/upcoming');

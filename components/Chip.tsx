@@ -8,7 +8,8 @@ export function Chip({
   onPress,
   tone = 'default',
   icon,
-  accessibilityLabel
+  accessibilityLabel,
+  testID
 }: {
   label: string;
   selected?: boolean;
@@ -16,6 +17,7 @@ export function Chip({
   tone?: 'default' | 'success' | 'danger' | 'warning' | 'primary';
   icon?: keyof typeof Ionicons.glyphMap;
   accessibilityLabel?: string;
+  testID?: string;
 }) {
   const { theme } = useApp();
   const iconOnly = label.trim().length === 0;
@@ -39,6 +41,7 @@ export function Chip({
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
       onPress={onPress}
+      testID={testID}
       style={({ pressed }) => [
         styles.chip,
         iconOnly && styles.iconOnlyChip,

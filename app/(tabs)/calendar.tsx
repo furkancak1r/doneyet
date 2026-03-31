@@ -24,6 +24,8 @@ import { getCurrentAppLanguage, getCurrentLocale } from '@/utils/locale';
 
 function getStatusColor(taskState: ReturnType<typeof getVisibleTaskState>, theme: ThemePalette): string {
   switch (taskState) {
+    case 'paused':
+      return theme.mutedText;
     case 'overdue':
       return theme.danger;
     case 'snoozed':
@@ -213,7 +215,7 @@ export default function CalendarScreen() {
   ];
 
   return (
-    <Screen animateOnFocus>
+    <Screen animateOnFocus testID="calendar-screen">
       <View style={styles.header}>
         <View style={styles.headerCopy}>
           <Text style={[styles.title, { color: theme.text }]}>{t('tabs.calendar')}</Text>
@@ -227,6 +229,7 @@ export default function CalendarScreen() {
             selected={selectedDateIsToday && visibleMonthIsToday}
             onPress={goToToday}
             accessibilityLabel={t('common.today')}
+            testID="calendar-today-chip"
           />
         </View>
       </View>

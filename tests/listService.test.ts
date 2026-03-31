@@ -1,18 +1,40 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import i18n from '../i18n';
-import { createList, reorderLists, syncLocalizedDefaultLists } from '../services/listService';
+import { createList, deleteList, reorderLists, syncLocalizedDefaultLists, updateList } from '../services/listService';
 
 const fetchLists = vi.fn();
+const fetchListById = vi.fn();
 const fetchMaxListSortOrder = vi.fn();
+const fetchTasksByList = vi.fn();
 const saveList = vi.fn();
+const deleteListRow = vi.fn();
+const removeTask = vi.fn();
 
 vi.mock('../db/repositories', () => ({
   fetchLists: (...args: unknown[]) => fetchLists(...args),
+  fetchListById: (...args: unknown[]) => fetchListById(...args),
   fetchMaxListSortOrder: (...args: unknown[]) => fetchMaxListSortOrder(...args),
-  saveList: (...args: unknown[]) => saveList(...args)
+  fetchTasksByList: (...args: unknown[]) => fetchTasksByList(...args),
+  saveList: (...args: unknown[]) => saveList(...args),
+  deleteListRow: (...args: unknown[]) => deleteListRow(...args)
+}));
+
+vi.mock('../services/taskService', () => ({
+  removeTask: (...args: unknown[]) => removeTask(...args)
 }));
 
 describe('list service', () => {
+  const workList = {
+    id: 'list-1',
+    name: 'Work',
+    color: '#116466',
+    icon: 'briefcase-outline',
+    sortOrder: 0,
+    createdAt: '2025-03-01T00:00:00.000Z',
+    seedKey: 'seeds.work',
+    seedNameLocked: 0
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -24,16 +46,7 @@ describe('list service', () => {
   it('syncs unlocked default lists to the active language', async () => {
     await i18n.changeLanguage('tr');
     fetchLists.mockResolvedValue([
-      {
-        id: 'list-1',
-        name: 'Work',
-        color: '#116466',
-        icon: 'briefcase-outline',
-        sortOrder: 0,
-        createdAt: '2025-03-01T00:00:00.000Z',
-        seedKey: 'seeds.work',
-        seedNameLocked: 0
-      },
+      workList,
       {
         id: 'list-2',
         name: 'Custom',
@@ -55,18 +68,7 @@ describe('list service', () => {
 
   it('does not sync locked default lists', async () => {
     await i18n.changeLanguage('tr');
-    fetchLists.mockResolvedValue([
-      {
-        id: 'list-1',
-        name: 'My Work',
-        color: '#116466',
-        icon: 'briefcase-outline',
-        sortOrder: 0,
-        createdAt: '2025-03-01T00:00:00.000Z',
-        seedKey: 'seeds.work',
-        seedNameLocked: 1
-      }
-    ]);
+    fetchLists.mockResolvedValue([{ ...workList, name: 'My Work', seedNameLocked: 1 }]);
     saveList.mockResolvedValue(undefined);
 
     await syncLocalizedDefaultLists();
@@ -92,12 +94,8 @@ describe('list service', () => {
     await i18n.changeLanguage('tr');
     fetchLists.mockResolvedValue([
       {
-        id: 'list-1',
-        name: 'İş',
-        color: '#116466',
-        icon: 'briefcase-outline',
-        sortOrder: 0,
-        createdAt: '2025-03-01T00:00:00.000Z'
+        ...workList,
+        name: 'İş'
       }
     ]);
 
@@ -127,5 +125,75 @@ describe('list service', () => {
     expect(saveList).toHaveBeenCalledWith(expect.objectContaining({ id: 'list-3', sortOrder: 0 }));
     expect(saveList).toHaveBeenCalledWith(expect.objectContaining({ id: 'list-1', sortOrder: 1 }));
     expect(saveList).toHaveBeenCalledWith(expect.objectContaining({ id: 'list-2', sortOrder: 2 }));
+  });
+
+  it('updates a list with a trimmed name while preserving createdAt and sortOrder', async () => {
+    fetchListById.mockResolvedValue(workList);
+    fetchLists.mockResolvedValue([workList]);
+    saveList.mockResolvedValue(undefined);
+
+    const updated = await updateList('list-1', { name: '  Deep Work  ', color: '#2E8B57', icon: 'home-outline' });
+
+    expect(updated).toEqual(
+      expect.objectContaining({
+        id: 'list-1',
+        name: 'Deep Work',
+        color: '#2E8B57',
+        icon: 'home-outline',
+        createdAt: workList.createdAt,
+        sortOrder: workList.sortOrder,
+        seedNameLocked: 1
+      })
+    );
+    expect(saveList).toHaveBeenCalledWith(expect.objectContaining({ name: 'Deep Work', createdAt: workList.createdAt, sortOrder: workList.sortOrder }));
+  });
+
+  it('rejects duplicate names when updating a list', async () => {
+    await i18n.changeLanguage('tr');
+    fetchListById.mockResolvedValue(workList);
+    fetchLists.mockResolvedValue([
+      workList,
+      {
+        id: 'list-2',
+        name: 'Kişisel',
+        color: '#123456',
+        icon: 'person-outline',
+        sortOrder: 1,
+        createdAt: '2025-03-02T00:00:00.000Z',
+        seedKey: null,
+        seedNameLocked: 0
+      }
+    ]);
+
+    await expect(updateList('list-1', { name: 'kişisel' })).rejects.toThrow('Bu isimde bir liste zaten var.');
+    expect(saveList).not.toHaveBeenCalled();
+  });
+
+  it('does not treat the current list name as a duplicate during update', async () => {
+    await i18n.changeLanguage('tr');
+    fetchListById.mockResolvedValue({ ...workList, name: 'İş' });
+    fetchLists.mockResolvedValue([{ ...workList, name: 'İş' }]);
+    saveList.mockResolvedValue(undefined);
+
+    const updated = await updateList('list-1', { name: ' iş ' });
+
+    expect(updated).toEqual(expect.objectContaining({ name: 'iş' }));
+    expect(saveList).toHaveBeenCalledTimes(1);
+  });
+
+  it('deletes tasks through the task cleanup path before removing the list row', async () => {
+    fetchTasksByList.mockResolvedValue([
+      { id: 'task-1' },
+      { id: 'task-2' }
+    ]);
+    removeTask.mockResolvedValue(undefined);
+    deleteListRow.mockResolvedValue(undefined);
+
+    await deleteList('list-1');
+
+    expect(removeTask).toHaveBeenNthCalledWith(1, 'task-1');
+    expect(removeTask).toHaveBeenNthCalledWith(2, 'task-2');
+    expect(deleteListRow).toHaveBeenCalledWith('list-1');
+    expect(removeTask.mock.invocationCallOrder[1]).toBeLessThan(deleteListRow.mock.invocationCallOrder[0]);
   });
 });

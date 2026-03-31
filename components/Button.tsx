@@ -6,13 +6,17 @@ export function Button({
   onPress,
   variant = 'primary',
   loading = false,
-  style
+  style,
+  testID,
+  accessibilityLabel
 }: {
   label: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'success';
   loading?: boolean;
   style?: ViewStyle;
+  testID?: string;
+  accessibilityLabel?: string;
 }) {
   const { theme } = useApp();
   const backgroundColor =
@@ -20,6 +24,8 @@ export function Button({
       ? theme.primary
       : variant === 'danger'
         ? theme.danger
+        : variant === 'success'
+          ? theme.success
         : variant === 'secondary'
           ? theme.surfaceAlt
           : 'transparent';
@@ -28,7 +34,9 @@ export function Button({
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? label}
       onPress={onPress}
+      testID={testID}
       style={({ pressed }) => [
         styles.button,
         { backgroundColor, borderColor: theme.border, shadowColor: theme.shadow, opacity: pressed ? 0.85 : 1 },

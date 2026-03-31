@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { NestableDraggableFlatList, NestableScrollContainer } from 'react-native-draggable-flatlist';
+import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '@/hooks/useApp';
 import { Screen } from '@/components/Screen';
 import { Card } from '@/components/Card';
@@ -12,7 +13,7 @@ import { filterTasks, sortTasks } from '@/utils/taskFilters';
 import { useTranslation } from 'react-i18next';
 
 export default function ListDetailScreen() {
-  const { lists, tasks, settings, theme, completeTask, snoozeTask, reorderTasks } = useApp();
+  const { lists, tasks, settings, theme, completeTask, snoozeTask, reorderTasks, deleteList } = useApp();
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ listId: string }>();
   const list = useMemo(() => lists.find((item) => item.id === params.listId), [lists, params.listId]);
@@ -31,17 +32,28 @@ export default function ListDetailScreen() {
 
   const activeCount = listTasks.filter((task) => task.status === 'active').length;
   const completedCount = listTasks.filter((task) => task.status === 'completed').length;
+  const totalTaskCount = listTasks.length;
 
   return (
-    <Screen scroll={false} padded={false}>
+    <Screen scroll={false} padded={false} testID="list-detail-screen">
       <NestableScrollContainer contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Card>
           <View style={styles.header}>
-            <View style={[styles.badge, { backgroundColor: list.color }]} />
+            <View style={[styles.badge, { backgroundColor: list.color }]}>
+              <Ionicons name={list.icon as any} size={18} color="#FFFFFF" />
+            </View>
             <Text style={[styles.title, { color: theme.text }]}>{list.name}</Text>
           </View>
           <Text style={[styles.description, { color: theme.mutedText }]}>{t('listDetail.description', { activeCount, completedCount })}</Text>
-          <Button label={t('listDetail.addTask')} onPress={() => router.push(`/tasks/new?listId=${list.id}`)} />
+          <View style={styles.actionGroup}>
+          <Button label={t('listDetail.addTask')} onPress={() => router.push(`/tasks/new?listId=${list.id}`)} testID="list-detail-add-task" />
+            <Button label={t('listDetail.edit')} variant="secondary" onPress={() => router.push(`/lists/${list.id}/edit`)} />
+            <Button
+              label={t('listDetail.delete')}
+              variant="danger"
+              onPress={() => void confirmDeleteList(list.id, deleteList, { activeCount, completedCount, totalTaskCount }, t)}
+            />
+          </View>
         </Card>
 
         <View style={styles.section}>
@@ -74,6 +86,35 @@ export default function ListDetailScreen() {
   );
 }
 
+async function confirmDeleteList(
+  listId: string,
+  removeList: (id: string) => Promise<void>,
+  counts: { activeCount: number; completedCount: number; totalTaskCount: number },
+  t: (key: string, params?: Record<string, unknown>) => string
+): Promise<void> {
+  Alert.alert(
+    t('listDetail.deleteTitle'),
+    t('listDetail.deleteBody', {
+      taskCount: counts.totalTaskCount,
+      activeCount: counts.activeCount,
+      completedCount: counts.completedCount
+    }),
+    [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('common.delete'),
+        style: 'destructive',
+        onPress: () => {
+          void (async () => {
+            await removeList(listId);
+            router.back();
+          })();
+        }
+      }
+    ]
+  );
+}
+
 const styles = StyleSheet.create({
   content: {
     padding: 16,
@@ -86,9 +127,11 @@ const styles = StyleSheet.create({
     marginBottom: 10
   },
   badge: {
-    width: 16,
-    height: 16,
-    borderRadius: 999
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   title: {
     fontSize: 26,
@@ -101,6 +144,9 @@ const styles = StyleSheet.create({
   },
   section: {
     marginTop: 8
+  },
+  actionGroup: {
+    gap: 12
   },
   sectionTitle: {
     fontSize: 18,

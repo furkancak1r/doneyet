@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useApp } from '@/hooks/useApp';
 import { Button } from '@/components/Button';
 import { Chip } from '@/components/Chip';
-import { TaskMode } from '@/types/domain';
+import { TaskFormValues, TaskMode } from '@/types/domain';
 import { useTranslation } from 'react-i18next';
 
 export function QuickAddTaskCard({
@@ -13,13 +13,17 @@ export function QuickAddTaskCard({
 }: {
   defaultListId?: string | null;
 }) {
-  const { lists, theme } = useApp();
+  const { lists, theme, quickAddResetVersion, createTask, requestQuickAddReset, settings } = useApp();
   const { t } = useTranslation();
   const [title, setTitle] = useState('');
   const [listId, setListId] = useState(defaultListId ?? lists[0]?.id ?? '');
   const [taskMode, setTaskMode] = useState<TaskMode>('single');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const savingRef = useRef(false);
 
   const visibleLists = useMemo(() => lists, [lists]);
+  const submitLabel = taskMode === 'todo' ? t('common.save') : t('quickAdd.continue');
 
   useEffect(() => {
     const currentExists = listId ? lists.some((list) => list.id === listId) : false;
@@ -30,9 +34,49 @@ export function QuickAddTaskCard({
     }
   }, [defaultListId, listId, lists]);
 
+  useEffect(() => {
+    setTitle('');
+    setError(null);
+  }, [quickAddResetVersion]);
+
   const handleSubmit = async () => {
     const trimmed = title.trim();
-    if (!trimmed || !listId) {
+    if (!trimmed || !listId || savingRef.current) {
+      return;
+    }
+
+    setError(null);
+
+    if (taskMode === 'todo') {
+      const values: TaskFormValues = {
+        title: trimmed,
+        description: '',
+        listId,
+        startReminderType: 'today_at_time',
+        startDateTime: new Date(),
+        startReminderWeekday: null,
+        startReminderDayOfMonth: null,
+        startReminderTime: settings.defaultStartTime,
+        startReminderUsesLastDay: false,
+        taskMode: 'todo',
+        repeatIntervalType: 'preset',
+        repeatIntervalValue: 1,
+        repeatIntervalUnit: 'hours'
+      };
+
+      savingRef.current = true;
+      setSaving(true);
+
+      try {
+        await createTask(values);
+        requestQuickAddReset();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : null);
+      } finally {
+        savingRef.current = false;
+        setSaving(false);
+      }
+
       return;
     }
 
@@ -89,7 +133,8 @@ export function QuickAddTaskCard({
         ))}
       </View>
       <Text style={[styles.helper, { color: theme.mutedText }]}>{t('quickAdd.helper')}</Text>
-      <Button label={t('quickAdd.continue')} onPress={() => void handleSubmit()} />
+      {error ? <Text style={[styles.error, { color: theme.danger }]}>{error}</Text> : null}
+      <Button label={submitLabel} onPress={() => void handleSubmit()} loading={saving} />
     </View>
   );
 }
@@ -249,6 +294,11 @@ const styles = StyleSheet.create({
   helper: {
     fontSize: 12,
     lineHeight: 18,
+    fontWeight: '600',
+    marginBottom: 10
+  },
+  error: {
+    fontSize: 13,
     fontWeight: '600',
     marginBottom: 10
   }

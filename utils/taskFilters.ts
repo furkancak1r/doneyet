@@ -30,6 +30,9 @@ export function filterTasks(tasks: Task[], query: TaskQuery, reference = new Dat
       case 'completed':
         return task.status === 'completed';
       case 'today': {
+        if (task.status !== 'active') {
+          return false;
+        }
         const nextAt = task.nextNotificationAt ? new Date(task.nextNotificationAt) : null;
         if (!nextAt) {
           return false;
@@ -37,6 +40,9 @@ export function filterTasks(tasks: Task[], query: TaskQuery, reference = new Dat
         return nextAt >= startOfDay(reference) && nextAt < addDays(startOfDay(reference), 1);
       }
       case 'week': {
+        if (task.status !== 'active') {
+          return false;
+        }
         const nextAt = task.nextNotificationAt ? new Date(task.nextNotificationAt) : null;
         if (!nextAt) {
           return false;

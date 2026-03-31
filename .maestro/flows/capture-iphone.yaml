@@ -1,0 +1,25 @@
+appId: com.doneyet.appios
+---
+- launchApp
+- assertVisible:
+    id: home-screen
+- waitForAnimationToEnd
+- takeScreenshot: ${LOCALE}/home.capture
+- tapOn:
+    id: tab-calendar
+- assertVisible:
+    id: calendar-screen
+- waitForAnimationToEnd
+- takeScreenshot: ${LOCALE}/calendar.capture
+- tapOn:
+    id: list-card-screenshot-list-focus
+- assertVisible:
+    id: list-detail-screen
+- waitForAnimationToEnd
+- takeScreenshot: ${LOCALE}/list-detail.capture
+- tapOn:
+    id: task-card-screenshot-task-quarterly-review
+- assertVisible:
+    id: task-detail-screen
+- waitForAnimationToEnd
+- takeScreenshot: ${LOCALE}/task-detail.capture

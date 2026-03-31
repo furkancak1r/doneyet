@@ -18,6 +18,8 @@ export const TAB_SCREENS = [
   { name: 'settings', href: '/settings', titleKey: 'tabs.settings', icon: 'settings-outline' }
 ] as const satisfies readonly TabScreen[];
 
+export const TABS_FREEZE_ON_BLUR = false;
+
 export type TabHref = (typeof TAB_SCREENS)[number]['href'];
 
 export function getAdjacentTabHref(current: TabHref, direction: 'previous' | 'next'): TabHref | null {

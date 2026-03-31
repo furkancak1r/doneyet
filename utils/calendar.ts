@@ -44,6 +44,10 @@ export function buildCalendarMonthDays(month: Date): Date[] {
 }
 
 export function getTaskCalendarDate(task: Task): Date | null {
+  if (task.status === 'paused' && task.taskMode !== 'todo') {
+    return null;
+  }
+
   const anchor = task.taskMode === 'todo' ? task.startDateTime : task.nextNotificationAt ?? task.startDateTime;
   if (!anchor) {
     return null;

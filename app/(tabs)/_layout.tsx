@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp } from '@/hooks/useApp';
 import { useTranslation } from 'react-i18next';
-import { TAB_SCREENS } from '@/constants/tabNavigation';
+import { TAB_SCREENS, TABS_FREEZE_ON_BLUR } from '@/constants/tabNavigation';
 
 export default function TabsLayout() {
   const { theme } = useApp();
@@ -18,7 +18,7 @@ export default function TabsLayout() {
         headerStyle: { backgroundColor: theme.surface },
         headerTintColor: theme.text,
         headerShadowVisible: false,
-        freezeOnBlur: true,
+        freezeOnBlur: TABS_FREEZE_ON_BLUR,
         tabBarActiveTintColor: theme.primary,
         tabBarInactiveTintColor: theme.mutedText,
         tabBarStyle: {
@@ -44,6 +44,7 @@ export default function TabsLayout() {
           name={screen.name}
           options={{
             title: t(screen.titleKey),
+            tabBarButtonTestID: `tab-${screen.name}`,
             tabBarIcon: ({ color, size }) => <Ionicons name={screen.icon} size={size} color={color} />
           }}
         />

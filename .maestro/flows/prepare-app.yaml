@@ -1,0 +1,8 @@
+appId: com.doneyet.appios
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+    permissions:
+      notifications: allow
+- stopApp

@@ -199,3 +199,14 @@ export async function saveSettings(settings: AppSettings): Promise<void> {
     ]);
   });
 }
+
+export async function clearAppData(): Promise<void> {
+  await withDatabase(async (db) => {
+    await db.execAsync(`
+      DELETE FROM task_notifications;
+      DELETE FROM tasks;
+      DELETE FROM lists;
+      DELETE FROM settings;
+    `);
+  });
+}

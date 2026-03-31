@@ -2,6 +2,8 @@ import { RepeatIntervalUnit, StartReminderType, Task } from '@/types/domain';
 import i18n from '@/i18n';
 import { getCurrentAppLanguage, getCurrentLocale } from '@/utils/locale';
 
+export type VisibleTaskState = 'active' | 'paused' | 'snoozed' | 'overdue' | 'upcoming' | 'completed';
+
 export function pad(value: number): string {
   return value.toString().padStart(2, '0');
 }
@@ -107,6 +109,33 @@ export function addRepeatInterval(date: Date, value: number, unit: RepeatInterva
   return unit === 'minutes' ? addMinutes(date, value) : addHours(date, value);
 }
 
+export function getNextTaskOccurrence(task: Task, reference = new Date()): Date {
+  if (task.snoozedUntil) {
+    const snoozed = new Date(task.snoozedUntil);
+    if (snoozed.getTime() > reference.getTime()) {
+      return snoozed;
+    }
+  }
+
+  if (task.nextNotificationAt) {
+    let candidate = new Date(task.nextNotificationAt);
+    while (candidate.getTime() <= reference.getTime()) {
+      candidate = addRepeatInterval(candidate, task.repeatIntervalValue, task.repeatIntervalUnit);
+    }
+    return candidate;
+  }
+
+  return getNextStartDateTime(
+    task.startReminderType,
+    new Date(task.startDateTime),
+    task.startReminderWeekday,
+    task.startReminderDayOfMonth,
+    task.startReminderTime,
+    Boolean(task.startReminderUsesLastDay),
+    reference
+  );
+}
+
 export function hasTimePassed(reference: Date, target: Date): boolean {
   return target.getTime() <= reference.getTime();
 }
@@ -171,9 +200,13 @@ export function getNextStartDateTime(
   return startDateTime;
 }
 
-export function getVisibleTaskState(task: Task, reference = new Date()): 'active' | 'snoozed' | 'overdue' | 'upcoming' | 'completed' {
+export function getVisibleTaskState(task: Task, reference = new Date()): VisibleTaskState {
   if (task.status === 'completed') {
     return 'completed';
+  }
+
+  if (task.status === 'paused') {
+    return 'paused';
   }
 
   const snoozedUntil = task.snoozedUntil ? new Date(task.snoozedUntil) : null;

@@ -1,0 +1,7 @@
+appId: com.doneyet.appios
+---
+- launchApp
+- assertVisible:
+    id: home-screen
+- waitForAnimationToEnd
+- takeScreenshot: ${LOCALE}/ipad-home.capture

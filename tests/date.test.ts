@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import i18n from '../i18n';
-import { daysInMonth, formatDateTR, formatDurationLabel, getNextStartDateTime, isLeapYear } from '../utils/date';
+import { daysInMonth, formatDateTR, formatDurationLabel, getNextStartDateTime, getNextTaskOccurrence, getVisibleTaskState, isLeapYear } from '../utils/date';
+import { Task } from '../types/domain';
 
 function expectLocalDateTime(
   date: Date,
@@ -18,6 +19,36 @@ function expectLocalDateTime(
 }
 
 describe('date helpers', () => {
+  function buildTask(overrides: Partial<Task> & Pick<Task, 'id'>): Task {
+    const { id, ...rest } = overrides;
+    return {
+      id,
+      title: 'Task',
+      description: '',
+      listId: 'list-1',
+      sortOrder: 0,
+      createdAt: '2025-03-01T00:00:00.000Z',
+      updatedAt: '2025-03-01T00:00:00.000Z',
+      startReminderType: 'today_at_time',
+      startDateTime: '2025-03-01T20:20:00.000Z',
+      startReminderWeekday: null,
+      startReminderDayOfMonth: null,
+      startReminderTime: '20:20',
+      startReminderUsesLastDay: 0,
+      taskMode: 'single',
+      repeatIntervalType: 'preset',
+      repeatIntervalValue: 30,
+      repeatIntervalUnit: 'minutes',
+      status: 'active',
+      lastNotificationAt: null,
+      nextNotificationAt: '2025-03-01T20:20:00.000Z',
+      snoozedUntil: null,
+      notificationIdsJson: '[]',
+      completedAt: null,
+      ...rest
+    };
+  }
+
   afterEach(async () => {
     await i18n.changeLanguage('en');
   });
@@ -115,6 +146,49 @@ describe('date helpers', () => {
     );
 
     expectLocalDateTime(result, 2025, 2, 1, 10, 1);
+  });
+
+  it('advances past nextNotificationAt by repeat interval before falling back to start rules', () => {
+    const reference = new Date(2025, 2, 1, 20, 35, 0, 0);
+
+    const result = getNextTaskOccurrence(
+      buildTask({
+        id: 'task-1',
+        nextNotificationAt: new Date(2025, 2, 1, 20, 20, 0, 0).toISOString()
+      }),
+      reference
+    );
+
+    expectLocalDateTime(result, 2025, 2, 1, 20, 50);
+  });
+
+  it('keeps a future snoozedUntil as the next occurrence', () => {
+    const reference = new Date(2025, 2, 1, 20, 35, 0, 0);
+
+    const result = getNextTaskOccurrence(
+      buildTask({
+        id: 'task-2',
+        snoozedUntil: new Date(2025, 2, 1, 21, 5, 0, 0).toISOString()
+      }),
+      reference
+    );
+
+    expectLocalDateTime(result, 2025, 2, 1, 21, 5);
+  });
+
+  it('reports paused tasks as paused before any time-based state', () => {
+    const reference = new Date(2025, 2, 1, 20, 35, 0, 0);
+
+    const result = getVisibleTaskState(
+      buildTask({
+        id: 'task-3',
+        status: 'paused',
+        nextNotificationAt: new Date(2025, 2, 1, 20, 20, 0, 0).toISOString()
+      }),
+      reference
+    );
+
+    expect(result).toBe('paused');
   });
 
   it('reports month length correctly', () => {

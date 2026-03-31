@@ -2,8 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { restoreAllTaskSchedules, syncTaskSchedule } from '../services/schedulerService';
 import { Task } from '../types/domain';
 
-const fetchTaskById = vi.fn();
-const fetchTaskNotifications = vi.fn();
+const fetchAllTaskNotifications = vi.fn();
 const fetchTasks = vi.fn();
 const replaceTaskNotifications = vi.fn();
 const saveTask = vi.fn();
@@ -12,8 +11,7 @@ const cancelNotifications = vi.fn();
 const hasNotificationPermission = vi.fn();
 
 vi.mock('../db/repositories', () => ({
-  fetchTaskById: (...args: unknown[]) => fetchTaskById(...args),
-  fetchTaskNotifications: (...args: unknown[]) => fetchTaskNotifications(...args),
+  fetchAllTaskNotifications: (...args: unknown[]) => fetchAllTaskNotifications(...args),
   fetchTasks: (...args: unknown[]) => fetchTasks(...args),
   replaceTaskNotifications: (...args: unknown[]) => replaceTaskNotifications(...args),
   saveTask: (...args: unknown[]) => saveTask(...args)
@@ -36,32 +34,23 @@ function buildTask(overrides: Partial<Task> & Pick<Task, 'id'>): Task {
     createdAt: '2025-03-01T00:00:00.000Z',
     updatedAt: '2025-03-01T00:00:00.000Z',
     startReminderType: 'today_at_time',
-    startDateTime: '2025-03-01T08:00:00.000Z',
+    startDateTime: '2025-03-01T20:20:00.000Z',
     startReminderWeekday: null,
     startReminderDayOfMonth: null,
-    startReminderTime: '08:00',
+    startReminderTime: '20:20',
     startReminderUsesLastDay: 0,
     taskMode: 'single',
     repeatIntervalType: 'preset',
-    repeatIntervalValue: 1,
-    repeatIntervalUnit: 'hours',
+    repeatIntervalValue: 30,
+    repeatIntervalUnit: 'minutes',
     status: 'active',
     lastNotificationAt: null,
-    nextNotificationAt: '2025-03-01T08:00:00.000Z',
+    nextNotificationAt: null,
     snoozedUntil: null,
     notificationIdsJson: '[]',
     completedAt: null,
     ...rest
   };
-}
-
-function createDeferred<T>() {
-  let resolve!: (value: T | PromiseLike<T>) => void;
-  const promise = new Promise<T>((res) => {
-    resolve = res;
-  });
-
-  return { promise, resolve };
 }
 
 function expectLocalDateTime(
@@ -84,242 +73,191 @@ describe('scheduler service', () => {
     vi.clearAllMocks();
     hasNotificationPermission.mockResolvedValue(true);
     fetchTasks.mockResolvedValue([]);
-    fetchTaskNotifications.mockResolvedValue([]);
+    fetchAllTaskNotifications.mockResolvedValue([]);
     cancelNotifications.mockResolvedValue(undefined);
     replaceTaskNotifications.mockResolvedValue(undefined);
     saveTask.mockResolvedValue(undefined);
+    scheduleTaskReminder.mockImplementation(async (task: Task, fireAt: Date) => `${task.id}-${fireAt.toISOString()}`);
   });
 
   afterEach(() => {
     vi.useRealTimers();
   });
 
-  it('syncs schedules and keeps a single pending notification', async () => {
+  it('builds a rolling queue for repeating reminders', async () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date(2025, 2, 1, 7, 0, 0, 0));
+    vi.setSystemTime(new Date(2025, 2, 1, 20, 10, 0, 0));
 
     try {
-      fetchTaskById.mockResolvedValue(
+      fetchTasks.mockResolvedValue([
         buildTask({
-          id: 'task-1',
-          title: 'Tekrar eden görev',
-          nextNotificationAt: '2025-03-01T08:00:00.000Z',
-          notificationIdsJson: '["old-1","old-2"]'
+          id: 'task-1'
         })
-      );
+      ]);
+
+      const result = await syncTaskSchedule('task-1');
+
+      expect(scheduleTaskReminder).toHaveBeenCalledTimes(64);
+      expectLocalDateTime(scheduleTaskReminder.mock.calls[0][1] as Date, 2025, 2, 1, 20, 20);
+      expectLocalDateTime(scheduleTaskReminder.mock.calls[1][1] as Date, 2025, 2, 1, 20, 50);
+      expectLocalDateTime(scheduleTaskReminder.mock.calls[2][1] as Date, 2025, 2, 1, 21, 20);
+
+      expect(replaceTaskNotifications).toHaveBeenCalledTimes(1);
+      const rows = replaceTaskNotifications.mock.calls[0][1] as Array<{ scheduledFor: string }>;
+      expect(rows).toHaveLength(64);
+      expectLocalDateTime(new Date(rows[0].scheduledFor), 2025, 2, 1, 20, 20);
+      expectLocalDateTime(new Date(rows[1].scheduledFor), 2025, 2, 1, 20, 50);
+      expectLocalDateTime(new Date(rows[2].scheduledFor), 2025, 2, 1, 21, 20);
+
+      expect(result?.nextNotificationAt).toBeTruthy();
+      expectLocalDateTime(new Date(result?.nextNotificationAt ?? ''), 2025, 2, 1, 20, 20);
+      expect(JSON.parse(result?.notificationIdsJson ?? '[]')).toHaveLength(64);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('advances past nextNotificationAt by repeat interval instead of resetting to tomorrow', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2025, 2, 1, 20, 35, 0, 0));
+
+    try {
       fetchTasks.mockResolvedValue([
         buildTask({
           id: 'task-1',
-          title: 'Tekrar eden görev',
-          nextNotificationAt: '2025-03-01T08:00:00.000Z',
+          nextNotificationAt: new Date(2025, 2, 1, 20, 20, 0, 0).toISOString()
+        })
+      ]);
+
+      const result = await syncTaskSchedule('task-1');
+
+      expect(scheduleTaskReminder).toHaveBeenCalledTimes(64);
+      expectLocalDateTime(scheduleTaskReminder.mock.calls[0][1] as Date, 2025, 2, 1, 20, 50);
+      expect(result?.nextNotificationAt).toBeTruthy();
+      expectLocalDateTime(new Date(result?.nextNotificationAt ?? ''), 2025, 2, 1, 20, 50);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('shares the global queue across tasks by earliest due time', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2025, 2, 1, 20, 10, 0, 0));
+
+    try {
+      fetchTasks.mockResolvedValue([
+        buildTask({
+          id: 'task-a',
+          startReminderTime: '20:20',
+          startDateTime: new Date(2025, 2, 1, 20, 20, 0, 0).toISOString()
+        }),
+        buildTask({
+          id: 'task-b',
+          startReminderTime: '20:35',
+          startDateTime: new Date(2025, 2, 1, 20, 35, 0, 0).toISOString()
+        })
+      ]);
+
+      await syncTaskSchedule('task-a');
+
+      expect(scheduleTaskReminder).toHaveBeenCalledTimes(64);
+      expect(scheduleTaskReminder.mock.calls.slice(0, 4).map(([task, fireAt]) => ({
+        taskId: (task as Task).id,
+        hour: (fireAt as Date).getHours(),
+        minute: (fireAt as Date).getMinutes()
+      }))).toEqual([
+        { taskId: 'task-a', hour: 20, minute: 20 },
+        { taskId: 'task-b', hour: 20, minute: 35 },
+        { taskId: 'task-a', hour: 20, minute: 50 },
+        { taskId: 'task-b', hour: 21, minute: 5 }
+      ]);
+
+      expect(replaceTaskNotifications).toHaveBeenCalledTimes(2);
+      const rowsByTask = new Map(
+        replaceTaskNotifications.mock.calls.map((call) => [call[0] as string, call[1] as Array<{ scheduledFor: string }>])
+      );
+      expect(rowsByTask.get('task-a')).toHaveLength(32);
+      expect(rowsByTask.get('task-b')).toHaveLength(32);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('caps scheduled notifications at 64 while keeping nextNotificationAt for later tasks', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2025, 2, 1, 8, 0, 0, 0));
+
+    try {
+      fetchTasks.mockResolvedValue(
+        Array.from({ length: 65 }, (_, index) =>
+          buildTask({
+            id: `task-${index + 1}`,
+            startReminderType: 'exact_date_time',
+            startDateTime: new Date(2025, 2, 1, 8, index + 1, 0, 0).toISOString(),
+            startReminderTime: `${String(8 + Math.floor((index + 1) / 60)).padStart(2, '0')}:${String((index + 1) % 60).padStart(2, '0')}`
+          })
+        )
+      );
+
+      const result = await syncTaskSchedule('task-65');
+
+      expect(scheduleTaskReminder).toHaveBeenCalledTimes(64);
+      expect(scheduleTaskReminder.mock.calls.some(([task]) => (task as Task).id === 'task-65')).toBe(false);
+      expect(result?.nextNotificationAt).toBe(new Date(2025, 2, 1, 9, 5, 0, 0).toISOString());
+      expect(result?.notificationIdsJson).toBe('[]');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('cancels stale notification ids from tasks and notification rows before rebuilding', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2025, 2, 1, 20, 10, 0, 0));
+
+    try {
+      fetchTasks.mockResolvedValue([
+        buildTask({
+          id: 'task-1',
           notificationIdsJson: '["old-1","old-2"]'
         })
       ]);
-      scheduleTaskReminder.mockResolvedValue('new-notif');
-
-      const result = await syncTaskSchedule('task-1');
-
-      expect(cancelNotifications).toHaveBeenCalledWith(['old-1', 'old-2']);
-      expect(scheduleTaskReminder).toHaveBeenCalledTimes(1);
-      const [scheduledTask, scheduledAt] = scheduleTaskReminder.mock.calls[0];
-      expect(scheduledTask.id).toBe('task-1');
-      expectLocalDateTime(scheduledAt as Date, 2025, 2, 1, 11, 0);
-
-      expect(replaceTaskNotifications).toHaveBeenCalledTimes(1);
-      const rows = replaceTaskNotifications.mock.calls[0][1] as Array<{ notificationId: string }>;
-      expect(rows).toHaveLength(1);
-      expect(rows[0].notificationId).toBe('new-notif');
-      expect(saveTask).toHaveBeenCalledWith(
-        expect.objectContaining({
-          nextNotificationAt: '2025-03-01T08:00:00.000Z',
-          notificationIdsJson: '["new-notif"]'
-        })
-      );
-      expect(result?.status).toBe('active');
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
-  it('schedules only once when the same task is resynced concurrently', async () => {
-    const taskId = 'task-concurrent';
-    const task = buildTask({
-      id: taskId,
-      title: 'Çakışan görev',
-      startReminderType: 'today_at_time',
-      startReminderTime: '08:00',
-      nextNotificationAt: null,
-      notificationIdsJson: '[]'
-    });
-    const taskFetch = createDeferred<Task | null>();
-    const reminder = createDeferred<string>();
-    fetchTaskById.mockReturnValue(taskFetch.promise);
-    scheduleTaskReminder.mockReturnValue(reminder.promise);
-
-    const firstSync = syncTaskSchedule(taskId);
-    const secondSync = syncTaskSchedule(taskId);
-
-    try {
-      expect(fetchTaskById).toHaveBeenCalledTimes(1);
-      taskFetch.resolve(task);
-
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      expect(scheduleTaskReminder).toHaveBeenCalledTimes(1);
-
-      reminder.resolve('new-notif');
-      await Promise.all([firstSync, secondSync]);
-
-      expect(replaceTaskNotifications).toHaveBeenCalledTimes(1);
-      expect(saveTask).toHaveBeenCalledTimes(1);
-    } finally {
-      reminder.resolve('new-notif');
-      taskFetch.resolve(task);
-      await Promise.allSettled([firstSync, secondSync]);
-    }
-  });
-
-  it('moves past today-at-time reminders to the next day before scheduling', async () => {
-    vi.useFakeTimers();
-    const reference = new Date(2025, 2, 1, 10, 0, 0, 0);
-    vi.setSystemTime(reference);
-
-    try {
-      const startDateTime = new Date(2025, 2, 1, 9, 30, 0, 0);
-      const task = buildTask({
-        id: 'task-1',
-        title: 'Günlük hatırlatma',
-        startReminderType: 'today_at_time',
-        startDateTime: startDateTime.toISOString(),
-        startReminderTime: '09:30',
-        nextNotificationAt: startDateTime.toISOString()
-      });
-
-      fetchTaskById.mockResolvedValue(task);
-      fetchTasks.mockResolvedValue([task]);
-      scheduleTaskReminder.mockResolvedValue('new-notif');
-
-      const result = await syncTaskSchedule('task-1');
-
-      expect(scheduleTaskReminder).toHaveBeenCalledTimes(1);
-      const scheduledOccurrence = scheduleTaskReminder.mock.calls[0][1] as Date;
-      expectLocalDateTime(scheduledOccurrence, 2025, 2, 2, 9, 30);
-      expect(result?.nextNotificationAt).toBeTruthy();
-      expectLocalDateTime(new Date(result?.nextNotificationAt ?? ''), 2025, 2, 2, 9, 30);
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
-  it('keeps a future monthly last-day reminder at 09:00 when creating the task', async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date(2026, 2, 31, 0, 14, 0, 0));
-
-    try {
-      const task = buildTask({
-        id: 'task-monthly',
-        title: 'Ay sonu hatırlatma',
-        startReminderType: 'monthly_on_last_day',
-        startDateTime: new Date(2026, 2, 31, 0, 14, 0, 0).toISOString(),
-        startReminderTime: '09:00',
-        startReminderUsesLastDay: 1,
-        nextNotificationAt: null
-      });
-
-      fetchTaskById.mockResolvedValue(task);
-      scheduleTaskReminder.mockResolvedValue('monthly-notif');
-
-      const result = await syncTaskSchedule('task-monthly');
-
-      expect(scheduleTaskReminder).toHaveBeenCalledTimes(1);
-      const scheduledOccurrence = scheduleTaskReminder.mock.calls[0][1] as Date;
-      expectLocalDateTime(scheduledOccurrence, 2026, 2, 31, 9, 0);
-      expect(result?.nextNotificationAt).toBeTruthy();
-      expectLocalDateTime(new Date(result?.nextNotificationAt ?? ''), 2026, 2, 31, 9, 0);
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
-  it('cancels stale notification ids from both storage sources before rescheduling', async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date(2026, 2, 31, 0, 14, 0, 0));
-
-    try {
-      const task = buildTask({
-        id: 'task-cleanup',
-        title: 'Temizlik',
-        startReminderType: 'monthly_on_last_day',
-        startDateTime: new Date(2026, 2, 31, 0, 14, 0, 0).toISOString(),
-        startReminderTime: '09:00',
-        startReminderUsesLastDay: 1,
-        nextNotificationAt: null,
-        notificationIdsJson: '["old-1","old-2"]'
-      });
-
-      fetchTaskById.mockResolvedValue(task);
-      fetchTaskNotifications.mockResolvedValue([
-        { notificationId: 'old-2' },
-        { notificationId: 'old-3' }
+      fetchAllTaskNotifications.mockResolvedValue([
+        {
+          id: 'row-1',
+          taskId: 'task-1',
+          notificationId: 'old-2',
+          scheduledFor: new Date(2025, 2, 1, 20, 20, 0, 0).toISOString(),
+          status: 'scheduled',
+          createdAt: new Date(2025, 2, 1, 19, 50, 0, 0).toISOString()
+        },
+        {
+          id: 'row-2',
+          taskId: 'task-1',
+          notificationId: 'old-3',
+          scheduledFor: new Date(2025, 2, 1, 20, 50, 0, 0).toISOString(),
+          status: 'scheduled',
+          createdAt: new Date(2025, 2, 1, 19, 55, 0, 0).toISOString()
+        }
       ]);
-      scheduleTaskReminder.mockResolvedValue('new-notif');
 
-      const result = await syncTaskSchedule('task-cleanup');
+      await syncTaskSchedule('task-1');
 
       expect(cancelNotifications).toHaveBeenCalledTimes(1);
       expect(cancelNotifications).toHaveBeenCalledWith(['old-1', 'old-2', 'old-3']);
-
-      expect(scheduleTaskReminder).toHaveBeenCalledTimes(1);
-      const scheduledOccurrence = scheduleTaskReminder.mock.calls[0][1] as Date;
-      expectLocalDateTime(scheduledOccurrence, 2026, 2, 31, 9, 0);
-
-      expect(replaceTaskNotifications).toHaveBeenCalledTimes(1);
-      const rows = replaceTaskNotifications.mock.calls[0][1] as Array<{ notificationId: string }>;
-      expect(rows).toHaveLength(1);
-      expect(rows[0].notificationId).toBe('new-notif');
-
-      expect(saveTask).toHaveBeenCalledWith(
-        expect.objectContaining({
-          notificationIdsJson: '["new-notif"]'
-        })
-      );
-      expect(result?.nextNotificationAt).toBeTruthy();
     } finally {
       vi.useRealTimers();
     }
   });
 
-  it('restores only active tasks on startup', async () => {
-    const activeTask = buildTask({
-      id: 'task-active',
-      title: 'Aktif',
-      nextNotificationAt: '2025-03-01T08:00:00.000Z'
-    });
-    const pausedTask = {
-      ...activeTask,
-      id: 'task-paused',
-      title: 'Duraklatılmış',
-      status: 'paused' as const
-    };
-    fetchTasks.mockResolvedValue([activeTask, pausedTask]);
-    fetchTaskById.mockImplementation(async (id: string) => {
-      if (id === 'task-active') {
-        return activeTask;
-      }
-
-      if (id === 'task-paused') {
-        return pausedTask;
-      }
-
-      return null;
-    });
-    scheduleTaskReminder.mockResolvedValue('new-notif');
-    cancelNotifications.mockResolvedValue(undefined);
-    replaceTaskNotifications.mockResolvedValue(undefined);
-    saveTask.mockResolvedValue(undefined);
+  it('restores schedules with the shared queue on startup', async () => {
+    fetchTasks.mockResolvedValue([
+      buildTask({
+        id: 'task-active'
+      })
+    ]);
 
     await restoreAllTaskSchedules();
 
-    expect(scheduleTaskReminder).toHaveBeenCalledTimes(1);
+    expect(scheduleTaskReminder).toHaveBeenCalledTimes(64);
   });
 });

@@ -1,5 +1,6 @@
 import { defaultListSeeds } from '@/constants/theme';
-import { deleteListRow, fetchListById, fetchLists, fetchMaxListSortOrder, saveList } from '@/db/repositories';
+import { deleteListRow, fetchListById, fetchLists, fetchMaxListSortOrder, fetchTasksByList, saveList } from '@/db/repositories';
+import { removeTask } from '@/services/taskService';
 import { AppList } from '@/types/domain';
 import { createId } from '@/utils/id';
 import { renumberSortOrders } from '@/utils/order';
@@ -58,9 +59,37 @@ export async function updateList(listId: string, updates: Partial<Pick<AppList, 
     return null;
   }
 
+  const nextName = typeof updates.name === 'string' ? updates.name.trim() : current.name.trim();
+  const nextColor = typeof updates.color === 'string' ? updates.color : current.color;
+  const nextIcon = typeof updates.icon === 'string' ? updates.icon : current.icon;
+
+  if (!nextName) {
+    throw new Error(String(i18n.t('listForm.errorName')));
+  }
+
+  if (!nextColor) {
+    throw new Error(String(i18n.t('listForm.errorColor')));
+  }
+
+  if (!nextIcon) {
+    throw new Error(String(i18n.t('listForm.errorIcon')));
+  }
+
+  const existingLists = await fetchLists();
+  const collator = new Intl.Collator(undefined, { sensitivity: 'base', usage: 'search' });
+  const duplicate = existingLists.find(
+    (item) => item.id !== listId && collator.compare(normalizeListName(item.name), normalizeListName(nextName)) === 0
+  );
+  if (duplicate) {
+    throw new Error(String(i18n.t('errors.duplicateList')));
+  }
+
   const updated: AppList = {
     ...current,
     ...updates,
+    name: nextName,
+    color: nextColor,
+    icon: nextIcon,
     seedNameLocked: shouldLockSeedName(current, updates) ? 1 : current.seedNameLocked ?? 0
   };
 
@@ -80,6 +109,11 @@ export async function reorderLists(listIdsInOrder: string[]): Promise<void> {
 }
 
 export async function deleteList(listId: string): Promise<void> {
+  const tasks = await fetchTasksByList(listId);
+  for (const task of tasks) {
+    await removeTask(task.id);
+  }
+
   await deleteListRow(listId);
 }
 

@@ -2,17 +2,32 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Task } from '../types/domain';
 
 const scheduleNotificationAsync = vi.fn();
+const setNotificationHandler = vi.fn();
+const setNotificationChannelAsync = vi.fn();
+const setNotificationCategoryAsync = vi.fn();
 
 vi.mock('expo-notifications', () => ({
+  AndroidImportance: {
+    HIGH: 'high'
+  },
   SchedulableTriggerInputTypes: {
     DATE: 'date'
   },
-  scheduleNotificationAsync: (...args: unknown[]) => scheduleNotificationAsync(...args)
+  scheduleNotificationAsync: (...args: unknown[]) => scheduleNotificationAsync(...args),
+  setNotificationHandler: (...args: unknown[]) => setNotificationHandler(...args),
+  setNotificationChannelAsync: (...args: unknown[]) => setNotificationChannelAsync(...args),
+  setNotificationCategoryAsync: (...args: unknown[]) => setNotificationCategoryAsync(...args)
 }));
 
 vi.mock('react-native', () => ({
   Platform: {
     OS: 'android'
+  }
+}));
+
+vi.mock('@/i18n', () => ({
+  default: {
+    t: (key: string) => key
   }
 }));
 
@@ -51,6 +66,28 @@ function buildTask(overrides: Partial<Task> & Pick<Task, 'id'>): Task {
 describe('notification service', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it('registers a foreground notification handler without the deprecated alert flag', async () => {
+    vi.resetModules();
+    const { configureNotificationHandling } = await import('../services/notificationService');
+
+    configureNotificationHandling();
+
+    expect(setNotificationHandler).toHaveBeenCalledTimes(1);
+
+    const [handlerConfig] = setNotificationHandler.mock.calls[0] as [
+      { handleNotification: () => Promise<Record<string, boolean>> }
+    ];
+    const notificationBehavior = await handlerConfig.handleNotification();
+
+    expect(notificationBehavior).toEqual({
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+      shouldShowBanner: true,
+      shouldShowList: true
+    });
+    expect(notificationBehavior).not.toHaveProperty('shouldShowAlert');
   });
 
   it('schedules reminders with an explicit Expo DATE trigger on Android', async () => {

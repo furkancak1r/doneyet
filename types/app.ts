@@ -26,6 +26,7 @@ export interface AppContextValue {
   theme: ThemePalette;
   themeMode: ThemeMode;
   notificationGranted: boolean;
+  quickAddResetVersion: number;
   refresh: () => Promise<void>;
   createTask: (values: TaskFormValues) => Promise<Task>;
   updateTask: (taskId: string, values: TaskFormValues) => Promise<Task | null>;
@@ -42,7 +43,9 @@ export interface AppContextValue {
   reorderTasks: (listId: string, taskIdsInOrder: string[]) => Promise<void>;
   updateSettings: (updates: Partial<AppSettings>) => Promise<AppSettings>;
   importBackup: (rawJson: string) => Promise<{ ok: boolean; error?: string }>;
+  replaceBackup: (rawJson: string) => Promise<{ ok: boolean; error?: string }>;
   exportBackup: () => Promise<string>;
+  requestQuickAddReset: () => void;
   requestNotificationPermission: () => Promise<void>;
   handleNotificationResponse: (response: NotificationResponse) => Promise<void>;
 }

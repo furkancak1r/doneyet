@@ -8,6 +8,9 @@
     "android": "expo run:android",
     "ios": "node scripts/run-native-ios.mjs",
     "web": "expo start --web",
+    "screenshots:capture": "node scripts/screenshot-capture.mjs",
+    "screenshots:frame": "node scripts/screenshot-frame.mjs",
+    "screenshots:all": "node scripts/screenshot-pipeline.mjs",
     "postinstall": "node scripts/patch-draggable-flatlist.mjs",
     "test": "node scripts/run-vitest.mjs",
     "typecheck": "tsc --noEmit"

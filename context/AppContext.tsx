@@ -29,8 +29,10 @@ import {
   updateList as updateListRecord
 } from '@/services/listService';
 import { getSettings, updateSettings as updateSettingsRecord } from '@/services/settingsService';
-import { importBackupJson, createBackupPayload } from '@/services/backupService';
+import { importBackupJson, createBackupPayload, replaceBackupJson } from '@/services/backupService';
+import { syncForegroundAppState } from '@/services/appForegroundSync';
 import { configureNotificationHandling, ensureNotificationPermissions, getNotificationPermissions, resolveSnoozeTime } from '@/services/notificationService';
+import { handleNotificationResponseOnce } from '@/services/notificationResponseService';
 import { restoreAllTaskSchedules } from '@/services/schedulerService';
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -74,6 +76,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<AppSettings>(defaultSettings);
   const [notificationGranted, setNotificationGranted] = useState(false);
   const [themeMode, setThemeMode] = useState<ThemeMode>('system');
+  const [quickAddResetVersion, setQuickAddResetVersion] = useState(0);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -126,7 +129,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [refresh]);
 
   useEffect(() => {
-    if (!ready || settings.language !== 'system') {
+    if (!ready) {
       return;
     }
 
@@ -135,11 +138,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      void (async () => {
-        await setAppLanguage('system');
-        configureNotificationHandling(settings);
-        await restoreAllTaskSchedules(settings);
-      })();
+      void syncForegroundAppState(settings, {
+        configureNotificationHandling,
+        getNotificationPermissions,
+        restoreAllTaskSchedules,
+        setAppLanguage,
+        setNotificationGranted
+      });
     });
 
     return () => subscription.remove();
@@ -294,6 +299,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return JSON.stringify(payload, null, 2);
   }, []);
 
+  const replaceBackup = useCallback(
+    async (rawJson: string) => {
+      const result = await replaceBackupJson(rawJson);
+      if (result.ok) {
+        const nextSettings = await getSettings();
+        await setAppLanguage(nextSettings.language);
+        await syncLocalizedDefaultLists();
+        configureNotificationHandling(nextSettings);
+        await restoreAllTaskSchedules(nextSettings);
+        await refresh();
+      }
+      return result;
+    },
+    [refresh]
+  );
+
+  const requestQuickAddReset = useCallback(() => {
+    setQuickAddResetVersion((current) => current + 1);
+  }, []);
+
   const requestNotificationPermission = useCallback(async () => {
     const permissions = await ensureNotificationPermissions();
     if (permissions.granted) {
@@ -336,6 +361,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       theme: palette,
       themeMode,
       notificationGranted,
+      quickAddResetVersion,
       refresh,
       createTask,
       updateTask,
@@ -352,7 +378,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       reorderTasks,
       updateSettings,
       importBackup,
+      replaceBackup,
       exportBackup,
+      requestQuickAddReset,
       requestNotificationPermission,
       handleNotificationResponse
     }),
@@ -365,6 +393,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       palette,
       themeMode,
       notificationGranted,
+      quickAddResetVersion,
       refresh,
       createTask,
       updateTask,
@@ -381,7 +410,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       reorderTasks,
       updateSettings,
       importBackup,
+      replaceBackup,
       exportBackup,
+      requestQuickAddReset,
       requestNotificationPermission,
       handleNotificationResponse
     ]
@@ -402,18 +433,17 @@ export function useApp() {
 export function NotificationBridge() {
   const { handleNotificationResponse } = useApp();
   const lastResponse = Notifications.useLastNotificationResponse();
-  const handledIdRef = useRef<string | null>(null);
+  const handledResponseKeysRef = useRef(new Set<string>());
 
   useEffect(() => {
-    if (lastResponse && handledIdRef.current !== lastResponse.notification.request.identifier) {
-      handledIdRef.current = lastResponse.notification.request.identifier;
-      void handleNotificationResponse(lastResponse);
+    if (lastResponse) {
+      void handleNotificationResponseOnce(lastResponse, handledResponseKeysRef.current, handleNotificationResponse);
     }
   }, [handleNotificationResponse, lastResponse]);
 
   useEffect(() => {
     const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
-      void handleNotificationResponse(response);
+      void handleNotificationResponseOnce(response, handledResponseKeysRef.current, handleNotificationResponse);
     });
 
     return () => subscription.remove();

@@ -7,20 +7,37 @@ import { useApp } from '@/hooks/useApp';
 import { listColors, listIcons } from '@/constants/listOptions';
 import { useTranslation } from 'react-i18next';
 
+type ListIconName = (typeof listIcons)[number]['name'];
+
+function resolveInitialColor(initialColor?: string): string {
+  return initialColor && listColors.includes(initialColor) ? initialColor : listColors[0];
+}
+
+function resolveInitialIcon(initialIcon?: string): ListIconName {
+  const matchedIcon = listIcons.find((item) => item.name === initialIcon);
+  return matchedIcon?.name ?? listIcons[0].name;
+}
+
 export function ListForm({
   onSubmit,
   submitLabel,
-  initialName = ''
+  initialName = '',
+  initialColor,
+  initialIcon,
+  submitErrorKey = 'listForm.errorCreate'
 }: {
   onSubmit: (values: { name: string; color: string; icon: string }) => Promise<unknown> | unknown;
   submitLabel: string;
   initialName?: string;
+  initialColor?: string;
+  initialIcon?: string;
+  submitErrorKey?: string;
 }) {
   const { theme } = useApp();
   const { t } = useTranslation();
   const [name, setName] = useState(initialName);
-  const [color, setColor] = useState(listColors[0]);
-  const [icon, setIcon] = useState<(typeof listIcons)[number]['name']>(listIcons[0].name);
+  const [color, setColor] = useState(resolveInitialColor(initialColor));
+  const [icon, setIcon] = useState<ListIconName>(resolveInitialIcon(initialIcon));
   const [error, setError] = useState<string | null>(null);
 
   const selectedIcon = useMemo(() => listIcons.find((item) => item.name === icon) ?? listIcons[0], [icon]);
@@ -46,7 +63,7 @@ export function ListForm({
       setError(null);
       await onSubmit({ name: trimmed, color, icon });
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('listForm.errorCreate'));
+      setError(err instanceof Error ? err.message : t(submitErrorKey));
     }
   };
 
@@ -62,6 +79,7 @@ export function ListForm({
               key={item}
               accessibilityRole="button"
               accessibilityLabel={`${t('listForm.colorAccessibility')} ${item}`}
+              accessibilityState={{ selected: color === item }}
               onPress={() => setColor(item)}
               style={({ pressed }) => [
                 styles.colorButton,
@@ -87,16 +105,19 @@ export function ListForm({
             return (
               <Pressable
                 key={item.name}
+                accessibilityRole="button"
+                accessibilityLabel={t(item.labelKey)}
+                accessibilityState={{ selected: isSelected }}
                 onPress={() => setIcon(item.name)}
                 style={({ pressed }) => [
-                styles.iconButton,
-                {
-                  backgroundColor: isSelected ? color : theme.surfaceAlt,
-                  borderColor: isSelected ? color : theme.border,
-                  shadowColor: theme.shadow,
-                  opacity: pressed ? 0.9 : 1
-                }
-              ]}
+                  styles.iconButton,
+                  {
+                    backgroundColor: isSelected ? color : theme.surfaceAlt,
+                    borderColor: isSelected ? color : theme.border,
+                    shadowColor: theme.shadow,
+                    opacity: pressed ? 0.9 : 1
+                  }
+                ]}
               >
                 <Ionicons name={item.name as any} size={20} color={isSelected ? '#FFFFFF' : theme.text} />
                 <Text style={[styles.iconLabel, { color: isSelected ? '#FFFFFF' : theme.text }]}>{t(item.labelKey)}</Text>

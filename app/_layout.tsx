@@ -1,10 +1,11 @@
-import { Stack } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppProvider, NotificationBridge, useApp } from '@/context/AppContext';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { I18nextProvider } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
 import i18n from '@/i18n';
 
 function AppShell() {
@@ -33,14 +34,29 @@ function AppShell() {
           headerShadowVisible: false,
           headerTitleStyle: { fontWeight: '800' },
           headerBackTitle: '',
-          headerBackButtonDisplayMode: 'minimal'
+          headerBackButtonDisplayMode: 'minimal',
+          headerLeft: ({ canGoBack }) =>
+            canGoBack ? (
+              <Pressable
+                accessibilityLabel={t('common.back')}
+                accessibilityRole="button"
+                onPress={() => router.back()}
+                style={({ pressed }) => [styles.backButton, { opacity: pressed ? 0.72 : 1 }]}
+                testID="nav-back"
+              >
+                <Ionicons name="chevron-back" size={18} color={theme.text} />
+                <Text style={[styles.backLabel, { color: theme.text }]}>{t('common.back')}</Text>
+              </Pressable>
+            ) : undefined
         }}
       >
         <Stack.Screen name="(tabs)" options={{ headerShown: false, animation: 'none' }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false, animation: 'none' }} />
+        <Stack.Screen name="debug/screenshot-seed" options={{ headerShown: false, animation: 'none' }} />
         <Stack.Screen name="tasks/new" options={{ title: t('routes.newTask') }} />
         <Stack.Screen name="lists/new" options={{ title: t('routes.newList') }} />
         <Stack.Screen name="tasks/[taskId]/edit" options={{ title: t('routes.editTask') }} />
+        <Stack.Screen name="lists/[listId]/edit" options={{ title: t('routes.editList') }} />
         <Stack.Screen name="lists/[listId]" options={{ title: t('routes.listDetail') }} />
         <Stack.Screen name="settings/about" options={{ title: t('about.title') }} />
       </Stack>
@@ -70,5 +86,16 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 18,
     fontWeight: '800'
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 6,
+    paddingRight: 10
+  },
+  backLabel: {
+    fontSize: 15,
+    fontWeight: '700'
   }
 });

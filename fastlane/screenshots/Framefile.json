@@ -1,0 +1,45 @@
+{
+  "device_frame_version": "latest",
+  "default": {
+    "background": "./backgrounds/app-store-warm.png",
+    "title": {
+      "font": "./fonts/Manrope-ExtraBold.ttf",
+      "color": "#17201C",
+      "font_size": 112
+    },
+    "padding": "6%x8%",
+    "show_complete_frame": true,
+    "stack_title": false,
+    "title_below_image": false,
+    "frame": "WHITE",
+    "use_platform": "IOS"
+  },
+  "data": [
+    {
+      "filter": "home",
+      "force_device_type": "iPhone XS Max"
+    },
+    {
+      "filter": "calendar",
+      "force_device_type": "iPhone XS Max"
+    },
+    {
+      "filter": "list-detail",
+      "force_device_type": "iPhone XS Max"
+    },
+    {
+      "filter": "task-detail",
+      "force_device_type": "iPhone XS Max"
+    },
+    {
+      "filter": "ipad-home",
+      "force_device_type": "iPad Pro",
+      "title": {
+        "font": "./fonts/Manrope-ExtraBold.ttf",
+        "color": "#17201C",
+        "font_size": 124
+      },
+      "padding": "7%x8%"
+    }
+  ]
+}

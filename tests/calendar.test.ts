@@ -79,4 +79,18 @@ describe('calendar helpers', () => {
     expect(grouped['2025-03-04']).toHaveLength(1);
     expect(grouped['2025-03-04'][0].id).toBe('done-1');
   });
+
+  it('does not group paused reminders by their hidden next notification anchor', () => {
+    const grouped = groupTasksByCalendarDay([
+      makeTask({
+        id: 'paused-reminder',
+        status: 'paused',
+        taskMode: 'single',
+        nextNotificationAt: new Date(2025, 2, 5, 9, 30, 0, 0).toISOString(),
+        startDateTime: new Date(2025, 2, 5, 9, 30, 0, 0).toISOString()
+      })
+    ]);
+
+    expect(grouped).toEqual({});
+  });
 });

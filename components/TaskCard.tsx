@@ -25,7 +25,8 @@ export function TaskCard({
   onSnooze,
   onLongPress,
   dragging = false,
-  showDragHandle = false
+  showDragHandle = false,
+  testID
 }: {
   task: Task;
   list?: AppList | null;
@@ -35,6 +36,7 @@ export function TaskCard({
   onLongPress?: () => void;
   dragging?: boolean;
   showDragHandle?: boolean;
+  testID?: string;
 }) {
   const { theme } = useApp();
   const { t } = useTranslation();
@@ -61,9 +63,11 @@ export function TaskCard({
       renderLeftActions={onSnooze && !isTodo ? leftActions : undefined}
     >
       <Pressable
+        accessibilityLabel={task.title}
         onPress={onPress}
         onLongPress={onLongPress}
         delayLongPress={180}
+        testID={testID ?? `task-card-${task.id}`}
         style={({ pressed }) => [
           styles.card,
           {
@@ -85,8 +89,8 @@ export function TaskCard({
           <View style={styles.headerRight}>
             {showDragHandle ? <Ionicons name="reorder-three-outline" size={22} color={theme.mutedText} /> : null}
             <StatusPill
-              label={state === 'overdue' ? t('taskCard.statusOverdue') : state === 'snoozed' ? t('taskCard.statusSnoozed') : state === 'completed' ? t('taskCard.statusCompleted') : t('taskCard.statusActive')}
-              tone={state === 'overdue' ? 'danger' : state === 'snoozed' ? 'warning' : state === 'completed' ? 'success' : 'primary'}
+              label={state === 'paused' ? t('common.paused') : state === 'overdue' ? t('taskCard.statusOverdue') : state === 'snoozed' ? t('taskCard.statusSnoozed') : state === 'completed' ? t('taskCard.statusCompleted') : t('taskCard.statusActive')}
+              tone={state === 'paused' ? 'default' : state === 'overdue' ? 'danger' : state === 'snoozed' ? 'warning' : state === 'completed' ? 'success' : 'primary'}
             />
           </View>
         </View>

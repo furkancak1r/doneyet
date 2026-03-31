@@ -26,6 +26,7 @@ export default function TaskDetailScreen() {
   const state = getVisibleTaskState(task);
   const isRecurring = task.taskMode === 'recurring';
   const isTodo = task.taskMode === 'todo';
+  const showSnoozeActions = !isTodo && task.status !== 'completed';
 
   const snoozeUntil = (minutes: number) => new Date(Date.now() + minutes * 60_000);
   const snoozeEvening = () => {
@@ -38,8 +39,18 @@ export default function TaskDetailScreen() {
     return date;
   };
 
+  const statusAction = isTodo ? (
+    task.status === 'completed' ? <Button label={t('taskDetail.reactivateTodo')} onPress={() => void reactivateTask(task.id)} /> : null
+  ) : task.status === 'completed' ? (
+    <Button label={t('taskDetail.reactivate')} onPress={() => void reactivateTask(task.id)} />
+  ) : task.status === 'paused' ? (
+    <Button label={t('taskDetail.resume')} onPress={() => void resumeTask(task.id)} />
+  ) : (
+    <Button label={t('taskDetail.pause')} variant="secondary" onPress={() => void pauseTask(task.id)} />
+  );
+
   return (
-    <Screen>
+    <Screen testID="task-detail-screen">
       <Stack.Screen options={{ title: t('taskDetail.title') }} />
       <TaskCard task={task} list={list} />
 
@@ -52,36 +63,47 @@ export default function TaskDetailScreen() {
         {!isTodo ? <InfoRow labelColor={theme.mutedText} themeColor={theme.border} valueColor={theme.text} label={t('taskDetail.lastNotification')} value={formatDateTimeTR(task.lastNotificationAt)} /> : null}
         {!isTodo ? <InfoRow labelColor={theme.mutedText} themeColor={theme.border} valueColor={theme.text} label={t('taskDetail.nextNotification')} value={formatDateTimeTR(task.nextNotificationAt)} /> : null}
         {isRecurring ? <InfoRow labelColor={theme.mutedText} themeColor={theme.border} valueColor={theme.text} label={t('taskDetail.completedCycle')} value={formatDateTimeTR(task.completedAt)} /> : null}
-        <InfoRow labelColor={theme.mutedText} themeColor={theme.border} valueColor={theme.text} label={t('taskDetail.status')} value={state === 'overdue' ? t('taskCard.statusOverdue') : state === 'snoozed' ? t('taskCard.statusSnoozed') : state === 'completed' ? t('taskCard.statusCompleted') : t('taskCard.statusActive')} />
+        <InfoRow labelColor={theme.mutedText} themeColor={theme.border} valueColor={theme.text} label={t('taskDetail.status')} value={state === 'paused' ? t('common.paused') : state === 'overdue' ? t('taskCard.statusOverdue') : state === 'snoozed' ? t('taskCard.statusSnoozed') : state === 'completed' ? t('taskCard.statusCompleted') : t('taskCard.statusActive')} />
         {!isTodo && task.startReminderWeekday !== null ? <InfoRow labelColor={theme.mutedText} themeColor={theme.border} valueColor={theme.text} label={t('taskDetail.weekday')} value={weekdayName(task.startReminderWeekday)} /> : null}
         {isTodo ? <Text style={[styles.recurringNote, { color: theme.mutedText }]}>{t('taskDetail.todoNote')}</Text> : null}
         {isRecurring ? <Text style={[styles.recurringNote, { color: theme.mutedText }]}>{t('taskDetail.recurringNote')}</Text> : null}
       </Card>
 
-      <View style={styles.buttonGroup}>
-        <Button label={t('taskDetail.edit')} onPress={() => routerInstance.push(`/tasks/${task.id}/edit`)} />
-        <Button label={isTodo ? t('taskDetail.completeTodo') : isRecurring ? t('taskDetail.completeRecurring') : t('taskDetail.completeSingle')} variant="secondary" onPress={() => void completeTask(task.id)} />
-        <Button label={t('taskDetail.delete')} variant="danger" onPress={() => void confirmDelete(task.id, removeTask, isTodo, t)} />
-      </View>
-
-      {isTodo ? (
-        task.status === 'completed' ? <Button label={t('taskDetail.reactivateTodo')} onPress={() => void reactivateTask(task.id)} /> : null
-      ) : task.status === 'completed' ? (
-        <Button label={t('taskDetail.reactivate')} onPress={() => void reactivateTask(task.id)} />
-      ) : task.status === 'paused' ? (
-        <Button label={t('taskDetail.resume')} onPress={() => void resumeTask(task.id)} />
-      ) : (
-        <Button label={t('taskDetail.pause')} variant="secondary" onPress={() => void pauseTask(task.id)} />
-      )}
-
-      {!isTodo && task.status !== 'completed' ? (
+      <View style={styles.actionStack}>
         <View style={styles.buttonGroup}>
-          <Button label={t('taskDetail.snooze10')} variant="secondary" onPress={() => void snoozeTask(task.id, snoozeUntil(10))} />
-          <Button label={t('taskDetail.snooze1h')} variant="secondary" onPress={() => void snoozeTask(task.id, snoozeUntil(60))} />
-          <Button label={t('taskDetail.snoozeEvening')} variant="secondary" onPress={() => void snoozeTask(task.id, snoozeEvening())} />
-          <Button label={t('taskDetail.snoozeTomorrow')} variant="secondary" onPress={() => void snoozeTask(task.id, (() => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(8, 0, 0, 0); return d; })())} />
+          <Button label={t('taskDetail.edit')} onPress={() => routerInstance.push(`/tasks/${task.id}/edit`)} testID="task-detail-edit" />
+          <Button
+            label={isTodo ? t('taskDetail.completeTodo') : isRecurring ? t('taskDetail.completeRecurring') : t('taskDetail.completeSingle')}
+            variant="success"
+            onPress={() => void completeTask(task.id)}
+            testID="task-detail-complete"
+          />
+          <Button label={t('taskDetail.delete')} variant="danger" onPress={() => void confirmDelete(task.id, removeTask, isTodo, t)} testID="task-detail-delete" />
         </View>
-      ) : null}
+
+        {statusAction ? <View style={styles.buttonGroup}>{statusAction}</View> : null}
+
+        {showSnoozeActions ? (
+          <View style={styles.buttonGroup}>
+            <Button label={t('taskDetail.snooze10')} variant="secondary" onPress={() => void snoozeTask(task.id, snoozeUntil(10))} testID="task-detail-snooze-10m" />
+            <Button label={t('taskDetail.snooze1h')} variant="secondary" onPress={() => void snoozeTask(task.id, snoozeUntil(60))} testID="task-detail-snooze-1h" />
+            <Button label={t('taskDetail.snoozeEvening')} variant="secondary" onPress={() => void snoozeTask(task.id, snoozeEvening())} testID="task-detail-snooze-evening" />
+            <Button
+              label={t('taskDetail.snoozeTomorrow')}
+              variant="secondary"
+              onPress={() =>
+                void snoozeTask(task.id, (() => {
+                  const d = new Date();
+                  d.setDate(d.getDate() + 1);
+                  d.setHours(8, 0, 0, 0);
+                  return d;
+                })())
+              }
+              testID="task-detail-snooze-tomorrow"
+            />
+          </View>
+        ) : null}
+      </View>
     </Screen>
   );
 }
@@ -146,9 +168,11 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     textAlign: 'right'
   },
+  actionStack: {
+    gap: 16
+  },
   buttonGroup: {
-    gap: 10,
-    marginBottom: 12
+    gap: 12
   },
   recurringNote: {
     marginTop: 12,

@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { defaultSettings } from '../constants/settings';
-import { createBackupPayload, importBackupJson, parseBackupPayload } from '../services/backupService';
+import { createBackupPayload, importBackupJson, parseBackupPayload, replaceBackupJson } from '../services/backupService';
 
+const clearAppData = vi.fn();
+const cancelNotifications = vi.fn();
 const fetchAllTaskNotifications = vi.fn();
 const fetchLists = vi.fn();
 const fetchSettings = vi.fn();
@@ -9,9 +11,10 @@ const fetchTasks = vi.fn();
 const saveList = vi.fn();
 const saveSettings = vi.fn();
 const saveTask = vi.fn();
-const rescheduleTaskAfterMutation = vi.fn();
+const restoreAllTaskSchedules = vi.fn();
 
 vi.mock('../db/repositories', () => ({
+  clearAppData: (...args: unknown[]) => clearAppData(...args),
   fetchAllTaskNotifications: (...args: unknown[]) => fetchAllTaskNotifications(...args),
   fetchLists: (...args: unknown[]) => fetchLists(...args),
   fetchSettings: (...args: unknown[]) => fetchSettings(...args),
@@ -22,7 +25,11 @@ vi.mock('../db/repositories', () => ({
 }));
 
 vi.mock('../services/schedulerService', () => ({
-  rescheduleTaskAfterMutation: (...args: unknown[]) => rescheduleTaskAfterMutation(...args)
+  restoreAllTaskSchedules: (...args: unknown[]) => restoreAllTaskSchedules(...args)
+}));
+
+vi.mock('../services/notificationService', () => ({
+  cancelNotifications: (...args: unknown[]) => cancelNotifications(...args)
 }));
 
 describe('backup service', () => {
@@ -109,9 +116,76 @@ describe('backup service', () => {
     saveList.mockResolvedValue(undefined);
     saveSettings.mockResolvedValue(undefined);
     saveTask.mockResolvedValue(undefined);
-    rescheduleTaskAfterMutation.mockResolvedValue({ status: 'active' });
+    restoreAllTaskSchedules.mockResolvedValue(undefined);
 
     await expect(importBackupJson(rawJson)).resolves.toEqual({ ok: true });
     expect(saveTask).toHaveBeenCalledWith(expect.objectContaining({ id: 'task-1', title: 'Task' }));
+    expect(restoreAllTaskSchedules).toHaveBeenCalledWith(defaultSettings);
+  });
+
+  it('replaces the existing backup contents before importing new screenshot data', async () => {
+    const rawJson = JSON.stringify({
+      schemaVersion: 3,
+      exportedAt: '2025-03-01T00:00:00.000Z',
+      lists: [
+        {
+          id: 'list-1',
+          name: 'Focus',
+          color: '#116466',
+          icon: 'briefcase-outline',
+          sortOrder: 0,
+          createdAt: '2025-03-01T00:00:00.000Z'
+        }
+      ],
+      tasks: [
+        {
+          id: 'task-1',
+          title: 'Task',
+          description: '',
+          listId: 'list-1',
+          sortOrder: 0,
+          createdAt: '2025-03-01T00:00:00.000Z',
+          updatedAt: '2025-03-01T00:00:00.000Z',
+          startReminderType: 'today_at_time',
+          startDateTime: '2025-03-01T08:00:00.000Z',
+          startReminderWeekday: null,
+          startReminderDayOfMonth: null,
+          startReminderTime: '08:00',
+          startReminderUsesLastDay: 0,
+          taskMode: 'single',
+          repeatIntervalType: 'preset',
+          repeatIntervalValue: 1,
+          repeatIntervalUnit: 'hours',
+          status: 'active',
+          lastNotificationAt: null,
+          nextNotificationAt: '2025-03-01T08:00:00.000Z',
+          snoozedUntil: null,
+          notificationIdsJson: '["notif-1"]',
+          completedAt: null
+        }
+      ],
+      taskNotifications: [],
+      settings: defaultSettings
+    });
+
+    fetchTasks.mockResolvedValue([
+      {
+        id: 'old-task',
+        notificationIdsJson: '["notif-1"]'
+      }
+    ]);
+    fetchAllTaskNotifications.mockResolvedValue([{ notificationId: 'notif-2' }]);
+    clearAppData.mockResolvedValue(undefined);
+    saveList.mockResolvedValue(undefined);
+    saveSettings.mockResolvedValue(undefined);
+    saveTask.mockResolvedValue(undefined);
+    restoreAllTaskSchedules.mockResolvedValue(undefined);
+    cancelNotifications.mockResolvedValue(undefined);
+
+    await expect(replaceBackupJson(rawJson)).resolves.toEqual({ ok: true });
+
+    expect(cancelNotifications).toHaveBeenCalledWith(['notif-1', 'notif-2']);
+    expect(clearAppData).toHaveBeenCalledTimes(1);
+    expect(saveTask).toHaveBeenCalledWith(expect.objectContaining({ id: 'task-1' }));
   });
 });

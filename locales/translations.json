@@ -28,6 +28,7 @@
       "newTask": "Yeni görev",
       "newList": "Yeni liste",
       "editTask": "Görevi düzenle",
+      "editList": "Listeyi düzenle",
       "listDetail": "Liste detayı",
       "taskDetail": "Görev detayı"
     },
@@ -261,7 +262,8 @@
       "errorName": "Liste adı zorunludur.",
       "errorColor": "Bir renk seçin.",
       "errorIcon": "Bir ikon seçin.",
-      "errorCreate": "Liste oluşturulamadı."
+      "errorCreate": "Liste oluşturulamadı.",
+      "errorUpdate": "Liste güncellenemedi."
     },
     "listCard": {
       "subtitle": "{{count}} aktif görev"
@@ -269,6 +271,10 @@
     "listDetail": {
       "description": "Bu listede {{activeCount}} aktif ve {{completedCount}} tamamlanmış görev var.",
       "addTask": "Bu listeye görev ekle",
+      "edit": "Listeyi düzenle",
+      "delete": "Listeyi sil",
+      "deleteTitle": "Listeyi sil",
+      "deleteBody": "Bu listedeki {{taskCount}} görev silinecek. Buna {{activeCount}} aktif ve {{completedCount}} tamamlanmış görev ile planlı hatırlatmalar da dahil. Devam edilsin mi?",
       "orderTitle": "Görev sırası",
       "orderHint": "Uzun basıp sürükleyerek sıralayabilirsin. Yeni görevler listenin sonuna eklenir.",
       "emptyTitle": "Bu listede görev yok",
@@ -396,6 +402,7 @@
       "newTask": "New task",
       "newList": "New list",
       "editTask": "Edit task",
+      "editList": "Edit list",
       "listDetail": "List details",
       "taskDetail": "Task details"
     },
@@ -629,7 +636,8 @@
       "errorName": "List name is required.",
       "errorColor": "Select a color.",
       "errorIcon": "Select an icon.",
-      "errorCreate": "Could not create list."
+      "errorCreate": "Could not create list.",
+      "errorUpdate": "Could not update list."
     },
     "listCard": {
       "subtitle": "{{count}} active tasks"
@@ -637,6 +645,10 @@
     "listDetail": {
       "description": "This list has {{activeCount}} active and {{completedCount}} completed tasks.",
       "addTask": "Add task to this list",
+      "edit": "Edit list",
+      "delete": "Delete list",
+      "deleteTitle": "Delete list",
+      "deleteBody": "{{taskCount}} tasks in this list will be deleted, including {{activeCount}} active and {{completedCount}} completed items plus any scheduled reminders. Continue?",
       "orderTitle": "Task order",
       "orderHint": "Long-press and drag to reorder. New tasks are appended to the end of the list.",
       "emptyTitle": "No tasks in this list",

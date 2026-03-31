@@ -1,37 +1,56 @@
-import { ReactNode, RefObject, useEffect } from 'react';
-import { useIsFocused } from '@react-navigation/native';
+import { ReactNode, RefObject, useEffect, useRef } from 'react';
+import { useIsFocused, useScrollToTop } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { Easing, interpolate, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useApp } from '@/hooks/useApp';
+import { getInitialScreenFocusProgress, resolveScreenFocusAnimation } from '@/components/screenFocusAnimation';
 export function Screen({
   children,
   scroll = true,
   padded = true,
   scrollRef,
-  animateOnFocus = false
+  animateOnFocus = false,
+  animateOnRestore = false,
+  testID
 }: {
   children?: ReactNode;
   scroll?: boolean;
   padded?: boolean;
   scrollRef?: RefObject<ScrollView | null>;
   animateOnFocus?: boolean;
+  animateOnRestore?: boolean;
+  testID?: string;
 }) {
   const { theme } = useApp();
   const isFocused = useIsFocused();
-  const focusProgress = useSharedValue(isFocused ? 1 : 0);
+  const hasFocusedBeforeRef = useRef(false);
+  const internalScrollRef = useRef<ScrollView | null>(null);
+  const activeScrollRef = scrollRef ?? internalScrollRef;
+  const focusProgress = useSharedValue(getInitialScreenFocusProgress(animateOnFocus));
+
+  useScrollToTop(activeScrollRef);
 
   useEffect(() => {
-    if (!animateOnFocus) {
-      focusProgress.value = 1;
+    const transition = resolveScreenFocusAnimation({
+      animateOnFocus,
+      animateOnRestore,
+      isFocused,
+      hasFocusedBefore: hasFocusedBeforeRef.current
+    });
+
+    hasFocusedBeforeRef.current = transition.hasFocusedBefore;
+
+    if (!transition.shouldAnimate) {
+      focusProgress.value = transition.nextProgress;
       return;
     }
 
-    focusProgress.value = withTiming(isFocused ? 1 : 0, {
+    focusProgress.value = withTiming(transition.nextProgress, {
       duration: 240,
       easing: Easing.out(Easing.cubic)
     });
-  }, [animateOnFocus, focusProgress, isFocused]);
+  }, [animateOnFocus, animateOnRestore, focusProgress, isFocused]);
 
   const animatedStyle = useAnimatedStyle(() => {
     if (!animateOnFocus) {
@@ -52,14 +71,17 @@ export function Screen({
 
   const content = scroll ? (
     <ScrollView
-      ref={scrollRef}
+      ref={activeScrollRef}
       keyboardShouldPersistTaps="handled"
+      testID={testID}
       contentContainerStyle={[styles.scrollContent, padded && styles.padded, { backgroundColor: theme.background }]}
     >
       {children}
     </ScrollView>
   ) : (
-    <View style={[styles.flex, padded && styles.padded, { backgroundColor: theme.background }]}>{children}</View>
+    <View testID={testID} style={[styles.flex, padded && styles.padded, { backgroundColor: theme.background }]}>
+      {children}
+    </View>
   );
 
   const animatedContent = <Animated.View style={[styles.flex, { backgroundColor: theme.background }, animatedStyle]}>{content}</Animated.View>;

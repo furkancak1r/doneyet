@@ -1,7 +1,8 @@
-import { fetchAllTaskNotifications, fetchLists, fetchSettings, fetchTasks, saveList, saveSettings, saveTask } from '@/db/repositories';
+import { clearAppData, fetchAllTaskNotifications, fetchLists, fetchSettings, fetchTasks, saveList, saveSettings, saveTask } from '@/db/repositories';
+import { cancelNotifications } from '@/services/notificationService';
 import { AppList, AppSettings, BackupPayload, Task } from '@/types/domain';
-import { stableStringify } from '@/utils/json';
-import { rescheduleTaskAfterMutation } from '@/services/schedulerService';
+import { safeParseJson, stableStringify } from '@/utils/json';
+import { restoreAllTaskSchedules } from '@/services/schedulerService';
 import i18n from '@/i18n';
 
 function isAppList(value: unknown): value is AppList {
@@ -94,9 +95,7 @@ export async function importBackupPayload(payload: BackupPayload): Promise<void>
     taskOrderByList.set(task.listId, nextSortOrder + 1);
   }
 
-  for (const task of payload.tasks) {
-    await rescheduleTaskAfterMutation(task.id, payload.settings);
-  }
+  await restoreAllTaskSchedules(payload.settings);
 }
 
 export async function importBackupJson(rawJson: string): Promise<{ ok: boolean; error?: string }> {
@@ -105,6 +104,44 @@ export async function importBackupJson(rawJson: string): Promise<{ ok: boolean; 
     return { ok: false, error: String(i18n.t('errors.backupInvalid')) };
   }
 
+  await importBackupPayload(payload);
+  return { ok: true };
+}
+
+function collectNotificationIds(tasks: Task[], taskNotifications: BackupPayload['taskNotifications']): string[] {
+  const ids = new Set<string>();
+
+  for (const task of tasks) {
+    for (const notificationId of safeParseJson<string[]>(task.notificationIdsJson, [])) {
+      if (notificationId) {
+        ids.add(notificationId);
+      }
+    }
+  }
+
+  for (const taskNotification of taskNotifications) {
+    if (taskNotification.notificationId) {
+      ids.add(taskNotification.notificationId);
+    }
+  }
+
+  return [...ids];
+}
+
+export async function replaceBackupJson(rawJson: string): Promise<{ ok: boolean; error?: string }> {
+  const payload = parseBackupPayload(rawJson);
+  if (!payload) {
+    return { ok: false, error: String(i18n.t('errors.backupInvalid')) };
+  }
+
+  const [tasks, taskNotifications] = await Promise.all([fetchTasks(), fetchAllTaskNotifications()]);
+  const notificationIds = collectNotificationIds(tasks, taskNotifications);
+
+  if (notificationIds.length > 0) {
+    await cancelNotifications(notificationIds);
+  }
+
+  await clearAppData();
   await importBackupPayload(payload);
   return { ok: true };
 }
