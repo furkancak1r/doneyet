@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Link, router } from 'expo-router';
 import { NestableDraggableFlatList, NestableScrollContainer } from 'react-native-draggable-flatlist';
@@ -16,8 +16,18 @@ import { TaskListView } from '@/features/tasks/TaskListView';
 import { countTasksByState, getListTaskCounts, filterTasks, sortTasks } from '@/utils/taskFilters';
 import { getLayoutYOffset } from '@/utils/layout';
 import { useTranslation } from 'react-i18next';
+import type { Task } from '@/types/domain';
 
 type SectionKey = 'active' | 'today' | 'overdue';
+type ActiveModeFilter = 'reminder' | 'todo';
+
+function getPreferredActiveModeFilter(tasks: Task[]): ActiveModeFilter {
+  if (tasks.some((task) => task.status === 'active' && task.taskMode !== 'todo')) {
+    return 'reminder';
+  }
+
+  return tasks.some((task) => task.status === 'active' && task.taskMode === 'todo') ? 'todo' : 'reminder';
+}
 
 function StatCard({ title, value, tone, onPress }: { title: string; value: number; tone: string; onPress?: () => void }) {
   const { theme } = useApp();
@@ -46,6 +56,9 @@ export default function HomeScreen() {
   const { tasks, lists, theme, completeTask, snoozeTask, notificationGranted, debugScreenshotMode, requestNotificationPermission, reorderLists } = useApp();
   const { t } = useTranslation();
   const scrollRef = useRef<GestureHandlerScrollView | null>(null);
+  const [activeModeFilter, setActiveModeFilter] = useState<ActiveModeFilter>(() => getPreferredActiveModeFilter(tasks));
+  const [hasManuallySelectedActiveMode, setHasManuallySelectedActiveMode] = useState(false);
+  const [visibleActiveCount, setVisibleActiveCount] = useState(5);
   const [sectionOffsets, setSectionOffsets] = useState<Record<SectionKey, number | null>>({
     active: null,
     today: null,
@@ -58,6 +71,45 @@ export default function HomeScreen() {
   const todayTasks = useMemo(() => sortTasks(filterTasks(tasks, { filter: 'today', sort: 'nextNotification' }), 'nextNotification'), [tasks]);
   const overdueTasks = useMemo(() => sortTasks(filterTasks(tasks, { filter: 'overdue', sort: 'nextNotification' }), 'nextNotification'), [tasks]);
   const listCounts = useMemo(() => getListTaskCounts(tasks, lists), [lists, tasks]);
+  const reminderActiveTasks = useMemo(() => activeTasks.filter((task) => task.taskMode !== 'todo'), [activeTasks]);
+  const todoActiveTasks = useMemo(
+    () =>
+      [...activeTasks.filter((task) => task.taskMode === 'todo')].sort(
+        (left, right) =>
+          right.updatedAt.localeCompare(left.updatedAt) || right.createdAt.localeCompare(left.createdAt) || right.id.localeCompare(left.id)
+      ),
+    [activeTasks]
+  );
+  const filteredActiveTasks = useMemo(
+    () => (activeModeFilter === 'todo' ? todoActiveTasks : reminderActiveTasks),
+    [activeModeFilter, reminderActiveTasks, todoActiveTasks]
+  );
+  const visibleActiveTasks = useMemo(() => filteredActiveTasks.slice(0, visibleActiveCount), [filteredActiveTasks, visibleActiveCount]);
+  const hasMoreActiveTasks = filteredActiveTasks.length > visibleActiveCount;
+
+  useEffect(() => {
+    if (hasManuallySelectedActiveMode) {
+      return;
+    }
+
+    const preferredFilter = getPreferredActiveModeFilter(activeTasks);
+    if (activeModeFilter !== preferredFilter) {
+      setActiveModeFilter(preferredFilter);
+    }
+  }, [activeModeFilter, activeTasks, hasManuallySelectedActiveMode]);
+
+  useEffect(() => {
+    setVisibleActiveCount(5);
+  }, [activeModeFilter]);
+
+  const handleActiveModeFilterPress = (mode: ActiveModeFilter) => {
+    if (mode === activeModeFilter) {
+      return;
+    }
+
+    setHasManuallySelectedActiveMode(true);
+    setActiveModeFilter(mode);
+  };
 
   const scrollToSection = (section: SectionKey) => {
     const offset = sectionOffsets[section];
@@ -113,15 +165,40 @@ export default function HomeScreen() {
             <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('home.sectionActiveTitle')}</Text>
           </View>
           <Text style={[styles.sectionHint, { color: theme.mutedText }]}>{t('home.sectionActiveHint')}</Text>
+          <View style={styles.filterRow}>
+            <Chip
+              label={t('home.activeFilterReminder')}
+              selected={activeModeFilter === 'reminder'}
+              tone="warning"
+              onPress={() => handleActiveModeFilterPress('reminder')}
+              testID="home-active-filter-reminder"
+            />
+            <Chip
+              label={t('home.activeFilterTodo')}
+              selected={activeModeFilter === 'todo'}
+              tone="primary"
+              onPress={() => handleActiveModeFilterPress('todo')}
+              testID="home-active-filter-todo"
+            />
+          </View>
           <TaskListView
-            tasks={activeTasks}
+            tasks={visibleActiveTasks}
             lists={lists}
-            emptyTitle={t('home.emptyActiveTitle')}
-            emptyDescription={t('home.emptyActiveDescription')}
+            emptyTitle={activeModeFilter === 'todo' ? t('home.emptyActiveTodoTitle') : t('home.emptyActiveReminderTitle')}
+            emptyDescription={activeModeFilter === 'todo' ? t('home.emptyActiveTodoDescription') : t('home.emptyActiveReminderDescription')}
             onPressTask={(task) => router.push(`/tasks/${task.id}`)}
             onCompleteTask={(task) => void completeTask(task.id)}
             onSnoozeTask={(task) => void snoozeTask(task.id, new Date(Date.now() + 10 * 60 * 1000))}
           />
+          {hasMoreActiveTasks ? (
+            <Button
+              label={t('home.loadMoreActive')}
+              variant="secondary"
+              onPress={() => setVisibleActiveCount((current) => current + 5)}
+              style={styles.loadMoreButton}
+              testID="home-active-load-more"
+            />
+          ) : null}
         </View>
 
         <View style={styles.section}>
@@ -254,9 +331,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 12
   },
+  filterRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 4
+  },
   sectionAction: {
     fontSize: 13,
     fontWeight: '700'
+  },
+  loadMoreButton: {
+    marginTop: 4
   },
   bannerTitle: {
     fontSize: 16,
