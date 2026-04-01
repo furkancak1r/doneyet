@@ -75,6 +75,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [settings, setSettings] = useState<AppSettings>(defaultSettings);
   const [notificationGranted, setNotificationGranted] = useState(false);
+  const [debugScreenshotMode, setDebugScreenshotMode] = useState(false);
   const [themeMode, setThemeMode] = useState<ThemeMode>('system');
   const [quickAddResetVersion, setQuickAddResetVersion] = useState(0);
 
@@ -319,6 +320,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setQuickAddResetVersion((current) => current + 1);
   }, []);
 
+  const enableDebugScreenshotMode = useCallback(() => {
+    if (__DEV__) {
+      setDebugScreenshotMode(true);
+    }
+  }, []);
+
   const requestNotificationPermission = useCallback(async () => {
     const permissions = await ensureNotificationPermissions();
     if (permissions.granted) {
@@ -361,6 +368,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       theme: palette,
       themeMode,
       notificationGranted,
+      debugScreenshotMode,
       quickAddResetVersion,
       refresh,
       createTask,
@@ -380,6 +388,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       importBackup,
       replaceBackup,
       exportBackup,
+      enableDebugScreenshotMode,
       requestQuickAddReset,
       requestNotificationPermission,
       handleNotificationResponse
@@ -393,6 +402,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       palette,
       themeMode,
       notificationGranted,
+      debugScreenshotMode,
       quickAddResetVersion,
       refresh,
       createTask,
@@ -412,6 +422,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       importBackup,
       replaceBackup,
       exportBackup,
+      enableDebugScreenshotMode,
       requestQuickAddReset,
       requestNotificationPermission,
       handleNotificationResponse

@@ -18,7 +18,7 @@ function toDateFromTime(clock: string): Date {
 }
 
 export default function SettingsScreen() {
-  const { settings, updateSettings, theme, exportBackup, importBackup, notificationGranted, requestNotificationPermission } = useApp();
+  const { settings, updateSettings, theme, exportBackup, importBackup, notificationGranted, debugScreenshotMode, requestNotificationPermission } = useApp();
   const { t } = useTranslation();
   const scrollRef = useRef<ScrollView>(null);
   const [startTime, setStartTime] = useState(toDateFromTime(settings.defaultStartTime));
@@ -63,7 +63,7 @@ export default function SettingsScreen() {
 
   return (
     <Screen scrollRef={scrollRef} animateOnFocus>
-      {!notificationGranted ? (
+      {!notificationGranted && !debugScreenshotMode ? (
         <Section title={t('settings.permissionTitle')}>
           <View style={[styles.permissionCard, { backgroundColor: theme.surface, borderColor: theme.border, shadowColor: theme.shadow }]}>
             <Text style={[styles.permissionTitle, { color: theme.text }]}>{t('settings.permissionCardTitle')}</Text>

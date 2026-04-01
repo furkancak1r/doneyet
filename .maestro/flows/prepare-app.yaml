@@ -5,4 +5,3 @@ appId: com.doneyet.appios
     clearKeychain: true
     permissions:
       notifications: allow
-- stopApp

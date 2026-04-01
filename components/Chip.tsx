@@ -40,6 +40,7 @@ export function Chip({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
+      collapsable={false}
       onPress={onPress}
       testID={testID}
       style={({ pressed }) => [

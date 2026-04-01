@@ -1,6 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
-import type { ReactNode } from 'react';
-import { Alert, Text, View } from 'react-native';
+import { Alert } from 'react-native';
 import ListDetailScreen from '@/app/lists/[listId]';
 import { useApp } from '@/hooks/useApp';
 import { router } from 'expo-router';
@@ -20,20 +19,26 @@ jest.mock('@expo/vector-icons', () => ({
 }));
 
 jest.mock('react-native-draggable-flatlist', () => ({
-  NestableScrollContainer: ({ children }: { children: ReactNode }) => <View>{children}</View>,
+  NestableScrollContainer: ({ children }: { children: React.ReactNode }) => {
+    const { View } = require('react-native');
+    return <View>{children}</View>;
+  },
   NestableDraggableFlatList: ({
     data,
     renderItem
   }: {
     data: Array<{ id: string }>;
-    renderItem: (args: { item: { id: string }; drag: () => void; isActive: boolean }) => ReactNode;
-  }) => (
-    <View>
-      {data.map((item) => (
-        <View key={item.id}>{renderItem({ item, drag: () => {}, isActive: false })}</View>
-      ))}
-    </View>
-  )
+    renderItem: (args: { item: { id: string }; drag: () => void; isActive: boolean }) => React.ReactNode;
+  }) => {
+    const { View } = require('react-native');
+    return (
+      <View>
+        {data.map((item) => (
+          <View key={item.id}>{renderItem({ item, drag: () => {}, isActive: false })}</View>
+        ))}
+      </View>
+    );
+  }
 }));
 
 jest.mock('@/hooks/useApp', () => ({
@@ -41,27 +46,40 @@ jest.mock('@/hooks/useApp', () => ({
 }));
 
 jest.mock('@/components/Screen', () => ({
-  Screen: ({ children }: { children: ReactNode }) => <>{children}</>
+  Screen: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
 
 jest.mock('@/components/Card', () => ({
-  Card: ({ children }: { children: ReactNode }) => <View>{children}</View>
+  Card: ({ children }: { children: React.ReactNode }) => {
+    const { View } = require('react-native');
+    return <View>{children}</View>;
+  }
 }));
 
 jest.mock('@/components/TaskCard', () => ({
-  TaskCard: ({ task }: { task: { title: string } }) => <Text>{task.title}</Text>
+  TaskCard: ({ task }: { task: { title: string } }) => {
+    const { Text } = require('react-native');
+    return <Text>{task.title}</Text>;
+  }
 }));
 
 jest.mock('@/components/EmptyState', () => ({
-  EmptyState: ({ title, description }: { title: string; description: string }) => (
-    <View>
-      <Text>{title}</Text>
-      <Text>{description}</Text>
-    </View>
-  )
+  EmptyState: ({ title, description }: { title: string; description: string }) => {
+    const { Text, View } = require('react-native');
+    return (
+      <View>
+        <Text>{title}</Text>
+        <Text>{description}</Text>
+      </View>
+    );
+  }
 }));
 
 jest.mock('react-i18next', () => ({
+  initReactI18next: {
+    type: '3rdParty',
+    init: () => {}
+  },
   useTranslation: () => ({
     t: (key: string, params?: Record<string, number>) => {
       const staticMap: Record<string, string> = {

@@ -50,6 +50,24 @@ export const screenshotFixtureIds = {
   }
 } as const;
 
+export type ScreenshotSeedScreen = 'home' | 'calendar' | 'list-detail' | 'task-detail';
+
+export function resolveScreenshotSeedDestination(screen?: string | null): string {
+  const normalized = (screen ?? '').trim().toLowerCase();
+
+  switch (normalized) {
+    case 'calendar':
+      return '/(tabs)/calendar';
+    case 'list-detail':
+      return `/lists/${screenshotFixtureIds.lists.focus}`;
+    case 'task-detail':
+      return `/tasks/${screenshotFixtureIds.tasks.quarterlyReview}`;
+    case 'home':
+    default:
+      return '/(tabs)';
+  }
+}
+
 function resolveCopy(language: AppLanguage): ScreenshotFixtureCopy {
   if (language === 'tr') {
     return {
@@ -57,7 +75,7 @@ function resolveCopy(language: AppLanguage): ScreenshotFixtureCopy {
       lists: {
         focus: 'Odak',
         home: 'Ev',
-        health: 'Saglık'
+        health: 'Sağlık'
       },
       tasks: {
         quarterlyReview: 'Çeyrek planını takip et',

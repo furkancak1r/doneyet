@@ -43,7 +43,7 @@ function StatCard({ title, value, tone, onPress }: { title: string; value: numbe
 }
 
 export default function HomeScreen() {
-  const { tasks, lists, theme, completeTask, snoozeTask, notificationGranted, requestNotificationPermission, reorderLists } = useApp();
+  const { tasks, lists, theme, completeTask, snoozeTask, notificationGranted, debugScreenshotMode, requestNotificationPermission, reorderLists } = useApp();
   const { t } = useTranslation();
   const scrollRef = useRef<GestureHandlerScrollView | null>(null);
   const [sectionOffsets, setSectionOffsets] = useState<Record<SectionKey, number | null>>({
@@ -85,7 +85,7 @@ export default function HomeScreen() {
   return (
     <Screen scroll={false} padded={false} animateOnFocus testID="home-screen">
       <NestableScrollContainer ref={scrollRef} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        {!notificationGranted ? (
+        {!notificationGranted && !debugScreenshotMode ? (
           <Card>
             <Text style={[styles.bannerTitle, { color: theme.text }]}>{t('home.permissionTitle')}</Text>
             <Text style={[styles.bannerText, { color: theme.mutedText }]}>{t('home.permissionText')}</Text>

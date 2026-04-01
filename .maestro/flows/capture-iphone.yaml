@@ -1,24 +1,33 @@
 appId: com.doneyet.appios
 ---
-- launchApp
+- tapOn:
+    text: "^(Aç|Open)$"
+    optional: true
+    label: "Confirm the seed deep link if iOS asks for it"
 - assertVisible:
     id: home-screen
 - waitForAnimationToEnd
 - takeScreenshot: ${LOCALE}/home.capture
 - tapOn:
     id: tab-calendar
+    retryTapIfNoChange: true
+    waitToSettleTimeoutMs: 400
 - assertVisible:
     id: calendar-screen
 - waitForAnimationToEnd
 - takeScreenshot: ${LOCALE}/calendar.capture
+- openLink: doneyet://debug/screenshot-seed?locale=${LOCALE}&screen=list-detail
 - tapOn:
-    id: list-card-screenshot-list-focus
+    text: "^(Aç|Open)$"
+    optional: true
 - assertVisible:
     id: list-detail-screen
 - waitForAnimationToEnd
 - takeScreenshot: ${LOCALE}/list-detail.capture
+- openLink: doneyet://debug/screenshot-seed?locale=${LOCALE}&screen=task-detail
 - tapOn:
-    id: task-card-screenshot-task-quarterly-review
+    text: "^(Aç|Open)$"
+    optional: true
 - assertVisible:
     id: task-detail-screen
 - waitForAnimationToEnd

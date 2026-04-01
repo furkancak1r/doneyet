@@ -1,6 +1,9 @@
 appId: com.doneyet.appios
 ---
-- launchApp
+- tapOn:
+    text: "^(Aç|Open)$"
+    optional: true
+    label: "Confirm the seed deep link if iOS asks for it"
 - assertVisible:
     id: home-screen
 - waitForAnimationToEnd

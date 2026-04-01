@@ -3,13 +3,17 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Screen } from '@/components/Screen';
 import { useApp } from '@/hooks/useApp';
-import { createScreenshotSeedPayload } from '@/utils/screenshotFixtures';
+import { createScreenshotSeedPayload, resolveScreenshotSeedDestination } from '@/utils/screenshotFixtures';
 
 export default function ScreenshotSeedScreen() {
-  const { replaceBackup, theme } = useApp();
-  const params = useLocalSearchParams<{ locale?: string }>();
+  const { enableDebugScreenshotMode, replaceBackup, theme } = useApp();
+  const params = useLocalSearchParams<{ locale?: string; screen?: string }>();
   const [error, setError] = useState<string | null>(null);
   const locale = useMemo(() => (typeof params.locale === 'string' ? params.locale : 'en-US'), [params.locale]);
+  const destination = useMemo(
+    () => resolveScreenshotSeedDestination(typeof params.screen === 'string' ? params.screen : undefined),
+    [params.screen]
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -32,13 +36,14 @@ export default function ScreenshotSeedScreen() {
         return;
       }
 
-      router.replace('/(tabs)');
+      enableDebugScreenshotMode();
+      router.replace(destination);
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [locale, replaceBackup]);
+  }, [destination, enableDebugScreenshotMode, locale, replaceBackup]);
 
   return (
     <Screen scroll={false} testID="screenshot-seed-screen">
@@ -46,7 +51,7 @@ export default function ScreenshotSeedScreen() {
         <ActivityIndicator size="large" color={theme.primary} />
         <Text style={[styles.title, { color: theme.text }]}>Preparing screenshot data...</Text>
         <Text style={[styles.meta, { color: error ? theme.danger : theme.mutedText }]}>
-          {error ?? `Locale: ${locale}`}
+          {error ?? `Locale: ${locale} | Destination: ${destination}`}
         </Text>
       </View>
     </Screen>

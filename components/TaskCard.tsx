@@ -63,7 +63,9 @@ export function TaskCard({
       renderLeftActions={onSnooze && !isTodo ? leftActions : undefined}
     >
       <Pressable
+        accessibilityRole="button"
         accessibilityLabel={task.title}
+        collapsable={false}
         onPress={onPress}
         onLongPress={onLongPress}
         delayLongPress={180}

@@ -65,6 +65,51 @@ This file applies to the repository root and everything under it.
 - `expo-notifications` foreground handlers should not use deprecated `shouldShowAlert`.
 - Use `shouldShowBanner` and / or `shouldShowList` to control foreground presentation instead.
 
+## App Store screenshot pipeline
+
+- The repo includes a reusable open-source screenshot pipeline based on `Maestro` for capture and `fastlane frameit` for framing.
+- System dependencies for that pipeline are:
+  - Homebrew `openjdk@17`
+  - `maestro` on `PATH`
+  - `imagemagick` on `PATH`
+  - repo-local `fastlane` via `Gemfile` and `bundle exec`
+- Do not replace the screenshot capture flow with a separate `expo start` path. The current scripts intentionally reuse the existing iOS launcher so Metro readiness stays aligned with the cold-start invariant above.
+- The dev-only seed route is `doneyet://debug/screenshot-seed`.
+  - Supported params:
+    - `locale=en-US|tr`
+    - `screen=home|calendar|list-detail|task-detail`
+  - Example:
+    - `doneyet://debug/screenshot-seed?locale=en-US&screen=task-detail`
+- The screenshot seed flow replaces local app data with a `BackupPayload` v3 fixture, forces `onboardingCompleted=1`, and forces light theme. Keep it schema-compatible with the existing backup format instead of adding a screenshot-only migration.
+- Stable screenshot fixtures and destination helpers live in `utils/screenshotFixtures.ts`.
+- The screenshot seed screen lives in `app/debug/screenshot-seed.tsx`.
+- Capture flows live under `.maestro/flows/`.
+  - `prepare-app.yaml`
+  - `capture-iphone.yaml`
+  - `capture-ipad.yaml`
+- The capture scripts intentionally target explicit simulators:
+  - `iPhone 17 Pro Max`
+  - `iPad Pro 13-inch (M5)`
+- NPM commands:
+  - `npm run screenshots:capture -- --device iphone --locale en-US`
+  - `npm run screenshots:capture -- --device ipad --locale tr`
+  - `npm run screenshots:frame`
+  - `npm run screenshots:all`
+- Output locations:
+  - raw Maestro captures: `fastlane/screenshots/<locale>/`
+  - framed screenshots: `fastlane/screenshots/<locale>/*_framed.png`
+  - final App Store deliverables: `artifacts/app-store/<locale>/`
+- Expected final deliverable set:
+  - `en-US`: `home`, `calendar`, `list-detail`, `task-detail`, `ipad-home`
+  - `tr`: `home`, `calendar`, `list-detail`, `task-detail`, `ipad-home`
+  - total final PNG count: `10`
+- The framing config lives in `fastlane/screenshots/Framefile.json`.
+  - Locale copy lives in `fastlane/screenshots/en-US/title.strings` and `fastlane/screenshots/tr/title.strings`.
+  - The current frame color is set to `SILVER` because `WHITE` was not reliably available for the chosen device frames.
+- `scripts/screenshot-frame.mjs` is intentionally idempotent for normalized `.png` inputs, so rerunning `npm run screenshots:frame` after a partial success should work without regenerating `.capture.png` files.
+- `frameit` may log harmless warnings about unsupported screen sizes when old Maestro debug artifact folders remain under `fastlane/` or when scanning non-screenshot assets. If framed outputs are created successfully in `fastlane/screenshots/<locale>/*_framed.png`, treat those warnings as non-blocking.
+- If you want a cleaner rerun, it is safe to delete old timestamped Maestro debug folders under `fastlane/` before running `npm run screenshots:frame` again.
+
 ## Useful checks
 
 - Run `npm run typecheck` after code changes.

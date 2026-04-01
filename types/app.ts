@@ -26,6 +26,7 @@ export interface AppContextValue {
   theme: ThemePalette;
   themeMode: ThemeMode;
   notificationGranted: boolean;
+  debugScreenshotMode: boolean;
   quickAddResetVersion: number;
   refresh: () => Promise<void>;
   createTask: (values: TaskFormValues) => Promise<Task>;
@@ -45,6 +46,7 @@ export interface AppContextValue {
   importBackup: (rawJson: string) => Promise<{ ok: boolean; error?: string }>;
   replaceBackup: (rawJson: string) => Promise<{ ok: boolean; error?: string }>;
   exportBackup: () => Promise<string>;
+  enableDebugScreenshotMode: () => void;
   requestQuickAddReset: () => void;
   requestNotificationPermission: () => Promise<void>;
   handleNotificationResponse: (response: NotificationResponse) => Promise<void>;

@@ -8,6 +8,7 @@ import { listAvailableSimulators } from './ios-metro-host.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const flowsDir = path.join(root, '.maestro', 'flows');
+const maestroOutputRoot = path.join(root, 'fastlane');
 const screenshotRoot = path.join(root, 'fastlane', 'screenshots');
 
 const devicePlan = {
@@ -139,12 +140,22 @@ function seedApp(udid, locale) {
 }
 
 function captureFlow(udid, locale, flowPath) {
-  run('maestro', ['test', '--device', udid, '--test-output-dir', screenshotRoot, flowPath], {
-    cwd: root,
-    env: {
-      LOCALE: locale
+  run(
+    'maestro',
+    [
+      'test',
+      '--device',
+      udid,
+      '--test-output-dir',
+      maestroOutputRoot,
+      '-e',
+      `LOCALE=${locale}`,
+      flowPath
+    ],
+    {
+      cwd: root
     }
-  });
+  );
 }
 
 function wait(milliseconds) {

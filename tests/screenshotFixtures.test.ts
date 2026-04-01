@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createScreenshotSeedPayload, screenshotFixtureIds } from '../utils/screenshotFixtures';
+import { createScreenshotSeedPayload, resolveScreenshotSeedDestination, screenshotFixtureIds } from '../utils/screenshotFixtures';
 
 describe('screenshot fixtures', () => {
   it('builds English screenshot data with stable ids and light mode settings', () => {
@@ -19,6 +19,14 @@ describe('screenshot fixtures', () => {
 
     expect(payload.settings.language).toBe('tr');
     expect(focusList?.name).toBe('Odak');
-    expect(keyTask?.title).toBe('Ceyrek planini takip et');
+    expect(keyTask?.title).toBe('Çeyrek planını takip et');
+  });
+
+  it('maps screenshot seed screen params to stable routes', () => {
+    expect(resolveScreenshotSeedDestination('home')).toBe('/(tabs)');
+    expect(resolveScreenshotSeedDestination('calendar')).toBe('/(tabs)/calendar');
+    expect(resolveScreenshotSeedDestination('list-detail')).toBe(`/lists/${screenshotFixtureIds.lists.focus}`);
+    expect(resolveScreenshotSeedDestination('task-detail')).toBe(`/tasks/${screenshotFixtureIds.tasks.quarterlyReview}`);
+    expect(resolveScreenshotSeedDestination('unknown')).toBe('/(tabs)');
   });
 });

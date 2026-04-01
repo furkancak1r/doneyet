@@ -63,12 +63,18 @@ function normalizeScreenshots() {
 
     for (const screenshotName of screenshotNames) {
       const rawPath = path.join(localeDir, `${screenshotName}.capture.png`);
+      const normalizedPath = path.join(localeDir, `${screenshotName}.png`);
+
+      if (!fs.existsSync(rawPath) && fs.existsSync(normalizedPath)) {
+        continue;
+      }
+
       if (!fs.existsSync(rawPath)) {
         throw new Error(`Expected raw screenshot is missing: ${rawPath}`);
       }
 
       const target = screenshotName.startsWith('ipad-') ? imageTargets.ipad : imageTargets.iphone;
-      resizeScreenshot(rawPath, path.join(localeDir, `${screenshotName}.png`), target.width, target.height);
+      resizeScreenshot(rawPath, normalizedPath, target.width, target.height);
       fs.rmSync(rawPath, { force: true });
     }
   }

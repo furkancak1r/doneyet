@@ -1,0 +1,2122 @@
+[ {
+  "command" : {
+    "assertConditionCommand" : {
+      "condition" : {
+        "visible" : {
+          "idRegex" : "list-detail-screen",
+          "optional" : false
+        }
+      },
+      "optional" : false
+    }
+  },
+  "metadata" : {
+    "status" : "FAILED",
+    "timestamp" : 1774991422672,
+    "duration" : 17497,
+    "error" : {
+      "message" : "Assertion is false: id: list-detail-screen is visible",
+      "hierarchyRoot" : {
+        "attributes" : {
+          "bounds" : "[0,0][0,0]",
+          "enabled" : "false",
+          "focused" : "false",
+          "selected" : "false",
+          "checked" : "false"
+        },
+        "children" : [ {
+          "attributes" : {
+            "accessibilityText" : "DoneYet?",
+            "bounds" : "[0,0][440,956]",
+            "enabled" : "true",
+            "focused" : "false",
+            "selected" : "false",
+            "checked" : "false"
+          },
+          "children" : [ {
+            "attributes" : {
+              "bounds" : "[0,0][440,956]",
+              "enabled" : "true",
+              "focused" : "false",
+              "selected" : "false",
+              "checked" : "false"
+            },
+            "children" : [ {
+              "attributes" : {
+                "bounds" : "[0,0][440,956]",
+                "enabled" : "true",
+                "focused" : "false",
+                "selected" : "false",
+                "checked" : "false"
+              },
+              "children" : [ {
+                "attributes" : {
+                  "bounds" : "[0,0][440,956]",
+                  "enabled" : "true",
+                  "focused" : "false",
+                  "selected" : "false",
+                  "checked" : "false"
+                },
+                "children" : [ {
+                  "attributes" : {
+                    "bounds" : "[0,0][440,956]",
+                    "enabled" : "true",
+                    "focused" : "false",
+                    "selected" : "false",
+                    "checked" : "false"
+                  },
+                  "children" : [ {
+                    "attributes" : {
+                      "bounds" : "[0,0][440,956]",
+                      "enabled" : "true",
+                      "focused" : "false",
+                      "selected" : "false",
+                      "checked" : "false"
+                    },
+                    "children" : [ {
+                      "attributes" : {
+                        "accessibilityText" : "Done yet? Keeps tasks active and keeps asking until they are completed. Quick add Choose the task behavior first, then decide which list it belongs to. Write a new task  Reminder With reminders Reminders are scheduled and will nudge you again.  To-Do No reminders To-Do tasks stay simple and do not send notifications. List selection Which list should this task belong to? Focus Home Health You can long-press and drag lists to reorder them on the home screen. Continue Active Today Overdue Active tasks Tasks that are currently open. Tap a card to view details.  Snooze  Done Follow up on the quarterly review  Snooze  Done Pay rent  Snooze  Done Wrap up the product polish list  Snooze  Done Water the plants  Snooze  Done Go to the evening workout  Snooze  Done Prep lunch for tomorrow  Snooze  Done Plan next week priorities  Done Buy fresh fruit Lists Add list You can long-press and drag lists to reorder them on the home screen. Focus Home Health Vertical scroll bar, 1 page Horizontal scroll bar, 1 page Today's reminders All  Snooze  Done Follow up on the quarterly review  Snooze  Done Pay rent  Snooze  Done Wrap up the product polish list Overdue Track No overdue tasks Pending tasks are on track. Vertical scroll bar, 5 pages Horizontal scroll bar, 1 page Home Home, tab, 1 of 6 Today, tab, 2 of 6 Calendar, tab, 3 of 6 Upcoming, tab, 4 of 6 Completed, tab, 5 of 6 Settings, tab, 6 of 6",
+                        "bounds" : "[0,0][440,956]",
+                        "enabled" : "true",
+                        "focused" : "false",
+                        "selected" : "false",
+                        "checked" : "false"
+                      },
+                      "children" : [ {
+                        "attributes" : {
+                          "accessibilityText" : "Done yet? Keeps tasks active and keeps asking until they are completed. Quick add Choose the task behavior first, then decide which list it belongs to. Write a new task  Reminder With reminders Reminders are scheduled and will nudge you again.  To-Do No reminders To-Do tasks stay simple and do not send notifications. List selection Which list should this task belong to? Focus Home Health You can long-press and drag lists to reorder them on the home screen. Continue Active Today Overdue Active tasks Tasks that are currently open. Tap a card to view details.  Snooze  Done Follow up on the quarterly review  Snooze  Done Pay rent  Snooze  Done Wrap up the product polish list  Snooze  Done Water the plants  Snooze  Done Go to the evening workout  Snooze  Done Prep lunch for tomorrow  Snooze  Done Plan next week priorities  Done Buy fresh fruit Lists Add list You can long-press and drag lists to reorder them on the home screen. Focus Home Health Vertical scroll bar, 1 page Horizontal scroll bar, 1 page Today's reminders All  Snooze  Done Follow up on the quarterly review  Snooze  Done Pay rent  Snooze  Done Wrap up the product polish list Overdue Track No overdue tasks Pending tasks are on track. Vertical scroll bar, 5 pages Horizontal scroll bar, 1 page Home Home, tab, 1 of 6 Today, tab, 2 of 6 Calendar, tab, 3 of 6 Upcoming, tab, 4 of 6 Completed, tab, 5 of 6 Settings, tab, 6 of 6",
+                          "bounds" : "[0,0][440,956]",
+                          "enabled" : "true",
+                          "focused" : "false",
+                          "selected" : "false",
+                          "checked" : "false"
+                        },
+                        "children" : [ {
+                          "attributes" : {
+                            "accessibilityText" : "Done yet? Keeps tasks active and keeps asking until they are completed. Quick add Choose the task behavior first, then decide which list it belongs to. Write a new task  Reminder With reminders Reminders are scheduled and will nudge you again.  To-Do No reminders To-Do tasks stay simple and do not send notifications. List selection Which list should this task belong to? Focus Home Health You can long-press and drag lists to reorder them on the home screen. Continue Active Today Overdue Active tasks Tasks that are currently open. Tap a card to view details.  Snooze  Done Follow up on the quarterly review  Snooze  Done Pay rent  Snooze  Done Wrap up the product polish list  Snooze  Done Water the plants  Snooze  Done Go to the evening workout  Snooze  Done Prep lunch for tomorrow  Snooze  Done Plan next week priorities  Done Buy fresh fruit Lists Add list You can long-press and drag lists to reorder them on the home screen. Focus Home Health Vertical scroll bar, 1 page Horizontal scroll bar, 1 page Today's reminders All  Snooze  Done Follow up on the quarterly review  Snooze  Done Pay rent  Snooze  Done Wrap up the product polish list Overdue Track No overdue tasks Pending tasks are on track. Vertical scroll bar, 5 pages Horizontal scroll bar, 1 page Home Home, tab, 1 of 6 Today, tab, 2 of 6 Calendar, tab, 3 of 6 Upcoming, tab, 4 of 6 Completed, tab, 5 of 6 Settings, tab, 6 of 6",
+                            "bounds" : "[0,0][440,956]",
+                            "enabled" : "true",
+                            "focused" : "false",
+                            "selected" : "false",
+                            "checked" : "false"
+                          },
+                          "children" : [ {
+                            "attributes" : {
+                              "bounds" : "[0,0][440,956]",
+                              "enabled" : "true",
+                              "focused" : "false",
+                              "selected" : "false",
+                              "checked" : "false"
+                            },
+                            "children" : [ {
+                              "attributes" : {
+                                "bounds" : "[0,0][440,956]",
+                                "enabled" : "true",
+                                "focused" : "false",
+                                "selected" : "false",
+                                "checked" : "false"
+                              },
+                              "children" : [ {
+                                "attributes" : {
+                                  "bounds" : "[0,0][440,956]",
+                                  "enabled" : "true",
+                                  "focused" : "false",
+                                  "selected" : "false",
+                                  "checked" : "false"
+                                },
+                                "children" : [ {
+                                  "attributes" : {
+                                    "accessibilityText" : "Done yet? Keeps tasks active and keeps asking until they are completed. Quick add Choose the task behavior first, then decide which list it belongs to. Write a new task  Reminder With reminders Reminders are scheduled and will nudge you again.  To-Do No reminders To-Do tasks stay simple and do not send notifications. List selection Which list should this task belong to? Focus Home Health You can long-press and drag lists to reorder them on the home screen. Continue Active Today Overdue Active tasks Tasks that are currently open. Tap a card to view details.  Snooze  Done Follow up on the quarterly review  Snooze  Done Pay rent  Snooze  Done Wrap up the product polish list  Snooze  Done Water the plants  Snooze  Done Go to the evening workout  Snooze  Done Prep lunch for tomorrow  Snooze  Done Plan next week priorities  Done Buy fresh fruit Lists Add list You can long-press and drag lists to reorder them on the home screen. Focus Home Health Vertical scroll bar, 1 page Horizontal scroll bar, 1 page Today's reminders All  Snooze  Done Follow up on the quarterly review  Snooze  Done Pay rent  Snooze  Done Wrap up the product polish list Overdue Track No overdue tasks Pending tasks are on track. Vertical scroll bar, 5 pages Horizontal scroll bar, 1 page Home Home, tab, 1 of 6 Today, tab, 2 of 6 Calendar, tab, 3 of 6 Upcoming, tab, 4 of 6 Completed, tab, 5 of 6 Settings, tab, 6 of 6",
+                                    "bounds" : "[0,0][440,956]",
+                                    "enabled" : "true",
+                                    "focused" : "false",
+                                    "selected" : "false",
+                                    "checked" : "false"
+                                  },
+                                  "children" : [ {
+                                    "attributes" : {
+                                      "accessibilityText" : "Done yet? Keeps tasks active and keeps asking until they are completed. Quick add Choose the task behavior first, then decide which list it belongs to. Write a new task  Reminder With reminders Reminders are scheduled and will nudge you again.  To-Do No reminders To-Do tasks stay simple and do not send notifications. List selection Which list should this task belong to? Focus Home Health You can long-press and drag lists to reorder them on the home screen. Continue Active Today Overdue Active tasks Tasks that are currently open. Tap a card to view details.  Snooze  Done Follow up on the quarterly review  Snooze  Done Pay rent  Snooze  Done Wrap up the product polish list  Snooze  Done Water the plants  Snooze  Done Go to the evening workout  Snooze  Done Prep lunch for tomorrow  Snooze  Done Plan next week priorities  Done Buy fresh fruit Lists Add list You can long-press and drag lists to reorder them on the home screen. Focus Home Health Vertical scroll bar, 1 page Horizontal scroll bar, 1 page Today's reminders All  Snooze  Done Follow up on the quarterly review  Snooze  Done Pay rent  Snooze  Done Wrap up the product polish list Overdue Track No overdue tasks Pending tasks are on track. Vertical scroll bar, 5 pages Horizontal scroll bar, 1 page Home Home, tab, 1 of 6 Today, tab, 2 of 6 Calendar, tab, 3 of 6 Upcoming, tab, 4 of 6 Completed, tab, 5 of 6 Settings, tab, 6 of 6",
+                                      "bounds" : "[0,0][440,956]",
+                                      "enabled" : "true",
+                                      "focused" : "false",
+                                      "selected" : "false",
+                                      "checked" : "false"
+                                    },
+                                    "children" : [ {
+                                      "attributes" : {
+                                        "accessibilityText" : "Done yet? Keeps tasks active and keeps asking until they are completed. Quick add Choose the task behavior first, then decide which list it belongs to. Write a new task  Reminder With reminders Reminders are scheduled and will nudge you again.  To-Do No reminders To-Do tasks stay simple and do not send notifications. List selection Which list should this task belong to? Focus Home Health You can long-press and drag lists to reorder them on the home screen. Continue Active Today Overdue Active tasks Tasks that are currently open. Tap a card to view details.  Snooze  Done Follow up on the quarterly review  Snooze  Done Pay rent  Snooze  Done Wrap up the product polish list  Snooze  Done Water the plants  Snooze  Done Go to the evening workout  Snooze  Done Prep lunch for tomorrow  Snooze  Done Plan next week priorities  Done Buy fresh fruit Lists Add list You can long-press and drag lists to reorder them on the home screen. Focus Home Health Vertical scroll bar, 1 page Horizontal scroll bar, 1 page Today's reminders All  Snooze  Done Follow up on the quarterly review  Snooze  Done Pay rent  Snooze  Done Wrap up the product polish list Overdue Track No overdue tasks Pending tasks are on track. Vertical scroll bar, 5 pages Horizontal scroll bar, 1 page Home",
+                                        "bounds" : "[0,0][440,866]",
+                                        "enabled" : "true",
+                                        "focused" : "false",
+                                        "selected" : "false",
+                                        "checked" : "false"
+                                      },
+                                      "children" : [ {
+                                        "attributes" : {
+                                          "accessibilityText" : "Done yet? Keeps tasks active and keeps asking until they are completed. Quick add Choose the task behavior first, then decide which list it belongs to. Write a new task  Reminder With reminders Reminders are scheduled and will nudge you again.  To-Do No reminders To-Do tasks stay simple and do not send notifications. List selection Which list should this task belong to? Focus Home Health You can long-press and drag lists to reorder them on the home screen. Continue Active Today Overdue Active tasks Tasks that are currently open. Tap a card to view details.  Snooze  Done Follow up on the quarterly review  Snooze  Done Pay rent  Snooze  Done Wrap up the product polish list  Snooze  Done Water the plants  Snooze  Done Go to the evening workout  Snooze  Done Prep lunch for tomorrow  Snooze  Done Plan next week priorities  Done Buy fresh fruit Lists Add list You can long-press and drag lists to reorder them on the home screen. Focus Home Health Vertical scroll bar, 1 page Horizontal scroll bar, 1 page Today's reminders All  Snooze  Done Follow up on the quarterly review  Snooze  Done Pay rent  Snooze  Done Wrap up the product polish list Overdue Track No overdue tasks Pending tasks are on track. Vertical scroll bar, 5 pages Horizontal scroll bar, 1 page Home",
+                                          "bounds" : "[0,0][440,866]",
+                                          "enabled" : "true",
+                                          "focused" : "false",
+                                          "selected" : "false",
+                                          "checked" : "false"
+                                        },
+                                        "children" : [ {
+                                          "attributes" : {
+                                            "accessibilityText" : "Done yet? Keeps tasks active and keeps asking until they are completed. Quick add Choose the task behavior first, then decide which list it belongs to. Write a new task  Reminder With reminders Reminders are scheduled and will nudge you again.  To-Do No reminders To-Do tasks stay simple and do not send notifications. List selection Which list should this task belong to? Focus Home Health You can long-press and drag lists to reorder them on the home screen. Continue Active Today Overdue Active tasks Tasks that are currently open. Tap a card to view details.  Snooze  Done Follow up on the quarterly review  Snooze  Done Pay rent  Snooze  Done Wrap up the product polish list  Snooze  Done Water the plants  Snooze  Done Go to the evening workout  Snooze  Done Prep lunch for tomorrow  Snooze  Done Plan next week priorities  Done Buy fresh fruit Lists Add list You can long-press and drag lists to reorder them on the home screen. Focus Home Health Vertical scroll bar, 1 page Horizontal scroll bar, 1 page Today's reminders All  Snooze  Done Follow up on the quarterly review  Snooze  Done Pay rent  Snooze  Done Wrap up the product polish list Overdue Track No overdue tasks Pending tasks are on track. Vertical scroll bar, 5 pages Horizontal scroll bar, 1 page Home",
+                                            "bounds" : "[0,0][440,866]",
+                                            "enabled" : "true",
+                                            "focused" : "false",
+                                            "selected" : "false",
+                                            "checked" : "false"
+                                          },
+                                          "children" : [ {
+                                            "attributes" : {
+                                              "accessibilityText" : "Home",
+                                              "bounds" : "[0,0][440,100]",
+                                              "enabled" : "true",
+                                              "focused" : "false",
+                                              "selected" : "false",
+                                              "checked" : "false"
+                                            },
+                                            "children" : [ {
+                                              "attributes" : {
+                                                "accessibilityText" : "Home",
+                                                "bounds" : "[0,0][440,100]",
+                                                "enabled" : "true",
+                                                "focused" : "false",
+                                                "selected" : "false",
+                                                "checked" : "false"
+                                              },
+                                              "children" : [ {
+                                                "attributes" : {
+                                                  "bounds" : "[0,0][440,62]",
+                                                  "enabled" : "true",
+                                                  "focused" : "false",
+                                                  "selected" : "false",
+                                                  "checked" : "false"
+                                                },
+                                                "enabled" : true,
+                                                "focused" : false,
+                                                "checked" : false,
+                                                "selected" : false
+                                              }, {
+                                                "attributes" : {
+                                                  "bounds" : "[0,0][440,100]",
+                                                  "enabled" : "true",
+                                                  "focused" : "false",
+                                                  "selected" : "false",
+                                                  "checked" : "false"
+                                                },
+                                                "children" : [ {
+                                                  "attributes" : {
+                                                    "bounds" : "[0,0][440,100]",
+                                                    "enabled" : "true",
+                                                    "focused" : "false",
+                                                    "selected" : "false",
+                                                    "checked" : "false"
+                                                  },
+                                                  "enabled" : true,
+                                                  "focused" : false,
+                                                  "checked" : false,
+                                                  "selected" : false
+                                                } ],
+                                                "enabled" : true,
+                                                "focused" : false,
+                                                "checked" : false,
+                                                "selected" : false
+                                              }, {
+                                                "attributes" : {
+                                                  "bounds" : "[5,62][180,100]",
+                                                  "enabled" : "true",
+                                                  "focused" : "false",
+                                                  "selected" : "false",
+                                                  "checked" : "false"
+                                                },
+                                                "enabled" : true,
+                                                "focused" : false,
+                                                "checked" : false,
+                                                "selected" : false
+                                              }, {
+                                                "attributes" : {
+                                                  "accessibilityText" : "Home",
+                                                  "bounds" : "[196,62][243,100]",
+                                                  "enabled" : "true",
+                                                  "focused" : "false",
+                                                  "selected" : "false",
+                                                  "checked" : "false"
+                                                },
+                                                "children" : [ {
+                                                  "attributes" : {
+                                                    "accessibilityText" : "Home",
+                                                    "bounds" : "[196,71][243,91]",
+                                                    "enabled" : "true",
+                                                    "focused" : "false",
+                                                    "selected" : "false",
+                                                    "checked" : "false"
+                                                  },
+                                                  "children" : [ {
+                                                    "attributes" : {
+                                                      "accessibilityText" : "Home",
+                                                      "bounds" : "[196,71][243,91]",
+                                                      "enabled" : "true",
+                                                      "focused" : "false",
+                                                      "selected" : "false",
+                                                      "checked" : "false"
+                                                    },
+                                                    "enabled" : true,
+                                                    "focused" : false,
+                                                    "checked" : false,
+                                                    "selected" : false
+                                                  } ],
+                                                  "enabled" : true,
+                                                  "focused" : false,
+                                                  "checked" : false,
+                                                  "selected" : false
+                                                } ],
+                                                "enabled" : true,
+                                                "focused" : false,
+                                                "checked" : false,
+                                                "selected" : false
+                                              }, {
+                                                "attributes" : {
+                                                  "bounds" : "[259,62][435,100]",
+                                                  "enabled" : "true",
+                                                  "focused" : "false",
+                                                  "selected" : "false",
+                                                  "checked" : "false"
+                                                },
+                                                "enabled" : true,
+                                                "focused" : false,
+                                                "checked" : false,
+                                                "selected" : false
+                                              } ],
+                                              "enabled" : true,
+                                              "focused" : false,
+                                              "checked" : false,
+                                              "selected" : false
+                                            } ],
+                                            "enabled" : true,
+                                            "focused" : false,
+                                            "checked" : false,
+                                            "selected" : false
+                                          }, {
+                                            "attributes" : {
+                                              "accessibilityText" : "Done yet? Keeps tasks active and keeps asking until they are completed. Quick add Choose the task behavior first, then decide which list it belongs to. Write a new task  Reminder With reminders Reminders are scheduled and will nudge you again.  To-Do No reminders To-Do tasks stay simple and do not send notifications. List selection Which list should this task belong to? Focus Home Health You can long-press and drag lists to reorder them on the home screen. Continue Active Today Overdue Active tasks Tasks that are currently open. Tap a card to view details.  Snooze  Done Follow up on the quarterly review  Snooze  Done Pay rent  Snooze  Done Wrap up the product polish list  Snooze  Done Water the plants  Snooze  Done Go to the evening workout  Snooze  Done Prep lunch for tomorrow  Snooze  Done Plan next week priorities  Done Buy fresh fruit Lists Add list You can long-press and drag lists to reorder them on the home screen. Focus Home Health Vertical scroll bar, 1 page Horizontal scroll bar, 1 page Today's reminders All  Snooze  Done Follow up on the quarterly review  Snooze  Done Pay rent  Snooze  Done Wrap up the product polish list Overdue Track No overdue tasks Pending tasks are on track. Vertical scroll bar, 5 pages Horizontal scroll bar, 1 page",
+                                              "bounds" : "[0,100][440,866]",
+                                              "enabled" : "true",
+                                              "focused" : "false",
+                                              "selected" : "false",
+                                              "checked" : "false"
+                                            },
+                                            "children" : [ {
+                                              "attributes" : {
+                                                "accessibilityText" : "Done yet? Keeps tasks active and keeps asking until they are completed. Quick add Choose the task behavior first, then decide which list it belongs to. Write a new task  Reminder With reminders Reminders are scheduled and will nudge you again.  To-Do No reminders To-Do tasks stay simple and do not send notifications. List selection Which list should this task belong to? Focus Home Health You can long-press and drag lists to reorder them on the home screen. Continue Active Today Overdue Active tasks Tasks that are currently open. Tap a card to view details.  Snooze  Done Follow up on the quarterly review  Snooze  Done Pay rent  Snooze  Done Wrap up the product polish list  Snooze  Done Water the plants  Snooze  Done Go to the evening workout  Snooze  Done Prep lunch for tomorrow  Snooze  Done Plan next week priorities  Done Buy fresh fruit Lists Add list You can long-press and drag lists to reorder them on the home screen. Focus Home Health Vertical scroll bar, 1 page Horizontal scroll bar, 1 page Today's reminders All  Snooze  Done Follow up on the quarterly review  Snooze  Done Pay rent  Snooze  Done Wrap up the product polish list Overdue Track No overdue tasks Pending tasks are on track. Vertical scroll bar, 5 pages Horizontal scroll bar, 1 page",
+                                                "bounds" : "[0,100][440,832]",
+                                                "enabled" : "true",
+                                                "focused" : "false",
+                                                "selected" : "false",
+                                                "checked" : "false"
+                                              },
+                                              "children" : [ {
+                                                "attributes" : {
+                                                  "resource-id" : "home-screen",
+                                                  "bounds" : "[0,100][440,832]",
+                                                  "enabled" : "true",
+                                                  "focused" : "false",
+                                                  "selected" : "false",
+                                                  "checked" : "false"
+                                                },
+                                                "enabled" : true,
+                                                "focused" : false,
+                                                "checked" : false,
+                                                "selected" : false
+                                              }, {
+                                                "attributes" : {
+                                                  "accessibilityText" : "Done yet? Keeps tasks active and keeps asking until they are completed. Quick add Choose the task behavior first, then decide which list it belongs to. Write a new task  Reminder With reminders Reminders are scheduled and will nudge you again.  To-Do No reminders To-Do tasks stay simple and do not send notifications. List selection Which list should this task belong to? Focus Home Health You can long-press and drag lists to reorder them on the home screen. Continue Active Today Overdue Active tasks Tasks that are currently open. Tap a card to view details.  Snooze  Done Follow up on the quarterly review  Snooze  Done Pay rent  Snooze  Done Wrap up the product polish list  Snooze  Done Water the plants  Snooze  Done Go to the evening workout  Snooze  Done Prep lunch for tomorrow  Snooze  Done Plan next week priorities  Done Buy fresh fruit Lists Add list You can long-press and drag lists to reorder them on the home screen. Focus Home Health Vertical scroll bar, 1 page Horizontal scroll bar, 1 page Today's reminders All  Snooze  Done Follow up on the quarterly review  Snooze  Done Pay rent  Snooze  Done Wrap up the product polish list Overdue Track No overdue tasks Pending tasks are on track. Vertical scroll bar, 5 pages Horizontal scroll bar, 1 page",
+                                                  "bounds" : "[0,100][440,832]",
+                                                  "enabled" : "true",
+                                                  "focused" : "false",
+                                                  "selected" : "false",
+                                                  "checked" : "false"
+                                                },
+                                                "children" : [ {
+                                                  "attributes" : {
+                                                    "bounds" : "[0,100][440,832]",
+                                                    "enabled" : "true",
+                                                    "focused" : "false",
+                                                    "selected" : "false",
+                                                    "checked" : "false"
+                                                  },
+                                                  "children" : [ {
+                                                    "attributes" : {
+                                                      "bounds" : "[0,-2293][440,1108]",
+                                                      "enabled" : "true",
+                                                      "focused" : "false",
+                                                      "selected" : "false",
+                                                      "checked" : "false"
+                                                    },
+                                                    "children" : [ {
+                                                      "attributes" : {
+                                                        "accessibilityText" : "Done yet? Keeps tasks active and keeps asking until they are completed. Quick add Choose the task behavior first, then decide which list it belongs to. Write a new task  Reminder With reminders Reminders are scheduled and will nudge you again.  To-Do No reminders To-Do tasks stay simple and do not send notifications. List selection Which list should this task belong to? Focus Home Health You can long-press and drag lists to reorder them on the home screen. Continue Active Today Overdue Active tasks Tasks that are currently open. Tap a card to view details.  Snooze  Done Follow up on the quarterly review  Snooze  Done Pay rent  Snooze  Done Wrap up the product polish list  Snooze  Done Water the plants  Snooze  Done Go to the evening workout  Snooze  Done Prep lunch for tomorrow  Snooze  Done Plan next week priorities  Done Buy fresh fruit Lists Add list You can long-press and drag lists to reorder them on the home screen. Focus Home Health Vertical scroll bar, 1 page Horizontal scroll bar, 1 page Today's reminders All  Snooze  Done Follow up on the quarterly review  Snooze  Done Pay rent  Snooze  Done Wrap up the product polish list Overdue Track No overdue tasks Pending tasks are on track.",
+                                                        "bounds" : "[0,-2293][440,1108]",
+                                                        "enabled" : "true",
+                                                        "focused" : "false",
+                                                        "selected" : "false",
+                                                        "checked" : "false"
+                                                      },
+                                                      "children" : [ {
+                                                        "attributes" : {
+                                                          "accessibilityText" : "You can long-press and drag lists to reorder them on the home screen.",
+                                                          "bounds" : "[16,16][424,52]",
+                                                          "enabled" : "true",
+                                                          "focused" : "false",
+                                                          "selected" : "false",
+                                                          "checked" : "false"
+                                                        },
+                                                        "children" : [ {
+                                                          "attributes" : {
+                                                            "accessibilityText" : "You can long-press and drag lists to reorder them on the home screen.",
+                                                            "bounds" : "[16,16][424,52]",
+                                                            "enabled" : "true",
+                                                            "focused" : "false",
+                                                            "selected" : "false",
+                                                            "checked" : "false"
+                                                          },
+                                                          "enabled" : true,
+                                                          "focused" : false,
+                                                          "checked" : false,
+                                                          "selected" : false
+                                                        } ],
+                                                        "enabled" : true,
+                                                        "focused" : false,
+                                                        "checked" : false,
+                                                        "selected" : false
+                                                      }, {
+                                                        "attributes" : {
+                                                          "accessibilityText" : "Focus Home Health Vertical scroll bar, 1 page Horizontal scroll bar, 1 page",
+                                                          "bounds" : "[16,64][424,310]",
+                                                          "enabled" : "true",
+                                                          "focused" : "false",
+                                                          "selected" : "false",
+                                                          "checked" : "false"
+                                                        },
+                                                        "children" : [ {
+                                                          "attributes" : {
+                                                            "accessibilityText" : "Focus Home Health Vertical scroll bar, 1 page Horizontal scroll bar, 1 page",
+                                                            "bounds" : "[16,64][424,310]",
+                                                            "enabled" : "true",
+                                                            "focused" : "false",
+                                                            "selected" : "false",
+                                                            "checked" : "false"
+                                                          },
+                                                          "children" : [ {
+                                                            "attributes" : {
+                                                              "bounds" : "[16,64][424,310]",
+                                                              "enabled" : "true",
+                                                              "focused" : "false",
+                                                              "selected" : "false",
+                                                              "checked" : "false"
+                                                            },
+                                                            "children" : [ {
+                                                              "attributes" : {
+                                                                "bounds" : "[16,64][424,310]",
+                                                                "enabled" : "true",
+                                                                "focused" : "false",
+                                                                "selected" : "false",
+                                                                "checked" : "false"
+                                                              },
+                                                              "children" : [ {
+                                                                "attributes" : {
+                                                                  "accessibilityText" : "Focus Home Health",
+                                                                  "bounds" : "[16,64][424,310]",
+                                                                  "enabled" : "true",
+                                                                  "focused" : "false",
+                                                                  "selected" : "false",
+                                                                  "checked" : "false"
+                                                                },
+                                                                "children" : [ {
+                                                                  "attributes" : {
+                                                                    "accessibilityText" : "Focus",
+                                                                    "bounds" : "[16,64][424,146]",
+                                                                    "enabled" : "true",
+                                                                    "focused" : "false",
+                                                                    "selected" : "false",
+                                                                    "checked" : "false"
+                                                                  },
+                                                                  "children" : [ {
+                                                                    "attributes" : {
+                                                                      "accessibilityText" : "Focus",
+                                                                      "resource-id" : "list-card-screenshot-list-focus",
+                                                                      "bounds" : "[16,64][424,136]",
+                                                                      "enabled" : "true",
+                                                                      "focused" : "false",
+                                                                      "selected" : "false",
+                                                                      "checked" : "false"
+                                                                    },
+                                                                    "children" : [ {
+                                                                      "attributes" : {
+                                                                        "bounds" : "[31,79][73,121]",
+                                                                        "enabled" : "true",
+                                                                        "focused" : "false",
+                                                                        "selected" : "false",
+                                                                        "checked" : "false"
+                                                                      },
+                                                                      "enabled" : true,
+                                                                      "focused" : false,
+                                                                      "checked" : false,
+                                                                      "selected" : false
+                                                                    } ],
+                                                                    "enabled" : true,
+                                                                    "focused" : false,
+                                                                    "checked" : false,
+                                                                    "selected" : false
+                                                                  } ],
+                                                                  "enabled" : true,
+                                                                  "focused" : false,
+                                                                  "checked" : false,
+                                                                  "selected" : false
+                                                                }, {
+                                                                  "attributes" : {
+                                                                    "accessibilityText" : "Home",
+                                                                    "bounds" : "[16,146][424,228]",
+                                                                    "enabled" : "true",
+                                                                    "focused" : "false",
+                                                                    "selected" : "false",
+                                                                    "checked" : "false"
+                                                                  },
+                                                                  "children" : [ {
+                                                                    "attributes" : {
+                                                                      "accessibilityText" : "Home",
+                                                                      "resource-id" : "list-card-screenshot-list-home",
+                                                                      "bounds" : "[16,146][424,218]",
+                                                                      "enabled" : "true",
+                                                                      "focused" : "false",
+                                                                      "selected" : "false",
+                                                                      "checked" : "false"
+                                                                    },
+                                                                    "enabled" : true,
+                                                                    "focused" : false,
+                                                                    "checked" : false,
+                                                                    "selected" : false
+                                                                  } ],
+                                                                  "enabled" : true,
+                                                                  "focused" : false,
+                                                                  "checked" : false,
+                                                                  "selected" : false
+                                                                }, {
+                                                                  "attributes" : {
+                                                                    "accessibilityText" : "Health",
+                                                                    "bounds" : "[16,228][424,310]",
+                                                                    "enabled" : "true",
+                                                                    "focused" : "false",
+                                                                    "selected" : "false",
+                                                                    "checked" : "false"
+                                                                  },
+                                                                  "children" : [ {
+                                                                    "attributes" : {
+                                                                      "accessibilityText" : "Health",
+                                                                      "resource-id" : "list-card-screenshot-list-health",
+                                                                      "bounds" : "[16,228][424,300]",
+                                                                      "enabled" : "true",
+                                                                      "focused" : "false",
+                                                                      "selected" : "false",
+                                                                      "checked" : "false"
+                                                                    },
+                                                                    "enabled" : true,
+                                                                    "focused" : false,
+                                                                    "checked" : false,
+                                                                    "selected" : false
+                                                                  } ],
+                                                                  "enabled" : true,
+                                                                  "focused" : false,
+                                                                  "checked" : false,
+                                                                  "selected" : false
+                                                                } ],
+                                                                "enabled" : true,
+                                                                "focused" : false,
+                                                                "checked" : false,
+                                                                "selected" : false
+                                                              } ],
+                                                              "enabled" : true,
+                                                              "focused" : false,
+                                                              "checked" : false,
+                                                              "selected" : false
+                                                            }, {
+                                                              "attributes" : {
+                                                                "accessibilityText" : "Vertical scroll bar, 1 page",
+                                                                "value" : "%0",
+                                                                "text" : "%0",
+                                                                "bounds" : "[391,64][421,264]",
+                                                                "enabled" : "true",
+                                                                "focused" : "false",
+                                                                "selected" : "false",
+                                                                "checked" : "false"
+                                                              },
+                                                              "children" : [ {
+                                                                "attributes" : {
+                                                                  "bounds" : "[418,67][421,307]",
+                                                                  "enabled" : "true",
+                                                                  "focused" : "false",
+                                                                  "selected" : "false",
+                                                                  "checked" : "false"
+                                                                },
+                                                                "enabled" : true,
+                                                                "focused" : false,
+                                                                "checked" : false,
+                                                                "selected" : false
+                                                              } ],
+                                                              "enabled" : true,
+                                                              "focused" : false,
+                                                              "checked" : false,
+                                                              "selected" : false
+                                                            }, {
+                                                              "attributes" : {
+                                                                "accessibilityText" : "Horizontal scroll bar, 1 page",
+                                                                "value" : "%0",
+                                                                "text" : "%0",
+                                                                "bounds" : "[62,277][378,307]",
+                                                                "enabled" : "true",
+                                                                "focused" : "false",
+                                                                "selected" : "false",
+                                                                "checked" : "false"
+                                                              },
+                                                              "children" : [ {
+                                                                "attributes" : {
+                                                                  "bounds" : "[19,304][421,307]",
+                                                                  "enabled" : "true",
+                                                                  "focused" : "false",
+                                                                  "selected" : "false",
+                                                                  "checked" : "false"
+                                                                },
+                                                                "enabled" : true,
+                                                                "focused" : false,
+                                                                "checked" : false,
+                                                                "selected" : false
+                                                              } ],
+                                                              "enabled" : true,
+                                                              "focused" : false,
+                                                              "checked" : false,
+                                                              "selected" : false
+                                                            }, {
+                                                              "attributes" : {
+                                                                "accessibilityText" : "Vertical scroll bar, 1 page",
+                                                                "value" : "%0",
+                                                                "text" : "%0",
+                                                                "bounds" : "[391,64][421,264]",
+                                                                "enabled" : "true",
+                                                                "focused" : "false",
+                                                                "selected" : "false",
+                                                                "checked" : "false"
+                                                              },
+                                                              "children" : [ {
+                                                                "attributes" : {
+                                                                  "bounds" : "[418,67][421,307]",
+                                                                  "enabled" : "true",
+                                                                  "focused" : "false",
+                                                                  "selected" : "false",
+                                                                  "checked" : "false"
+                                                                },
+                                                                "enabled" : true,
+                                                                "focused" : false,
+                                                                "checked" : false,
+                                                                "selected" : false
+                                                              } ],
+                                                              "enabled" : true,
+                                                              "focused" : false,
+                                                              "checked" : false,
+                                                              "selected" : false
+                                                            }, {
+                                                              "attributes" : {
+                                                                "accessibilityText" : "Horizontal scroll bar, 1 page",
+                                                                "value" : "%0",
+                                                                "text" : "%0",
+                                                                "bounds" : "[62,277][378,307]",
+                                                                "enabled" : "true",
+                                                                "focused" : "false",
+                                                                "selected" : "false",
+                                                                "checked" : "false"
+                                                              },
+                                                              "children" : [ {
+                                                                "attributes" : {
+                                                                  "bounds" : "[19,304][421,307]",
+                                                                  "enabled" : "true",
+                                                                  "focused" : "false",
+                                                                  "selected" : "false",
+                                                                  "checked" : "false"
+                                                                },
+                                                                "enabled" : true,
+                                                                "focused" : false,
+                                                                "checked" : false,
+                                                                "selected" : false
+                                                              } ],
+                                                              "enabled" : true,
+                                                              "focused" : false,
+                                                              "checked" : false,
+                                                              "selected" : false
+                                                            } ],
+                                                            "enabled" : true,
+                                                            "focused" : false,
+                                                            "checked" : false,
+                                                            "selected" : false
+                                                          } ],
+                                                          "enabled" : true,
+                                                          "focused" : false,
+                                                          "checked" : false,
+                                                          "selected" : false
+                                                        } ],
+                                                        "enabled" : true,
+                                                        "focused" : false,
+                                                        "checked" : false,
+                                                        "selected" : false
+                                                      }, {
+                                                        "attributes" : {
+                                                          "accessibilityText" : "Today's reminders",
+                                                          "bounds" : "[16,334][181,356]",
+                                                          "enabled" : "true",
+                                                          "focused" : "false",
+                                                          "selected" : "false",
+                                                          "checked" : "false"
+                                                        },
+                                                        "children" : [ {
+                                                          "attributes" : {
+                                                            "accessibilityText" : "Today's reminders",
+                                                            "bounds" : "[16,334][181,356]",
+                                                            "enabled" : "true",
+                                                            "focused" : "false",
+                                                            "selected" : "false",
+                                                            "checked" : "false"
+                                                          },
+                                                          "enabled" : true,
+                                                          "focused" : false,
+                                                          "checked" : false,
+                                                          "selected" : false
+                                                        } ],
+                                                        "enabled" : true,
+                                                        "focused" : false,
+                                                        "checked" : false,
+                                                        "selected" : false
+                                                      }, {
+                                                        "attributes" : {
+                                                          "accessibilityText" : "All",
+                                                          "bounds" : "[407,337][424,353]",
+                                                          "enabled" : "true",
+                                                          "focused" : "false",
+                                                          "selected" : "false",
+                                                          "checked" : "false"
+                                                        },
+                                                        "children" : [ {
+                                                          "attributes" : {
+                                                            "accessibilityText" : "All",
+                                                            "bounds" : "[407,337][424,353]",
+                                                            "enabled" : "true",
+                                                            "focused" : "false",
+                                                            "selected" : "false",
+                                                            "checked" : "false"
+                                                          },
+                                                          "enabled" : true,
+                                                          "focused" : false,
+                                                          "checked" : false,
+                                                          "selected" : false
+                                                        } ],
+                                                        "enabled" : true,
+                                                        "focused" : false,
+                                                        "checked" : false,
+                                                        "selected" : false
+                                                      }, {
+                                                        "attributes" : {
+                                                          "accessibilityText" : " Snooze  Done Follow up on the quarterly review",
+                                                          "bounds" : "[16,364][424,557]",
+                                                          "enabled" : "true",
+                                                          "focused" : "false",
+                                                          "selected" : "false",
+                                                          "checked" : "false"
+                                                        },
+                                                        "children" : [ {
+                                                          "attributes" : {
+                                                            "accessibilityText" : "Follow up on the quarterly review",
+                                                            "bounds" : "[16,364][424,557]",
+                                                            "enabled" : "true",
+                                                            "focused" : "false",
+                                                            "selected" : "false",
+                                                            "checked" : "false"
+                                                          },
+                                                          "children" : [ {
+                                                            "attributes" : {
+                                                              "accessibilityText" : "Follow up on the quarterly review",
+                                                              "resource-id" : "task-card-screenshot-task-quarterly-review",
+                                                              "bounds" : "[16,364][424,545]",
+                                                              "enabled" : "true",
+                                                              "focused" : "false",
+                                                              "selected" : "false",
+                                                              "checked" : "false"
+                                                            },
+                                                            "children" : [ {
+                                                              "attributes" : {
+                                                                "bounds" : "[33,385][45,397]",
+                                                                "enabled" : "true",
+                                                                "focused" : "false",
+                                                                "selected" : "false",
+                                                                "checked" : "false"
+                                                              },
+                                                              "enabled" : true,
+                                                              "focused" : false,
+                                                              "checked" : false,
+                                                              "selected" : false
+                                                            } ],
+                                                            "enabled" : true,
+                                                            "focused" : false,
+                                                            "checked" : false,
+                                                            "selected" : false
+                                                          } ],
+                                                          "enabled" : true,
+                                                          "focused" : false,
+                                                          "checked" : false,
+                                                          "selected" : false
+                                                        } ],
+                                                        "enabled" : true,
+                                                        "focused" : false,
+                                                        "checked" : false,
+                                                        "selected" : false
+                                                      }, {
+                                                        "attributes" : {
+                                                          "accessibilityText" : " Snooze  Done Pay rent",
+                                                          "bounds" : "[16,557][424,730]",
+                                                          "enabled" : "true",
+                                                          "focused" : "false",
+                                                          "selected" : "false",
+                                                          "checked" : "false"
+                                                        },
+                                                        "children" : [ {
+                                                          "attributes" : {
+                                                            "accessibilityText" : "Pay rent",
+                                                            "bounds" : "[16,557][424,730]",
+                                                            "enabled" : "true",
+                                                            "focused" : "false",
+                                                            "selected" : "false",
+                                                            "checked" : "false"
+                                                          },
+                                                          "children" : [ {
+                                                            "attributes" : {
+                                                              "accessibilityText" : "Pay rent",
+                                                              "resource-id" : "task-card-screenshot-task-pay-rent",
+                                                              "bounds" : "[16,557][424,718]",
+                                                              "enabled" : "true",
+                                                              "focused" : "false",
+                                                              "selected" : "false",
+                                                              "checked" : "false"
+                                                            },
+                                                            "enabled" : true,
+                                                            "focused" : false,
+                                                            "checked" : false,
+                                                            "selected" : false
+                                                          } ],
+                                                          "enabled" : true,
+                                                          "focused" : false,
+                                                          "checked" : false,
+                                                          "selected" : false
+                                                        } ],
+                                                        "enabled" : true,
+                                                        "focused" : false,
+                                                        "checked" : false,
+                                                        "selected" : false
+                                                      }, {
+                                                        "attributes" : {
+                                                          "accessibilityText" : " Snooze  Done Wrap up the product polish list",
+                                                          "bounds" : "[16,730][424,903]",
+                                                          "enabled" : "true",
+                                                          "focused" : "false",
+                                                          "selected" : "false",
+                                                          "checked" : "false"
+                                                        },
+                                                        "children" : [ {
+                                                          "attributes" : {
+                                                            "accessibilityText" : "Wrap up the product polish list",
+                                                            "bounds" : "[16,730][424,903]",
+                                                            "enabled" : "true",
+                                                            "focused" : "false",
+                                                            "selected" : "false",
+                                                            "checked" : "false"
+                                                          },
+                                                          "children" : [ {
+                                                            "attributes" : {
+                                                              "accessibilityText" : "Wrap up the product polish list",
+                                                              "resource-id" : "task-card-screenshot-task-product-polish",
+                                                              "bounds" : "[16,730][424,891]",
+                                                              "enabled" : "true",
+                                                              "focused" : "false",
+                                                              "selected" : "false",
+                                                              "checked" : "false"
+                                                            },
+                                                            "enabled" : true,
+                                                            "focused" : false,
+                                                            "checked" : false,
+                                                            "selected" : false
+                                                          } ],
+                                                          "enabled" : true,
+                                                          "focused" : false,
+                                                          "checked" : false,
+                                                          "selected" : false
+                                                        } ],
+                                                        "enabled" : true,
+                                                        "focused" : false,
+                                                        "checked" : false,
+                                                        "selected" : false
+                                                      }, {
+                                                        "attributes" : {
+                                                          "accessibilityText" : "Overdue",
+                                                          "bounds" : "[16,926][91,948]",
+                                                          "enabled" : "true",
+                                                          "focused" : "false",
+                                                          "selected" : "false",
+                                                          "checked" : "false"
+                                                        },
+                                                        "children" : [ {
+                                                          "attributes" : {
+                                                            "accessibilityText" : "Overdue",
+                                                            "bounds" : "[16,926][91,948]",
+                                                            "enabled" : "true",
+                                                            "focused" : "false",
+                                                            "selected" : "false",
+                                                            "checked" : "false"
+                                                          },
+                                                          "enabled" : true,
+                                                          "focused" : false,
+                                                          "checked" : false,
+                                                          "selected" : false
+                                                        } ],
+                                                        "enabled" : true,
+                                                        "focused" : false,
+                                                        "checked" : false,
+                                                        "selected" : false
+                                                      }, {
+                                                        "attributes" : {
+                                                          "accessibilityText" : "Track",
+                                                          "bounds" : "[387,929][424,945]",
+                                                          "enabled" : "true",
+                                                          "focused" : "false",
+                                                          "selected" : "false",
+                                                          "checked" : "false"
+                                                        },
+                                                        "children" : [ {
+                                                          "attributes" : {
+                                                            "accessibilityText" : "Track",
+                                                            "bounds" : "[387,929][424,945]",
+                                                            "enabled" : "true",
+                                                            "focused" : "false",
+                                                            "selected" : "false",
+                                                            "checked" : "false"
+                                                          },
+                                                          "enabled" : true,
+                                                          "focused" : false,
+                                                          "checked" : false,
+                                                          "selected" : false
+                                                        } ],
+                                                        "enabled" : true,
+                                                        "focused" : false,
+                                                        "checked" : false,
+                                                        "selected" : false
+                                                      } ],
+                                                      "enabled" : true,
+                                                      "focused" : false,
+                                                      "checked" : false,
+                                                      "selected" : false
+                                                    } ],
+                                                    "enabled" : true,
+                                                    "focused" : false,
+                                                    "checked" : false,
+                                                    "selected" : false
+                                                  }, {
+                                                    "attributes" : {
+                                                      "accessibilityText" : "Vertical scroll bar, 5 pages",
+                                                      "value" : "%90",
+                                                      "text" : "%90",
+                                                      "bounds" : "[407,100][437,832]",
+                                                      "enabled" : "true",
+                                                      "focused" : "false",
+                                                      "selected" : "false",
+                                                      "checked" : "false"
+                                                    },
+                                                    "children" : [ {
+                                                      "attributes" : {
+                                                        "bounds" : "[434,614][437,770]",
+                                                        "enabled" : "true",
+                                                        "focused" : "false",
+                                                        "selected" : "false",
+                                                        "checked" : "false"
+                                                      },
+                                                      "enabled" : true,
+                                                      "focused" : false,
+                                                      "checked" : false,
+                                                      "selected" : false
+                                                    } ],
+                                                    "enabled" : true,
+                                                    "focused" : false,
+                                                    "checked" : false,
+                                                    "selected" : false
+                                                  }, {
+                                                    "attributes" : {
+                                                      "accessibilityText" : "Horizontal scroll bar, 1 page",
+                                                      "value" : "%0",
+                                                      "text" : "%0",
+                                                      "bounds" : "[0,799][440,829]",
+                                                      "enabled" : "true",
+                                                      "focused" : "false",
+                                                      "selected" : "false",
+                                                      "checked" : "false"
+                                                    },
+                                                    "children" : [ {
+                                                      "attributes" : {
+                                                        "bounds" : "[3,826][434,829]",
+                                                        "enabled" : "true",
+                                                        "focused" : "false",
+                                                        "selected" : "false",
+                                                        "checked" : "false"
+                                                      },
+                                                      "enabled" : true,
+                                                      "focused" : false,
+                                                      "checked" : false,
+                                                      "selected" : false
+                                                    } ],
+                                                    "enabled" : true,
+                                                    "focused" : false,
+                                                    "checked" : false,
+                                                    "selected" : false
+                                                  }, {
+                                                    "attributes" : {
+                                                      "accessibilityText" : "Vertical scroll bar, 5 pages",
+                                                      "value" : "%90",
+                                                      "text" : "%90",
+                                                      "bounds" : "[407,100][437,832]",
+                                                      "enabled" : "true",
+                                                      "focused" : "false",
+                                                      "selected" : "false",
+                                                      "checked" : "false"
+                                                    },
+                                                    "children" : [ {
+                                                      "attributes" : {
+                                                        "bounds" : "[434,614][437,770]",
+                                                        "enabled" : "true",
+                                                        "focused" : "false",
+                                                        "selected" : "false",
+                                                        "checked" : "false"
+                                                      },
+                                                      "enabled" : true,
+                                                      "focused" : false,
+                                                      "checked" : false,
+                                                      "selected" : false
+                                                    } ],
+                                                    "enabled" : true,
+                                                    "focused" : false,
+                                                    "checked" : false,
+                                                    "selected" : false
+                                                  }, {
+                                                    "attributes" : {
+                                                      "accessibilityText" : "Horizontal scroll bar, 1 page",
+                                                      "value" : "%0",
+                                                      "text" : "%0",
+                                                      "bounds" : "[0,799][440,829]",
+                                                      "enabled" : "true",
+                                                      "focused" : "false",
+                                                      "selected" : "false",
+                                                      "checked" : "false"
+                                                    },
+                                                    "children" : [ {
+                                                      "attributes" : {
+                                                        "bounds" : "[3,826][434,829]",
+                                                        "enabled" : "true",
+                                                        "focused" : "false",
+                                                        "selected" : "false",
+                                                        "checked" : "false"
+                                                      },
+                                                      "enabled" : true,
+                                                      "focused" : false,
+                                                      "checked" : false,
+                                                      "selected" : false
+                                                    } ],
+                                                    "enabled" : true,
+                                                    "focused" : false,
+                                                    "checked" : false,
+                                                    "selected" : false
+                                                  } ],
+                                                  "enabled" : true,
+                                                  "focused" : false,
+                                                  "checked" : false,
+                                                  "selected" : false
+                                                } ],
+                                                "enabled" : true,
+                                                "focused" : false,
+                                                "checked" : false,
+                                                "selected" : false
+                                              } ],
+                                              "enabled" : true,
+                                              "focused" : false,
+                                              "checked" : false,
+                                              "selected" : false
+                                            } ],
+                                            "enabled" : true,
+                                            "focused" : false,
+                                            "checked" : false,
+                                            "selected" : false
+                                          } ],
+                                          "enabled" : true,
+                                          "focused" : false,
+                                          "checked" : false,
+                                          "selected" : false
+                                        } ],
+                                        "enabled" : true,
+                                        "focused" : false,
+                                        "checked" : false,
+                                        "selected" : false
+                                      } ],
+                                      "enabled" : true,
+                                      "focused" : false,
+                                      "checked" : false,
+                                      "selected" : false
+                                    }, {
+                                      "attributes" : {
+                                        "accessibilityText" : "Home, tab, 1 of 6 Today, tab, 2 of 6 Calendar, tab, 3 of 6 Upcoming, tab, 4 of 6 Completed, tab, 5 of 6 Settings, tab, 6 of 6",
+                                        "bounds" : "[0,866][440,956]",
+                                        "enabled" : "true",
+                                        "focused" : "false",
+                                        "selected" : "false",
+                                        "checked" : "false"
+                                      },
+                                      "children" : [ {
+                                        "attributes" : {
+                                          "bounds" : "[0,866][440,956]",
+                                          "enabled" : "true",
+                                          "focused" : "false",
+                                          "selected" : "false",
+                                          "checked" : "false"
+                                        },
+                                        "enabled" : true,
+                                        "focused" : false,
+                                        "checked" : false,
+                                        "selected" : false
+                                      }, {
+                                        "attributes" : {
+                                          "accessibilityText" : "Home, tab, 1 of 6",
+                                          "resource-id" : "tab-index",
+                                          "bounds" : "[0,874][73,920]",
+                                          "enabled" : "true",
+                                          "focused" : "false",
+                                          "selected" : "true",
+                                          "checked" : "false"
+                                        },
+                                        "enabled" : true,
+                                        "focused" : false,
+                                        "checked" : false,
+                                        "selected" : true
+                                      }, {
+                                        "attributes" : {
+                                          "accessibilityText" : "Today, tab, 2 of 6",
+                                          "resource-id" : "tab-today",
+                                          "bounds" : "[73,874][146,920]",
+                                          "enabled" : "true",
+                                          "focused" : "false",
+                                          "selected" : "false",
+                                          "checked" : "false"
+                                        },
+                                        "enabled" : true,
+                                        "focused" : false,
+                                        "checked" : false,
+                                        "selected" : false
+                                      }, {
+                                        "attributes" : {
+                                          "accessibilityText" : "Calendar, tab, 3 of 6",
+                                          "resource-id" : "tab-calendar",
+                                          "bounds" : "[146,874][220,920]",
+                                          "enabled" : "true",
+                                          "focused" : "false",
+                                          "selected" : "false",
+                                          "checked" : "false"
+                                        },
+                                        "children" : [ {
+                                          "attributes" : {
+                                            "accessibilityText" : "",
+                                            "bounds" : "[168,879][199,907]",
+                                            "enabled" : "true",
+                                            "focused" : "false",
+                                            "selected" : "false",
+                                            "checked" : "false"
+                                          },
+                                          "children" : [ {
+                                            "attributes" : {
+                                              "accessibilityText" : "",
+                                              "bounds" : "[171,880][196,905]",
+                                              "enabled" : "true",
+                                              "focused" : "false",
+                                              "selected" : "false",
+                                              "checked" : "false"
+                                            },
+                                            "children" : [ {
+                                              "attributes" : {
+                                                "accessibilityText" : "",
+                                                "bounds" : "[171,880][196,905]",
+                                                "enabled" : "true",
+                                                "focused" : "false",
+                                                "selected" : "false",
+                                                "checked" : "false"
+                                              },
+                                              "enabled" : true,
+                                              "focused" : false,
+                                              "checked" : false,
+                                              "selected" : false
+                                            } ],
+                                            "enabled" : true,
+                                            "focused" : false,
+                                            "checked" : false,
+                                            "selected" : false
+                                          } ],
+                                          "enabled" : true,
+                                          "focused" : false,
+                                          "checked" : false,
+                                          "selected" : false
+                                        } ],
+                                        "enabled" : true,
+                                        "focused" : false,
+                                        "checked" : false,
+                                        "selected" : false
+                                      }, {
+                                        "attributes" : {
+                                          "accessibilityText" : "Upcoming, tab, 4 of 6",
+                                          "resource-id" : "tab-upcoming",
+                                          "bounds" : "[220,874][293,920]",
+                                          "enabled" : "true",
+                                          "focused" : "false",
+                                          "selected" : "false",
+                                          "checked" : "false"
+                                        },
+                                        "enabled" : true,
+                                        "focused" : false,
+                                        "checked" : false,
+                                        "selected" : false
+                                      }, {
+                                        "attributes" : {
+                                          "accessibilityText" : "Completed, tab, 5 of 6",
+                                          "resource-id" : "tab-completed",
+                                          "bounds" : "[293,874][366,920]",
+                                          "enabled" : "true",
+                                          "focused" : "false",
+                                          "selected" : "false",
+                                          "checked" : "false"
+                                        },
+                                        "enabled" : true,
+                                        "focused" : false,
+                                        "checked" : false,
+                                        "selected" : false
+                                      }, {
+                                        "attributes" : {
+                                          "accessibilityText" : "Settings, tab, 6 of 6",
+                                          "resource-id" : "tab-settings",
+                                          "bounds" : "[366,874][440,920]",
+                                          "enabled" : "true",
+                                          "focused" : "false",
+                                          "selected" : "false",
+                                          "checked" : "false"
+                                        },
+                                        "enabled" : true,
+                                        "focused" : false,
+                                        "checked" : false,
+                                        "selected" : false
+                                      } ],
+                                      "enabled" : true,
+                                      "focused" : false,
+                                      "checked" : false,
+                                      "selected" : false
+                                    } ],
+                                    "enabled" : true,
+                                    "focused" : false,
+                                    "checked" : false,
+                                    "selected" : false
+                                  } ],
+                                  "enabled" : true,
+                                  "focused" : false,
+                                  "checked" : false,
+                                  "selected" : false
+                                } ],
+                                "enabled" : true,
+                                "focused" : false,
+                                "checked" : false,
+                                "selected" : false
+                              } ],
+                              "enabled" : true,
+                              "focused" : false,
+                              "checked" : false,
+                              "selected" : false
+                            }, {
+                              "attributes" : {
+                                "bounds" : "[0,0][440,956]",
+                                "enabled" : "true",
+                                "focused" : "false",
+                                "selected" : "false",
+                                "checked" : "false"
+                              },
+                              "children" : [ {
+                                "attributes" : {
+                                  "bounds" : "[0,0][440,956]",
+                                  "enabled" : "true",
+                                  "focused" : "false",
+                                  "selected" : "false",
+                                  "checked" : "false"
+                                },
+                                "enabled" : true,
+                                "focused" : false,
+                                "checked" : false,
+                                "selected" : false
+                              } ],
+                              "enabled" : true,
+                              "focused" : false,
+                              "checked" : false,
+                              "selected" : false
+                            } ],
+                            "enabled" : true,
+                            "focused" : false,
+                            "checked" : false,
+                            "selected" : false
+                          } ],
+                          "enabled" : true,
+                          "focused" : false,
+                          "checked" : false,
+                          "selected" : false
+                        } ],
+                        "enabled" : true,
+                        "focused" : false,
+                        "checked" : false,
+                        "selected" : false
+                      }, {
+                        "attributes" : {
+                          "bounds" : "[0,0][440,956]",
+                          "enabled" : "true",
+                          "focused" : "false",
+                          "selected" : "false",
+                          "checked" : "false"
+                        },
+                        "children" : [ {
+                          "attributes" : {
+                            "bounds" : "[0,0][440,956]",
+                            "enabled" : "true",
+                            "focused" : "false",
+                            "selected" : "false",
+                            "checked" : "false"
+                          },
+                          "children" : [ {
+                            "attributes" : {
+                              "bounds" : "[0,0][440,956]",
+                              "enabled" : "true",
+                              "focused" : "false",
+                              "selected" : "false",
+                              "checked" : "false"
+                            },
+                            "enabled" : true,
+                            "focused" : false,
+                            "checked" : false,
+                            "selected" : false
+                          } ],
+                          "enabled" : true,
+                          "focused" : false,
+                          "checked" : false,
+                          "selected" : false
+                        } ],
+                        "enabled" : true,
+                        "focused" : false,
+                        "checked" : false,
+                        "selected" : false
+                      } ],
+                      "enabled" : true,
+                      "focused" : false,
+                      "checked" : false,
+                      "selected" : false
+                    } ],
+                    "enabled" : true,
+                    "focused" : false,
+                    "checked" : false,
+                    "selected" : false
+                  } ],
+                  "enabled" : true,
+                  "focused" : false,
+                  "checked" : false,
+                  "selected" : false
+                } ],
+                "enabled" : true,
+                "focused" : false,
+                "checked" : false,
+                "selected" : false
+              } ],
+              "enabled" : true,
+              "focused" : false,
+              "checked" : false,
+              "selected" : false
+            } ],
+            "enabled" : true,
+            "focused" : false,
+            "checked" : false,
+            "selected" : false
+          } ],
+          "enabled" : true,
+          "focused" : false,
+          "checked" : false,
+          "selected" : false
+        }, {
+          "attributes" : {
+            "bounds" : "[0,0][0,0]",
+            "enabled" : "false",
+            "focused" : "false",
+            "selected" : "false",
+            "checked" : "false"
+          },
+          "children" : [ {
+            "attributes" : {
+              "bounds" : "[0,0][440,54]",
+              "enabled" : "true",
+              "focused" : "false",
+              "selected" : "false",
+              "checked" : "false"
+            },
+            "enabled" : true,
+            "focused" : false,
+            "checked" : false,
+            "selected" : false
+          }, {
+            "attributes" : {
+              "bounds" : "[0,0][440,54]",
+              "enabled" : "true",
+              "focused" : "false",
+              "selected" : "false",
+              "checked" : "false"
+            },
+            "children" : [ {
+              "attributes" : {
+                "bounds" : "[0,0][440,54]",
+                "enabled" : "true",
+                "focused" : "false",
+                "selected" : "false",
+                "checked" : "false"
+              },
+              "children" : [ {
+                "attributes" : {
+                  "bounds" : "[0,0][440,54]",
+                  "enabled" : "true",
+                  "focused" : "false",
+                  "selected" : "false",
+                  "checked" : "false"
+                },
+                "children" : [ {
+                  "attributes" : {
+                    "accessibilityText" : "00:10",
+                    "bounds" : "[59,22][107,43]",
+                    "enabled" : "true",
+                    "focused" : "false",
+                    "selected" : "false",
+                    "checked" : "false"
+                  },
+                  "enabled" : true,
+                  "focused" : false,
+                  "checked" : false,
+                  "selected" : false
+                }, {
+                  "attributes" : {
+                    "accessibilityText" : "Hücresel",
+                    "value" : "Sinyal yok",
+                    "text" : "Sinyal yok",
+                    "bounds" : "[312,25][334,39]",
+                    "enabled" : "true",
+                    "focused" : "false",
+                    "selected" : "false",
+                    "checked" : "false"
+                  },
+                  "enabled" : true,
+                  "focused" : false,
+                  "checked" : false,
+                  "selected" : false
+                }, {
+                  "attributes" : {
+                    "value" : "SSID, 3 / 3 Wi-Fi çubuğu",
+                    "text" : "SSID, 3 / 3 Wi-Fi çubuğu",
+                    "resource-id" : "3 / 3 Wi-Fi çubuğu",
+                    "bounds" : "[341,25][361,39]",
+                    "enabled" : "true",
+                    "focused" : "false",
+                    "selected" : "false",
+                    "checked" : "false"
+                  },
+                  "enabled" : true,
+                  "focused" : false,
+                  "checked" : false,
+                  "selected" : false
+                }, {
+                  "attributes" : {
+                    "accessibilityText" : "Pil gücü %100",
+                    "value" : "Şarj olmuyor",
+                    "text" : "Şarj olmuyor",
+                    "bounds" : "[368,25][399,39]",
+                    "enabled" : "true",
+                    "focused" : "false",
+                    "selected" : "false",
+                    "checked" : "false"
+                  },
+                  "enabled" : true,
+                  "focused" : false,
+                  "checked" : false,
+                  "selected" : false
+                } ],
+                "enabled" : true,
+                "focused" : false,
+                "checked" : false,
+                "selected" : false
+              } ],
+              "enabled" : true,
+              "focused" : false,
+              "checked" : false,
+              "selected" : false
+            } ],
+            "enabled" : true,
+            "focused" : false,
+            "checked" : false,
+            "selected" : false
+          } ],
+          "enabled" : false,
+          "focused" : false,
+          "checked" : false,
+          "selected" : false
+        } ],
+        "enabled" : false,
+        "focused" : false,
+        "checked" : false,
+        "selected" : false
+      },
+      "debugMessage" : "Assertion 'id: list-detail-screen is visible' failed. Check the UI hierarchy in debug artifacts to verify the element state and properties.\n\nPossible causes:\n- Element selector may be incorrect - check if there are similar elements with slightly different names/properties.\n- Element may be temporarily unavailable due to loading state\n- This could be a real regression that needs to be addressed",
+      "stackTrace" : [ {
+        "classLoaderName" : "app",
+        "methodName" : "assertConditionCommand",
+        "fileName" : "Orchestra.kt",
+        "lineNumber" : 430,
+        "nativeMethod" : false,
+        "className" : "maestro.orchestra.Orchestra"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "executeCommand",
+        "fileName" : "Orchestra.kt",
+        "lineNumber" : 350,
+        "nativeMethod" : false,
+        "className" : "maestro.orchestra.Orchestra"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "executeCommands",
+        "fileName" : "Orchestra.kt",
+        "lineNumber" : 263,
+        "nativeMethod" : false,
+        "className" : "maestro.orchestra.Orchestra"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "runFlow",
+        "fileName" : "Orchestra.kt",
+        "lineNumber" : 181,
+        "nativeMethod" : false,
+        "className" : "maestro.orchestra.Orchestra"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "runCommands",
+        "fileName" : "MaestroCommandRunner.kt",
+        "lineNumber" : 201,
+        "nativeMethod" : false,
+        "className" : "maestro.cli.runner.MaestroCommandRunner"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "invokeSuspend",
+        "fileName" : "TestRunner.kt",
+        "lineNumber" : 76,
+        "nativeMethod" : false,
+        "className" : "maestro.cli.runner.TestRunner$runSingle$result$1$1"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "resumeWith",
+        "fileName" : "ContinuationImpl.kt",
+        "lineNumber" : 34,
+        "nativeMethod" : false,
+        "className" : "kotlin.coroutines.jvm.internal.BaseContinuationImpl"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "run",
+        "fileName" : "DispatchedTask.kt",
+        "lineNumber" : 104,
+        "nativeMethod" : false,
+        "className" : "kotlinx.coroutines.DispatchedTask"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "processNextEvent",
+        "fileName" : "EventLoop.common.kt",
+        "lineNumber" : 277,
+        "nativeMethod" : false,
+        "className" : "kotlinx.coroutines.EventLoopImplBase"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "joinBlocking",
+        "fileName" : "Builders.kt",
+        "lineNumber" : 95,
+        "nativeMethod" : false,
+        "className" : "kotlinx.coroutines.BlockingCoroutine"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "runBlocking",
+        "fileName" : "Builders.kt",
+        "lineNumber" : 69,
+        "nativeMethod" : false,
+        "className" : "kotlinx.coroutines.BuildersKt__BuildersKt"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "runBlocking",
+        "lineNumber" : 1,
+        "nativeMethod" : false,
+        "className" : "kotlinx.coroutines.BuildersKt"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "runBlocking$default",
+        "fileName" : "Builders.kt",
+        "lineNumber" : 48,
+        "nativeMethod" : false,
+        "className" : "kotlinx.coroutines.BuildersKt__BuildersKt"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "runBlocking$default",
+        "lineNumber" : 1,
+        "nativeMethod" : false,
+        "className" : "kotlinx.coroutines.BuildersKt"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "runSingle$lambda$0",
+        "fileName" : "TestRunner.kt",
+        "lineNumber" : 75,
+        "nativeMethod" : false,
+        "className" : "maestro.cli.runner.TestRunner"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "runCatching-ta8aW1Q",
+        "fileName" : "TestRunner.kt",
+        "lineNumber" : 204,
+        "nativeMethod" : false,
+        "className" : "maestro.cli.runner.TestRunner"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "runSingle",
+        "fileName" : "TestRunner.kt",
+        "lineNumber" : 66,
+        "nativeMethod" : false,
+        "className" : "maestro.cli.runner.TestRunner"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "runSingleFlow",
+        "fileName" : "TestCommand.kt",
+        "lineNumber" : 561,
+        "nativeMethod" : false,
+        "className" : "maestro.cli.command.TestCommand"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "runShardSuite$lambda$10",
+        "fileName" : "TestCommand.kt",
+        "lineNumber" : 529,
+        "nativeMethod" : false,
+        "className" : "maestro.cli.command.TestCommand"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "newSession",
+        "fileName" : "MaestroSessionManager.kt",
+        "lineNumber" : 132,
+        "nativeMethod" : false,
+        "className" : "maestro.cli.session.MaestroSessionManager"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "newSession$default",
+        "fileName" : "MaestroSessionManager.kt",
+        "lineNumber" : 66,
+        "nativeMethod" : false,
+        "className" : "maestro.cli.session.MaestroSessionManager"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "runShardSuite",
+        "fileName" : "TestCommand.kt",
+        "lineNumber" : 476,
+        "nativeMethod" : false,
+        "className" : "maestro.cli.command.TestCommand"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "access$runShardSuite",
+        "fileName" : "TestCommand.kt",
+        "lineNumber" : 80,
+        "nativeMethod" : false,
+        "className" : "maestro.cli.command.TestCommand"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "invokeSuspend",
+        "fileName" : "TestCommand.kt",
+        "lineNumber" : 435,
+        "nativeMethod" : false,
+        "className" : "maestro.cli.command.TestCommand$handleSessions$1$results$1$1"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "resumeWith",
+        "fileName" : "ContinuationImpl.kt",
+        "lineNumber" : 34,
+        "nativeMethod" : false,
+        "className" : "kotlin.coroutines.jvm.internal.BaseContinuationImpl"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "run",
+        "fileName" : "DispatchedTask.kt",
+        "lineNumber" : 104,
+        "nativeMethod" : false,
+        "className" : "kotlinx.coroutines.DispatchedTask"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "run",
+        "fileName" : "LimitedDispatcher.kt",
+        "lineNumber" : 111,
+        "nativeMethod" : false,
+        "className" : "kotlinx.coroutines.internal.LimitedDispatcher$Worker"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "run",
+        "fileName" : "Tasks.kt",
+        "lineNumber" : 99,
+        "nativeMethod" : false,
+        "className" : "kotlinx.coroutines.scheduling.TaskImpl"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "runSafely",
+        "fileName" : "CoroutineScheduler.kt",
+        "lineNumber" : 585,
+        "nativeMethod" : false,
+        "className" : "kotlinx.coroutines.scheduling.CoroutineScheduler"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "executeTask",
+        "fileName" : "CoroutineScheduler.kt",
+        "lineNumber" : 802,
+        "nativeMethod" : false,
+        "className" : "kotlinx.coroutines.scheduling.CoroutineScheduler$Worker"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "runWorker",
+        "fileName" : "CoroutineScheduler.kt",
+        "lineNumber" : 706,
+        "nativeMethod" : false,
+        "className" : "kotlinx.coroutines.scheduling.CoroutineScheduler$Worker"
+      }, {
+        "classLoaderName" : "app",
+        "methodName" : "run",
+        "fileName" : "CoroutineScheduler.kt",
+        "lineNumber" : 693,
+        "nativeMethod" : false,
+        "className" : "kotlinx.coroutines.scheduling.CoroutineScheduler$Worker"
+      } ],
+      "localizedMessage" : "Assertion is false: id: list-detail-screen is visible"
+    },
+    "sequenceNumber" : 16,
+    "evaluatedCommand" : {
+      "assertConditionCommand" : {
+        "condition" : {
+          "visible" : {
+            "idRegex" : "list-detail-screen",
+            "optional" : false
+          }
+        },
+        "optional" : false
+      }
+    }
+  }
+}, {
+  "command" : {
+    "tapOnElement" : {
+      "selector" : {
+        "idRegex" : "tab-index",
+        "optional" : false
+      },
+      "retryIfNoChange" : true,
+      "waitUntilVisible" : false,
+      "longPress" : false,
+      "waitToSettleTimeoutMs" : 400,
+      "optional" : false
+    }
+  },
+  "metadata" : {
+    "status" : "COMPLETED",
+    "timestamp" : 1774991416723,
+    "duration" : 988,
+    "sequenceNumber" : 10,
+    "evaluatedCommand" : {
+      "tapOnElement" : {
+        "selector" : {
+          "idRegex" : "tab-index",
+          "optional" : false
+        },
+        "retryIfNoChange" : true,
+        "waitUntilVisible" : false,
+        "longPress" : false,
+        "waitToSettleTimeoutMs" : 400,
+        "optional" : false
+      }
+    }
+  }
+}, {
+  "command" : {
+    "assertConditionCommand" : {
+      "condition" : {
+        "visible" : {
+          "idRegex" : "calendar-screen",
+          "optional" : false
+        }
+      },
+      "optional" : false
+    }
+  },
+  "metadata" : {
+    "status" : "COMPLETED",
+    "timestamp" : 1774991415972,
+    "duration" : 182,
+    "sequenceNumber" : 7,
+    "evaluatedCommand" : {
+      "assertConditionCommand" : {
+        "condition" : {
+          "visible" : {
+            "idRegex" : "calendar-screen",
+            "optional" : false
+          }
+        },
+        "optional" : false
+      }
+    }
+  }
+}, {
+  "command" : {
+    "defineVariablesCommand" : {
+      "env" : {
+        "LOCALE" : "en-US",
+        "MAESTRO_FILENAME" : "capture-iphone",
+        "MAESTRO_DEVICE_UDID" : "E1D36588-0139-4D33-9345-707FB33EB703",
+        "MAESTRO_SHARD_ID" : "1",
+        "MAESTRO_SHARD_INDEX" : "0"
+      },
+      "optional" : false
+    }
+  },
+  "metadata" : {
+    "status" : "COMPLETED",
+    "timestamp" : 1774991406735,
+    "duration" : 4,
+    "sequenceNumber" : 0,
+    "evaluatedCommand" : {
+      "defineVariablesCommand" : {
+        "env" : {
+          "LOCALE" : "en-US",
+          "MAESTRO_FILENAME" : "capture-iphone",
+          "MAESTRO_DEVICE_UDID" : "E1D36588-0139-4D33-9345-707FB33EB703",
+          "MAESTRO_SHARD_ID" : "1",
+          "MAESTRO_SHARD_INDEX" : "0"
+        },
+        "optional" : false
+      }
+    }
+  }
+}, {
+  "command" : {
+    "waitForAnimationToEndCommand" : {
+      "optional" : false
+    }
+  },
+  "metadata" : {
+    "status" : "COMPLETED",
+    "timestamp" : 1774991417886,
+    "duration" : 391,
+    "sequenceNumber" : 12,
+    "evaluatedCommand" : {
+      "waitForAnimationToEndCommand" : {
+        "optional" : false
+      }
+    }
+  }
+}, {
+  "command" : {
+    "scrollCommand" : {
+      "optional" : false
+    }
+  },
+  "metadata" : {
+    "status" : "COMPLETED",
+    "timestamp" : 1774991418277,
+    "duration" : 3039,
+    "sequenceNumber" : 13,
+    "evaluatedCommand" : {
+      "scrollCommand" : {
+        "optional" : false
+      }
+    }
+  }
+}, {
+  "command" : {
+    "tapOnElement" : {
+      "selector" : {
+        "idRegex" : "list-card-screenshot-list-focus",
+        "optional" : false
+      },
+      "retryIfNoChange" : true,
+      "waitUntilVisible" : false,
+      "longPress" : false,
+      "waitToSettleTimeoutMs" : 400,
+      "optional" : false
+    }
+  },
+  "metadata" : {
+    "status" : "COMPLETED",
+    "timestamp" : 1774991421696,
+    "duration" : 976,
+    "sequenceNumber" : 15,
+    "evaluatedCommand" : {
+      "tapOnElement" : {
+        "selector" : {
+          "idRegex" : "list-card-screenshot-list-focus",
+          "optional" : false
+        },
+        "retryIfNoChange" : true,
+        "waitUntilVisible" : false,
+        "longPress" : false,
+        "waitToSettleTimeoutMs" : 400,
+        "optional" : false
+      }
+    }
+  }
+}, {
+  "command" : {
+    "waitForAnimationToEndCommand" : {
+      "optional" : false
+    }
+  },
+  "metadata" : {
+    "status" : "COMPLETED",
+    "timestamp" : 1774991416155,
+    "duration" : 436,
+    "sequenceNumber" : 8,
+    "evaluatedCommand" : {
+      "waitForAnimationToEndCommand" : {
+        "optional" : false
+      }
+    }
+  }
+}, {
+  "command" : {
+    "assertConditionCommand" : {
+      "condition" : {
+        "visible" : {
+          "idRegex" : "home-screen",
+          "optional" : false
+        }
+      },
+      "optional" : false
+    }
+  },
+  "metadata" : {
+    "status" : "COMPLETED",
+    "timestamp" : 1774991417713,
+    "duration" : 173,
+    "sequenceNumber" : 11,
+    "evaluatedCommand" : {
+      "assertConditionCommand" : {
+        "condition" : {
+          "visible" : {
+            "idRegex" : "home-screen",
+            "optional" : false
+          }
+        },
+        "optional" : false
+      }
+    }
+  }
+}, {
+  "command" : {
+    "takeScreenshotCommand" : {
+      "path" : "${LOCALE}/home.capture",
+      "optional" : false
+    }
+  },
+  "metadata" : {
+    "status" : "COMPLETED",
+    "timestamp" : 1774991414571,
+    "duration" : 399,
+    "sequenceNumber" : 5,
+    "evaluatedCommand" : {
+      "takeScreenshotCommand" : {
+        "path" : "en-US/home.capture",
+        "optional" : false
+      }
+    }
+  }
+}, {
+  "command" : {
+    "applyConfigurationCommand" : {
+      "config" : {
+        "appId" : "com.doneyet.appios"
+      },
+      "optional" : false
+    }
+  },
+  "metadata" : {
+    "status" : "COMPLETED",
+    "timestamp" : 1774991406739,
+    "duration" : 2,
+    "sequenceNumber" : 1,
+    "evaluatedCommand" : {
+      "applyConfigurationCommand" : {
+        "config" : {
+          "appId" : "com.doneyet.appios"
+        },
+        "optional" : false
+      }
+    }
+  }
+}, {
+  "command" : {
+    "takeScreenshotCommand" : {
+      "path" : "${LOCALE}/calendar.capture",
+      "optional" : false
+    }
+  },
+  "metadata" : {
+    "status" : "COMPLETED",
+    "timestamp" : 1774991416592,
+    "duration" : 131,
+    "sequenceNumber" : 9,
+    "evaluatedCommand" : {
+      "takeScreenshotCommand" : {
+        "path" : "en-US/calendar.capture",
+        "optional" : false
+      }
+    }
+  }
+}, {
+  "command" : {
+    "assertConditionCommand" : {
+      "condition" : {
+        "visible" : {
+          "idRegex" : "home-screen",
+          "optional" : false
+        }
+      },
+      "optional" : false
+    }
+  },
+  "metadata" : {
+    "status" : "COMPLETED",
+    "timestamp" : 1774991413907,
+    "duration" : 188,
+    "sequenceNumber" : 3,
+    "evaluatedCommand" : {
+      "assertConditionCommand" : {
+        "condition" : {
+          "visible" : {
+            "idRegex" : "home-screen",
+            "optional" : false
+          }
+        },
+        "optional" : false
+      }
+    }
+  }
+}, {
+  "command" : {
+    "tapOnElement" : {
+      "selector" : {
+        "textRegex" : "^(Aç|Open)$",
+        "optional" : true
+      },
+      "retryIfNoChange" : false,
+      "waitUntilVisible" : false,
+      "longPress" : false,
+      "label" : "Confirm the seed deep link if iOS asks for it",
+      "optional" : true
+    }
+  },
+  "metadata" : {
+    "status" : "WARNED",
+    "timestamp" : 1774991406741,
+    "sequenceNumber" : 2,
+    "evaluatedCommand" : {
+      "tapOnElement" : {
+        "selector" : {
+          "textRegex" : "^(Aç|Open)$",
+          "optional" : true
+        },
+        "retryIfNoChange" : false,
+        "waitUntilVisible" : false,
+        "longPress" : false,
+        "label" : "Confirm the seed deep link if iOS asks for it",
+        "optional" : true
+      }
+    }
+  }
+}, {
+  "command" : {
+    "waitForAnimationToEndCommand" : {
+      "optional" : false
+    }
+  },
+  "metadata" : {
+    "status" : "COMPLETED",
+    "timestamp" : 1774991414096,
+    "duration" : 475,
+    "sequenceNumber" : 4,
+    "evaluatedCommand" : {
+      "waitForAnimationToEndCommand" : {
+        "optional" : false
+      }
+    }
+  }
+}, {
+  "command" : {
+    "tapOnElement" : {
+      "selector" : {
+        "idRegex" : "tab-calendar",
+        "optional" : false
+      },
+      "retryIfNoChange" : true,
+      "waitUntilVisible" : false,
+      "longPress" : false,
+      "waitToSettleTimeoutMs" : 400,
+      "optional" : false
+    }
+  },
+  "metadata" : {
+    "status" : "COMPLETED",
+    "timestamp" : 1774991414970,
+    "duration" : 1002,
+    "sequenceNumber" : 6,
+    "evaluatedCommand" : {
+      "tapOnElement" : {
+        "selector" : {
+          "idRegex" : "tab-calendar",
+          "optional" : false
+        },
+        "retryIfNoChange" : true,
+        "waitUntilVisible" : false,
+        "longPress" : false,
+        "waitToSettleTimeoutMs" : 400,
+        "optional" : false
+      }
+    }
+  }
+}, {
+  "command" : {
+    "waitForAnimationToEndCommand" : {
+      "optional" : false
+    }
+  },
+  "metadata" : {
+    "status" : "COMPLETED",
+    "timestamp" : 1774991421316,
+    "duration" : 379,
+    "sequenceNumber" : 14,
+    "evaluatedCommand" : {
+      "waitForAnimationToEndCommand" : {
+        "optional" : false
+      }
+    }
+  }
+} ]

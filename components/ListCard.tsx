@@ -26,7 +26,9 @@ export function ListCard({
 
   return (
     <Pressable
+      accessibilityRole="button"
       accessibilityLabel={list.name}
+      collapsable={false}
       onPress={onPress}
       onLongPress={onLongPress}
       delayLongPress={180}
