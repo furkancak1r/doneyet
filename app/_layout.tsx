@@ -3,10 +3,11 @@ import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppProvider, NotificationBridge, useApp } from '@/context/AppContext';
 import { AppToast } from '@/components/AppToast';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { I18nextProvider } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
+import { BrandLoadingIndicator } from '@/components/BrandLoadingIndicator';
 import i18n from '@/i18n';
 
 function AppShell() {
@@ -15,11 +16,10 @@ function AppShell() {
 
   if (!ready) {
     return (
-        <View style={[styles.loading, { backgroundColor: theme.background }]}>
-          <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.text }]}>{t('app.loading')}</Text>
-        </View>
-      );
+      <View style={[styles.loading, { backgroundColor: theme.background }]}>
+        <BrandLoadingIndicator />
+      </View>
+    );
   }
 
   return (
@@ -82,12 +82,7 @@ const styles = StyleSheet.create({
   loading: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16
-  },
-  loadingText: {
-    fontSize: 18,
-    fontWeight: '800'
+    justifyContent: 'center'
   },
   backButton: {
     flexDirection: 'row',

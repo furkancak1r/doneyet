@@ -29,6 +29,14 @@ export default function TaskDetailScreen() {
   const showCompleteAction = !isCompleted;
   const showSnoozeActions = !isTodo && !isCompleted;
   const taskBusy = isTaskMutating(task.id);
+  const navigateAfterMutation = useCallback(() => {
+    if (routerInstance.canGoBack()) {
+      routerInstance.back();
+      return;
+    }
+
+    router.replace('/(tabs)');
+  }, [routerInstance]);
 
   const snoozeUntil = (minutes: number) => new Date(Date.now() + minutes * 60_000);
   const snoozeEvening = () => {
@@ -41,6 +49,15 @@ export default function TaskDetailScreen() {
     return date;
   };
 
+  const handleComplete = useCallback(async () => {
+    if (taskBusy || isCompleted) {
+      return;
+    }
+
+    await completeTask(task.id);
+    navigateAfterMutation();
+  }, [completeTask, isCompleted, navigateAfterMutation, task.id, taskBusy]);
+
   const handleCompleteAndFinish = useCallback(async () => {
     if (taskBusy || !isRecurring || isCompleted) {
       return;
@@ -48,19 +65,56 @@ export default function TaskDetailScreen() {
 
     try {
       await completeTaskPermanently(task.id);
+      navigateAfterMutation();
     } catch (error) {
       console.error(`Failed to permanently complete recurring task ${task.id}.`, error);
     }
-  }, [completeTaskPermanently, isCompleted, isRecurring, task.id, taskBusy]);
+  }, [completeTaskPermanently, isCompleted, isRecurring, navigateAfterMutation, task.id, taskBusy]);
+
+  const handlePause = useCallback(async () => {
+    if (taskBusy || isCompleted || isTodo || task.status === 'paused') {
+      return;
+    }
+
+    await pauseTask(task.id);
+    navigateAfterMutation();
+  }, [isCompleted, isTodo, navigateAfterMutation, pauseTask, task.id, task.status, taskBusy]);
+
+  const handleResume = useCallback(async () => {
+    if (taskBusy || isTodo || task.status !== 'paused') {
+      return;
+    }
+
+    await resumeTask(task.id);
+    navigateAfterMutation();
+  }, [isTodo, navigateAfterMutation, resumeTask, task.id, task.status, taskBusy]);
+
+  const handleReactivate = useCallback(async () => {
+    if (taskBusy || !isCompleted) {
+      return;
+    }
+
+    await reactivateTask(task.id);
+    navigateAfterMutation();
+  }, [isCompleted, navigateAfterMutation, reactivateTask, task.id, taskBusy]);
+
+  const handleSnooze = useCallback(async (snoozedUntil: Date) => {
+    if (taskBusy || !showSnoozeActions) {
+      return;
+    }
+
+    await snoozeTask(task.id, snoozedUntil);
+    navigateAfterMutation();
+  }, [navigateAfterMutation, showSnoozeActions, snoozeTask, task.id, taskBusy]);
 
   const statusAction = isTodo ? (
-    isCompleted ? <Button label={t('taskDetail.reactivateTodo')} onPress={() => void reactivateTask(task.id)} disabled={taskBusy} /> : null
+    isCompleted ? <Button label={t('taskDetail.reactivateTodo')} onPress={() => void handleReactivate()} disabled={taskBusy} /> : null
   ) : isCompleted ? (
-    <Button label={t('taskDetail.reactivate')} onPress={() => void reactivateTask(task.id)} disabled={taskBusy} />
+    <Button label={t('taskDetail.reactivate')} onPress={() => void handleReactivate()} disabled={taskBusy} />
   ) : task.status === 'paused' ? (
-    <Button label={t('taskDetail.resume')} onPress={() => void resumeTask(task.id)} disabled={taskBusy} />
+    <Button label={t('taskDetail.resume')} onPress={() => void handleResume()} disabled={taskBusy} />
   ) : (
-    <Button label={t('taskDetail.pause')} variant="secondary" onPress={() => void pauseTask(task.id)} disabled={taskBusy} />
+    <Button label={t('taskDetail.pause')} variant="secondary" onPress={() => void handlePause()} disabled={taskBusy} />
   );
 
   return (
@@ -98,7 +152,7 @@ export default function TaskDetailScreen() {
             <Button
               label={isTodo ? t('taskDetail.completeTodo') : isRecurring ? t('taskDetail.completeRecurring') : t('taskDetail.completeSingle')}
               variant="success"
-              onPress={() => void completeTask(task.id)}
+              onPress={() => void handleComplete()}
               disabled={taskBusy}
               testID="task-detail-complete"
             />
@@ -112,21 +166,27 @@ export default function TaskDetailScreen() {
               testID="task-detail-complete-and-stop"
             />
           ) : null}
-          <Button label={t('taskDetail.delete')} variant="danger" onPress={() => void confirmDelete(task.id, removeTask, isTodo, t)} disabled={taskBusy} testID="task-detail-delete" />
+          <Button
+            label={t('taskDetail.delete')}
+            variant="danger"
+            onPress={() => void confirmDelete(task.id, removeTask, isTodo, t, navigateAfterMutation)}
+            disabled={taskBusy}
+            testID="task-detail-delete"
+          />
         </View>
 
         {statusAction ? <View style={styles.buttonGroup}>{statusAction}</View> : null}
 
         {showSnoozeActions ? (
           <View style={styles.buttonGroup}>
-            <Button label={t('taskDetail.snooze10')} variant="secondary" onPress={() => void snoozeTask(task.id, snoozeUntil(10))} disabled={taskBusy} testID="task-detail-snooze-10m" />
-            <Button label={t('taskDetail.snooze1h')} variant="secondary" onPress={() => void snoozeTask(task.id, snoozeUntil(60))} disabled={taskBusy} testID="task-detail-snooze-1h" />
-            <Button label={t('taskDetail.snoozeEvening')} variant="secondary" onPress={() => void snoozeTask(task.id, snoozeEvening())} disabled={taskBusy} testID="task-detail-snooze-evening" />
+            <Button label={t('taskDetail.snooze10')} variant="secondary" onPress={() => void handleSnooze(snoozeUntil(10))} disabled={taskBusy} testID="task-detail-snooze-10m" />
+            <Button label={t('taskDetail.snooze1h')} variant="secondary" onPress={() => void handleSnooze(snoozeUntil(60))} disabled={taskBusy} testID="task-detail-snooze-1h" />
+            <Button label={t('taskDetail.snoozeEvening')} variant="secondary" onPress={() => void handleSnooze(snoozeEvening())} disabled={taskBusy} testID="task-detail-snooze-evening" />
             <Button
               label={t('taskDetail.snoozeTomorrow')}
               variant="secondary"
               disabled={taskBusy}
-              onPress={() => void snoozeTask(task.id, getTomorrowSnoozeDateForTask(task))}
+              onPress={() => void handleSnooze(getTomorrowSnoozeDateForTask(task))}
               testID="task-detail-snooze-tomorrow"
             />
           </View>
@@ -157,7 +217,13 @@ function InfoRow({
   );
 }
 
-async function confirmDelete(taskId: string, removeTask: (id: string) => Promise<void>, isTodo: boolean, t: (key: string) => string): Promise<void> {
+async function confirmDelete(
+  taskId: string,
+  removeTask: (id: string) => Promise<void>,
+  isTodo: boolean,
+  t: (key: string) => string,
+  navigateAfterMutation: () => void
+): Promise<void> {
   Alert.alert(t('taskDetail.deleteTitle'), isTodo ? t('taskDetail.deleteTodoBody') : t('taskDetail.deleteReminderBody'), [
     { text: t('common.cancel'), style: 'cancel' },
     {
@@ -166,7 +232,7 @@ async function confirmDelete(taskId: string, removeTask: (id: string) => Promise
       onPress: () => {
         void (async () => {
           await removeTask(taskId);
-          router.back();
+          navigateAfterMutation();
         })();
       }
     }

@@ -43,3 +43,6 @@ jest-cache/
 # Misc generated files
 .tmp/
 .temp/
+
+# Local release artifacts
+artifacts/testflight/
