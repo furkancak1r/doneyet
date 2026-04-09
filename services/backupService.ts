@@ -1,6 +1,17 @@
-import { clearAppData, fetchAllTaskNotifications, fetchLists, fetchSettings, fetchTasks, saveList, saveSettings, saveTask } from '@/db/repositories';
+import {
+  clearAppData,
+  fetchAllTaskNotifications,
+  fetchLists,
+  fetchSettings,
+  fetchTaskCompletionHistory,
+  fetchTasks,
+  saveList,
+  saveSettings,
+  saveTask,
+  saveTaskCompletionHistoryEntry
+} from '@/db/repositories';
 import { cancelNotifications } from '@/services/notificationService';
-import { AppList, AppSettings, BackupPayload, Task } from '@/types/domain';
+import { AppList, AppSettings, BackupPayload, Task, TaskCompletionHistoryEntry } from '@/types/domain';
 import { safeParseJson, stableStringify } from '@/utils/json';
 import { restoreAllTaskSchedules } from '@/services/schedulerService';
 import i18n from '@/i18n';
@@ -21,6 +32,38 @@ function normalizeImportedTask(task: Task): Task {
   };
 }
 
+function normalizeTaskCompletionHistoryEntry(value: unknown): TaskCompletionHistoryEntry | null {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const entry = value as Partial<TaskCompletionHistoryEntry>;
+  if (
+    typeof entry.id !== 'string' ||
+    typeof entry.taskId !== 'string' ||
+    typeof entry.taskTitleSnapshot !== 'string' ||
+    typeof entry.listId !== 'string' ||
+    typeof entry.listNameSnapshot !== 'string' ||
+    typeof entry.completedAt !== 'string'
+  ) {
+    return null;
+  }
+
+  return {
+    id: entry.id,
+    taskId: entry.taskId,
+    taskTitleSnapshot: entry.taskTitleSnapshot,
+    taskDescriptionSnapshot: typeof entry.taskDescriptionSnapshot === 'string' ? entry.taskDescriptionSnapshot : '',
+    taskModeSnapshot:
+      entry.taskModeSnapshot === 'single' || entry.taskModeSnapshot === 'todo' || entry.taskModeSnapshot === 'recurring'
+        ? entry.taskModeSnapshot
+        : 'recurring',
+    listId: entry.listId,
+    listNameSnapshot: entry.listNameSnapshot,
+    completedAt: entry.completedAt
+  };
+}
+
 function isSettings(value: unknown): value is AppSettings {
   return Boolean(value) && typeof value === 'object' && typeof (value as AppSettings).id === 'string';
 }
@@ -30,18 +73,20 @@ export function exportBackupPayload(payload: BackupPayload): string {
 }
 
 export async function createBackupPayload(): Promise<BackupPayload> {
-  const [lists, tasks, settings, taskNotifications] = await Promise.all([
+  const [lists, tasks, taskCompletionHistory, settings, taskNotifications] = await Promise.all([
     fetchLists(),
     fetchTasks(),
+    fetchTaskCompletionHistory(),
     fetchSettings(),
     fetchAllTaskNotifications()
   ]);
 
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     exportedAt: new Date().toISOString(),
     lists,
     tasks,
+    taskCompletionHistory,
     taskNotifications,
     settings
   };
@@ -67,6 +112,11 @@ export function parseBackupPayload(rawJson: string): BackupPayload | null {
       exportedAt: typeof parsed.exportedAt === 'string' ? parsed.exportedAt : new Date().toISOString(),
       lists: parsed.lists,
       tasks: parsed.tasks,
+      taskCompletionHistory: Array.isArray(parsed.taskCompletionHistory)
+        ? parsed.taskCompletionHistory
+            .map(normalizeTaskCompletionHistoryEntry)
+            .filter((entry): entry is TaskCompletionHistoryEntry => Boolean(entry))
+        : [],
       taskNotifications: Array.isArray(parsed.taskNotifications) ? parsed.taskNotifications as BackupPayload['taskNotifications'] : [],
       settings: parsed.settings
     };
@@ -93,6 +143,10 @@ export async function importBackupPayload(payload: BackupPayload): Promise<void>
       sortOrder: typeof task.sortOrder === 'number' ? task.sortOrder : nextSortOrder
     });
     taskOrderByList.set(task.listId, nextSortOrder + 1);
+  }
+
+  for (const entry of payload.taskCompletionHistory ?? []) {
+    await saveTaskCompletionHistoryEntry(entry);
   }
 
   await restoreAllTaskSchedules(payload.settings);

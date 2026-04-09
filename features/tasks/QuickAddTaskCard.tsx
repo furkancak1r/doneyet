@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useApp } from '@/hooks/useApp';
@@ -7,18 +7,19 @@ import { Button } from '@/components/Button';
 import { Chip } from '@/components/Chip';
 import { TaskFormValues, TaskMode } from '@/types/domain';
 import { useTranslation } from 'react-i18next';
+import { KeyboardAwareTextInput } from '@/components/KeyboardAwareTextInput';
 
 export function QuickAddTaskCard({
   defaultListId
 }: {
   defaultListId?: string | null;
 }) {
-  const { lists, theme, quickAddResetVersion, createTask, requestQuickAddReset, settings } = useApp();
+  const { lists, theme, quickAddResetVersion, createTask, requestQuickAddReset, settings, isCreatingTask } = useApp();
   const { t } = useTranslation();
   const [title, setTitle] = useState('');
   const [listId, setListId] = useState(defaultListId ?? lists[0]?.id ?? '');
-  const [taskMode, setTaskMode] = useState<TaskMode>('single');
-  const [saving, setSaving] = useState(false);
+  const [taskMode, setTaskMode] = useState<TaskMode>('recurring');
+  const [localSaving, setLocalSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const savingRef = useRef(false);
 
@@ -39,9 +40,11 @@ export function QuickAddTaskCard({
     setError(null);
   }, [quickAddResetVersion]);
 
+  const saving = isCreatingTask || localSaving;
+
   const handleSubmit = async () => {
     const trimmed = title.trim();
-    if (!trimmed || !listId || savingRef.current) {
+    if (!trimmed || !listId || savingRef.current || saving) {
       return;
     }
 
@@ -65,7 +68,7 @@ export function QuickAddTaskCard({
       };
 
       savingRef.current = true;
-      setSaving(true);
+      setLocalSaving(true);
 
       try {
         await createTask(values);
@@ -74,7 +77,7 @@ export function QuickAddTaskCard({
         setError(err instanceof Error ? err.message : null);
       } finally {
         savingRef.current = false;
-        setSaving(false);
+        setLocalSaving(false);
       }
 
       return;
@@ -94,12 +97,13 @@ export function QuickAddTaskCard({
     <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border, shadowColor: theme.shadow }]}>
       <Text style={[styles.title, { color: theme.text }]}>{t('quickAdd.title')}</Text>
       <Text style={[styles.sectionHint, { color: theme.mutedText }]}>{t('quickAdd.modeHint')}</Text>
-      <TextInput
+      <KeyboardAwareTextInput
         value={title}
         onChangeText={setTitle}
+        editable={!saving}
         placeholder={t('quickAdd.placeholder')}
         placeholderTextColor={theme.mutedText}
-        style={[styles.input, { color: theme.text, backgroundColor: theme.surfaceAlt, borderColor: theme.border }]}
+        style={[styles.input, { color: theme.text, backgroundColor: theme.surfaceAlt, borderColor: theme.border, opacity: saving ? 0.6 : 1 }]}
       />
       <View style={styles.modeStack}>
         <QuickModeCard
@@ -110,7 +114,8 @@ export function QuickAddTaskCard({
           icon="notifications-outline"
           accentColor={theme.primary}
           backgroundColor={taskMode !== 'todo' ? theme.primarySoft : theme.surface}
-          onPress={() => setTaskMode('single')}
+          disabled={saving}
+          onPress={() => setTaskMode('recurring')}
         />
         <QuickModeCard
           active={taskMode === 'todo'}
@@ -120,6 +125,7 @@ export function QuickAddTaskCard({
           icon="checkmark-done-outline"
           accentColor={theme.success}
           backgroundColor={taskMode === 'todo' ? 'rgba(47, 122, 86, 0.10)' : theme.surface}
+          disabled={saving}
           onPress={() => setTaskMode('todo')}
         />
       </View>
@@ -129,12 +135,12 @@ export function QuickAddTaskCard({
       <Text style={[styles.sectionHint, { color: theme.mutedText }]}>{t('quickAdd.listHint')}</Text>
       <View style={styles.listWrap}>
         {visibleLists.map((list) => (
-          <Chip key={list.id} label={list.name} selected={listId === list.id} onPress={() => setListId(list.id)} />
+          <Chip key={list.id} label={list.name} selected={listId === list.id} disabled={saving} onPress={() => setListId(list.id)} />
         ))}
       </View>
       <Text style={[styles.helper, { color: theme.mutedText }]}>{t('quickAdd.helper')}</Text>
       {error ? <Text style={[styles.error, { color: theme.danger }]}>{error}</Text> : null}
-      <Button label={submitLabel} onPress={() => void handleSubmit()} loading={saving} />
+      <Button label={submitLabel} onPress={() => void handleSubmit()} loading={saving} disabled={saving} />
     </View>
   );
 }
@@ -147,6 +153,7 @@ function QuickModeCard({
   icon,
   accentColor,
   backgroundColor,
+  disabled = false,
   onPress
 }: {
   active: boolean;
@@ -156,6 +163,7 @@ function QuickModeCard({
   icon: keyof typeof Ionicons.glyphMap;
   accentColor: string;
   backgroundColor: string;
+  disabled?: boolean;
   onPress: () => void;
 }) {
   const { theme } = useApp();
@@ -163,15 +171,16 @@ function QuickModeCard({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={{ selected: active }}
-      onPress={onPress}
+      accessibilityState={{ disabled, selected: active }}
+      disabled={disabled}
+      onPress={disabled ? undefined : onPress}
       style={({ pressed }) => [
         styles.modeCard,
         {
           backgroundColor,
           borderColor: active ? accentColor : theme.border,
           shadowColor: theme.shadow,
-          opacity: pressed ? 0.94 : 1
+          opacity: disabled ? 0.58 : pressed ? 0.94 : 1
         }
       ]}
     >

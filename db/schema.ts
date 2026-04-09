@@ -34,6 +34,17 @@ const taskTableColumns = `
     FOREIGN KEY(listId) REFERENCES lists(id) ON DELETE CASCADE
   `;
 
+const taskCompletionHistoryTableColumns = `
+    id TEXT PRIMARY KEY NOT NULL,
+    taskId TEXT NOT NULL,
+    taskTitleSnapshot TEXT NOT NULL,
+    taskDescriptionSnapshot TEXT NOT NULL DEFAULT '',
+    taskModeSnapshot TEXT NOT NULL DEFAULT 'recurring',
+    listId TEXT NOT NULL,
+    listNameSnapshot TEXT NOT NULL,
+    completedAt TEXT NOT NULL
+  `;
+
 const schemaStatements = [
   `PRAGMA foreign_keys = ON;`,
   `CREATE TABLE IF NOT EXISTS lists (
@@ -58,6 +69,9 @@ const schemaStatements = [
     createdAt TEXT NOT NULL,
     UNIQUE(taskId, scheduledFor),
     FOREIGN KEY(taskId) REFERENCES tasks(id) ON DELETE CASCADE
+  );`,
+  `CREATE TABLE IF NOT EXISTS task_completion_history (
+  ${taskCompletionHistoryTableColumns}
   );`,
   `CREATE TABLE IF NOT EXISTS settings (
     id TEXT PRIMARY KEY NOT NULL,
@@ -117,6 +131,52 @@ async function ensureTaskSortOrderColumn(): Promise<boolean> {
   }
 
   return false;
+}
+
+async function ensureTaskCompletionHistorySchema(): Promise<void> {
+  const database = await withDatabase(async (db) => db);
+  const columns = (await database.getAllAsync('PRAGMA table_info(task_completion_history)')) as Record<string, unknown>[];
+  if (columns.length === 0) {
+    return;
+  }
+
+  const hasTaskModeSnapshot = columns.some((column) => String(column.name) === 'taskModeSnapshot');
+  const foreignKeys = (await database.getAllAsync('PRAGMA foreign_key_list(task_completion_history)')) as Record<string, unknown>[];
+  const hasTaskForeignKey = foreignKeys.some((foreignKey) => String(foreignKey.table) === 'tasks');
+
+  if (!hasTaskForeignKey && hasTaskModeSnapshot) {
+    return;
+  }
+
+  await database.execAsync('PRAGMA foreign_keys = OFF;');
+  try {
+    await database.execAsync('BEGIN TRANSACTION;');
+    try {
+      await database.execAsync('DROP TABLE IF EXISTS task_completion_history_new;');
+      await database.execAsync(
+        `CREATE TABLE task_completion_history_new (
+  ${taskCompletionHistoryTableColumns}
+  );`
+      );
+      await database.execAsync(
+        `INSERT INTO task_completion_history_new (
+          id, taskId, taskTitleSnapshot, taskDescriptionSnapshot, taskModeSnapshot, listId, listNameSnapshot, completedAt
+        )
+        SELECT
+          id, taskId, taskTitleSnapshot, taskDescriptionSnapshot, ${hasTaskModeSnapshot ? 'taskModeSnapshot' : "'recurring'"},
+          listId, listNameSnapshot, completedAt
+        FROM task_completion_history;`
+      );
+      await database.execAsync('DROP TABLE IF EXISTS task_completion_history;');
+      await database.execAsync('ALTER TABLE task_completion_history_new RENAME TO task_completion_history;');
+      await database.execAsync('COMMIT;');
+    } catch (error) {
+      await database.execAsync('ROLLBACK;');
+      throw error;
+    }
+  } finally {
+    await database.execAsync('PRAGMA foreign_keys = ON;');
+  }
 }
 
 async function cleanupLegacyTagSchema(): Promise<void> {
@@ -266,6 +326,7 @@ export async function initializeDatabase(): Promise<void> {
   const taskSortOrderAdded = await ensureTaskSortOrderColumn();
   const listMetadataAdded = await ensureListMetadataColumns();
   await cleanupLegacyTagSchema();
+  await ensureTaskCompletionHistorySchema();
   if (listSortOrderAdded) {
     await backfillListSortOrder();
   }

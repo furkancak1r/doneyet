@@ -142,7 +142,7 @@ function LegendItem({ label, color, theme }: { label: string; color: string; the
 }
 
 export default function CalendarScreen() {
-  const { tasks, lists, theme, completeTask, snoozeTask } = useApp();
+  const { tasks, lists, theme, completeTask, completeTaskPermanently, snoozeTask } = useApp();
   const { t } = useTranslation();
   const locale = getCurrentLocale();
   const today = startOfDay(new Date());
@@ -215,7 +215,7 @@ export default function CalendarScreen() {
   ];
 
   return (
-    <Screen animateOnFocus testID="calendar-screen">
+    <Screen includeBottomSafeArea={false} animateOnFocus testID="calendar-screen">
       <View style={styles.header}>
         <View style={styles.headerCopy}>
           <Text style={[styles.title, { color: theme.text }]}>{t('tabs.calendar')}</Text>
@@ -324,6 +324,7 @@ export default function CalendarScreen() {
           emptyDescription={t('calendar.emptyDayDescription')}
           onPressTask={(task) => router.push(`/tasks/${task.id}`)}
           onCompleteTask={(task) => void completeTask(task.id)}
+          onFinishRecurringTask={(task) => void completeTaskPermanently(task.id)}
           onSnoozeTask={(task) => void snoozeTask(task.id, new Date(Date.now() + 60 * 60 * 1000))}
         />
       </Section>

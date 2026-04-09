@@ -1,4 +1,4 @@
-import { AppList, AppSettings, Task, TaskNotificationRow } from '@/types/domain';
+import { AppList, AppSettings, Task, TaskCompletionHistoryEntry, TaskNotificationRow } from '@/types/domain';
 import { defaultSettings } from '@/constants/settings';
 import { safeParseJson } from '@/utils/json';
 
@@ -51,6 +51,19 @@ export function mapNotificationRow(row: Record<string, unknown>): TaskNotificati
     scheduledFor: String(row.scheduledFor),
     status: String(row.status) as TaskNotificationRow['status'],
     createdAt: String(row.createdAt)
+  };
+}
+
+export function mapTaskCompletionHistoryRow(row: Record<string, unknown>): TaskCompletionHistoryEntry {
+  return {
+    id: String(row.id),
+    taskId: String(row.taskId),
+    taskTitleSnapshot: String(row.taskTitleSnapshot ?? ''),
+    taskDescriptionSnapshot: String(row.taskDescriptionSnapshot ?? ''),
+    taskModeSnapshot: String(row.taskModeSnapshot ?? 'recurring') as TaskCompletionHistoryEntry['taskModeSnapshot'],
+    listId: String(row.listId),
+    listNameSnapshot: String(row.listNameSnapshot ?? ''),
+    completedAt: String(row.completedAt)
   };
 }
 

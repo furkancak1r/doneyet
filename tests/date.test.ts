@@ -1,6 +1,15 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import i18n from '../i18n';
-import { daysInMonth, formatDateTR, formatDurationLabel, getNextStartDateTime, getNextTaskOccurrence, getVisibleTaskState, isLeapYear } from '../utils/date';
+import {
+  daysInMonth,
+  formatDateTR,
+  formatDurationLabel,
+  getNextStartDateTime,
+  getNextTaskOccurrence,
+  getTomorrowSnoozeDateForTask,
+  getVisibleTaskState,
+  isLeapYear
+} from '../utils/date';
 import { Task } from '../types/domain';
 
 function expectLocalDateTime(
@@ -176,12 +185,26 @@ describe('date helpers', () => {
     expectLocalDateTime(result, 2025, 2, 1, 21, 5);
   });
 
+  it('builds tomorrow snooze dates from the task reminder time', () => {
+    const reference = new Date(2025, 2, 1, 16, 45, 0, 0);
+
+    const result = getTomorrowSnoozeDateForTask(
+      buildTask({
+        id: 'task-3',
+        startReminderTime: '09:30'
+      }),
+      reference
+    );
+
+    expectLocalDateTime(result, 2025, 2, 2, 9, 30);
+  });
+
   it('reports paused tasks as paused before any time-based state', () => {
     const reference = new Date(2025, 2, 1, 20, 35, 0, 0);
 
     const result = getVisibleTaskState(
       buildTask({
-        id: 'task-3',
+        id: 'task-4',
         status: 'paused',
         nextNotificationAt: new Date(2025, 2, 1, 20, 20, 0, 0).toISOString()
       }),

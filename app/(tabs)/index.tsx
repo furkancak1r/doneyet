@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Link, router } from 'expo-router';
 import { NestableDraggableFlatList, NestableScrollContainer } from 'react-native-draggable-flatlist';
-import { useScrollToTop } from '@react-navigation/native';
+import { useIsFocused, useScrollToTop } from '@react-navigation/native';
 import type { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
 import { useApp } from '@/hooks/useApp';
 import { Screen } from '@/components/Screen';
@@ -17,6 +17,8 @@ import { countTasksByState, getListTaskCounts, filterTasks, sortTasks } from '@/
 import { getLayoutYOffset } from '@/utils/layout';
 import { useTranslation } from 'react-i18next';
 import type { Task } from '@/types/domain';
+import { KeyboardAwareScrollHandle, useKeyboardAwareScrollController } from '@/components/keyboardAwareScroll';
+import { canShowHomeActiveTaskSwipeHint, consumeHomeActiveTaskSwipeHint } from '@/utils/swipeHintSession';
 
 type SectionKey = 'active' | 'today' | 'overdue';
 type ActiveModeFilter = 'reminder' | 'todo';
@@ -53,12 +55,29 @@ function StatCard({ title, value, tone, onPress }: { title: string; value: numbe
 }
 
 export default function HomeScreen() {
-  const { tasks, lists, theme, completeTask, snoozeTask, notificationGranted, debugScreenshotMode, requestNotificationPermission, reorderLists } = useApp();
+  const {
+    tasks,
+    lists,
+    theme,
+    completeTask,
+    completeTaskPermanently,
+    snoozeTask,
+    notificationGranted,
+    debugScreenshotMode,
+    requestNotificationPermission,
+    reorderLists,
+    isReorderingLists,
+    isRequestingNotificationPermission,
+    isTaskMutating
+  } = useApp();
   const { t } = useTranslation();
   const scrollRef = useRef<GestureHandlerScrollView | null>(null);
+  const keyboardController = useKeyboardAwareScrollController();
+  const isFocused = useIsFocused();
   const [activeModeFilter, setActiveModeFilter] = useState<ActiveModeFilter>(() => getPreferredActiveModeFilter(tasks));
   const [hasManuallySelectedActiveMode, setHasManuallySelectedActiveMode] = useState(false);
   const [visibleActiveCount, setVisibleActiveCount] = useState(5);
+  const [hasConsumedActiveSwipeHint, setHasConsumedActiveSwipeHint] = useState(false);
   const [sectionOffsets, setSectionOffsets] = useState<Record<SectionKey, number | null>>({
     active: null,
     today: null,
@@ -85,6 +104,13 @@ export default function HomeScreen() {
     [activeModeFilter, reminderActiveTasks, todoActiveTasks]
   );
   const visibleActiveTasks = useMemo(() => filteredActiveTasks.slice(0, visibleActiveCount), [filteredActiveTasks, visibleActiveCount]);
+  const activeSwipeHintTaskId = useMemo(() => {
+    if (!isFocused || hasConsumedActiveSwipeHint || !canShowHomeActiveTaskSwipeHint()) {
+      return undefined;
+    }
+
+    return visibleActiveTasks.find((task) => !isTaskMutating(task.id))?.id;
+  }, [hasConsumedActiveSwipeHint, isFocused, isTaskMutating, visibleActiveTasks]);
   const hasMoreActiveTasks = filteredActiveTasks.length > visibleActiveCount;
 
   useEffect(() => {
@@ -134,14 +160,35 @@ export default function HomeScreen() {
     setSectionOffsets((current) => ({ ...current, [section]: offset }));
   };
 
+  const setScrollContainerRef = useCallback(
+    (node: GestureHandlerScrollView | null) => {
+      scrollRef.current = node;
+      keyboardController.registerScrollHandle(node as KeyboardAwareScrollHandle | null);
+    },
+    [keyboardController]
+  );
+
+  const handleActiveSwipeHintStarted = useCallback(() => {
+    if (!consumeHomeActiveTaskSwipeHint()) {
+      return;
+    }
+
+    setHasConsumedActiveSwipeHint(true);
+  }, []);
+
   return (
-    <Screen scroll={false} padded={false} animateOnFocus testID="home-screen">
-      <NestableScrollContainer ref={scrollRef} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <Screen scroll={false} padded={false} includeBottomSafeArea={false} animateOnFocus testID="home-screen" keyboardController={keyboardController}>
+      <NestableScrollContainer ref={setScrollContainerRef} {...keyboardController.scrollViewProps} contentContainerStyle={styles.content}>
         {!notificationGranted && !debugScreenshotMode ? (
           <Card>
             <Text style={[styles.bannerTitle, { color: theme.text }]}>{t('home.permissionTitle')}</Text>
             <Text style={[styles.bannerText, { color: theme.mutedText }]}>{t('home.permissionText')}</Text>
-            <Button label={t('home.permissionButton')} onPress={() => void requestNotificationPermission()} />
+            <Button
+              label={t('home.permissionButton')}
+              onPress={() => void requestNotificationPermission()}
+              loading={isRequestingNotificationPermission}
+              disabled={isRequestingNotificationPermission}
+            />
           </Card>
         ) : null}
 
@@ -188,7 +235,11 @@ export default function HomeScreen() {
             emptyDescription={activeModeFilter === 'todo' ? t('home.emptyActiveTodoDescription') : t('home.emptyActiveReminderDescription')}
             onPressTask={(task) => router.push(`/tasks/${task.id}`)}
             onCompleteTask={(task) => void completeTask(task.id)}
+            onFinishRecurringTask={(task) => void completeTaskPermanently(task.id)}
             onSnoozeTask={(task) => void snoozeTask(task.id, new Date(Date.now() + 10 * 60 * 1000))}
+            swipeHintTaskId={activeSwipeHintTaskId}
+            swipeHintDirection={activeModeFilter === 'todo' ? 'left-only' : 'two-way'}
+            onSwipeHintStarted={handleActiveSwipeHintStarted}
           />
           {hasMoreActiveTasks ? (
             <Button
@@ -213,13 +264,20 @@ export default function HomeScreen() {
             <NestableDraggableFlatList
               data={lists}
               keyExtractor={(item) => item.id}
-              onDragEnd={({ data }) => void reorderLists(data.map((item) => item.id))}
+              onDragEnd={({ data }) => {
+                if (isReorderingLists) {
+                  return;
+                }
+
+                void reorderLists(data.map((item) => item.id));
+              }}
               renderItem={({ item, drag, isActive }) => (
                 <ListCard
                   list={item}
                   count={listCounts[item.id] ?? 0}
                   onPress={() => router.push(`/lists/${item.id}`)}
-                  onLongPress={drag}
+                  onLongPress={isReorderingLists ? undefined : drag}
+                  disabled={isReorderingLists}
                   dragging={isActive}
                   showDragHandle
                 />
@@ -242,6 +300,7 @@ export default function HomeScreen() {
             emptyDescription={t('home.emptyTodayDescription')}
             onPressTask={(task) => router.push(`/tasks/${task.id}`)}
             onCompleteTask={(task) => void completeTask(task.id)}
+            onFinishRecurringTask={(task) => void completeTaskPermanently(task.id)}
             onSnoozeTask={(task) => void snoozeTask(task.id, new Date(Date.now() + 10 * 60 * 1000))}
           />
         </View>
@@ -260,6 +319,7 @@ export default function HomeScreen() {
             emptyDescription={t('home.emptyOverdueDescription')}
             onPressTask={(task) => router.push(`/tasks/${task.id}`)}
             onCompleteTask={(task) => void completeTask(task.id)}
+            onFinishRecurringTask={(task) => void completeTaskPermanently(task.id)}
             onSnoozeTask={(task) => void snoozeTask(task.id, new Date(Date.now() + 10 * 60 * 1000))}
           />
         </View>

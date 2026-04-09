@@ -8,12 +8,12 @@ import { filterTasks, sortTasks } from '@/utils/taskFilters';
 import { useTranslation } from 'react-i18next';
 
 export default function TodayScreen() {
-  const { tasks, lists, theme, completeTask, snoozeTask } = useApp();
+  const { tasks, lists, theme, completeTask, completeTaskPermanently, snoozeTask } = useApp();
   const { t } = useTranslation();
   const todayTasks = useMemo(() => sortTasks(filterTasks(tasks, { filter: 'today', sort: 'nextNotification' }), 'nextNotification'), [tasks]);
 
   return (
-    <Screen animateOnFocus>
+    <Screen includeBottomSafeArea={false} animateOnFocus>
       <Section title={t('today.title')} />
       <TaskListView
         tasks={todayTasks}
@@ -22,6 +22,7 @@ export default function TodayScreen() {
         emptyDescription={t('today.emptyDescription')}
         onPressTask={(task) => router.push(`/tasks/${task.id}`)}
         onCompleteTask={(task) => void completeTask(task.id)}
+        onFinishRecurringTask={(task) => void completeTaskPermanently(task.id)}
         onSnoozeTask={(task) => void snoozeTask(task.id, new Date(Date.now() + 10 * 60 * 1000))}
       />
     </Screen>

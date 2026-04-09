@@ -3,11 +3,83 @@ import { Platform } from 'react-native';
 import { NotificationAction, Task, AppSettings } from '@/types/domain';
 import { snoozeEveningTime } from '@/constants/settings';
 import i18n from '@/i18n';
+import { getTomorrowSnoozeDateForTask } from '@/utils/date';
 
 export const TASK_REMINDER_CATEGORY = 'doneyet-task-reminder';
+export const TASK_RECURRING_REMINDER_CATEGORY = 'doneyet-task-reminder-recurring';
 export const TASK_REMINDER_CHANNEL = 'doneyet-reminders';
 
 let notificationConfigured = false;
+
+type ReminderCategoryAction = {
+  identifier: string;
+  buttonTitle: string;
+  options: {
+    opensAppToForeground: true;
+  };
+};
+
+const recurringReminderActionOrder: NotificationAction[] = [
+  'mark_done',
+  'mark_done_forever',
+  'snooze_10_min',
+  'snooze_tomorrow'
+];
+
+function buildReminderAction(action: NotificationAction): ReminderCategoryAction {
+  switch (action) {
+    case 'mark_done':
+      return {
+        identifier: 'mark_done',
+        buttonTitle: String(i18n.t('notifications.actionMarkDone')),
+        options: { opensAppToForeground: true }
+      };
+    case 'mark_done_forever':
+      return {
+        identifier: 'mark_done_forever',
+        buttonTitle: String(i18n.t('notifications.actionMarkDoneForever')),
+        options: { opensAppToForeground: true }
+      };
+    case 'snooze_10_min':
+      return {
+        identifier: 'snooze_10_min',
+        buttonTitle: String(i18n.t('notifications.actionSnooze10')),
+        options: { opensAppToForeground: true }
+      };
+    case 'snooze_1_hour':
+      return {
+        identifier: 'snooze_1_hour',
+        buttonTitle: String(i18n.t('notifications.actionSnooze1h')),
+        options: { opensAppToForeground: true }
+      };
+    case 'snooze_evening':
+      return {
+        identifier: 'snooze_evening',
+        buttonTitle: String(i18n.t('notifications.actionSnoozeEvening')),
+        options: { opensAppToForeground: true }
+      };
+    case 'snooze_tomorrow':
+      return {
+        identifier: 'snooze_tomorrow',
+        buttonTitle: String(i18n.t('notifications.actionSnoozeTomorrow')),
+        options: { opensAppToForeground: true }
+      };
+  }
+}
+
+function buildReminderActions(includeFinishAction: boolean): ReminderCategoryAction[] {
+  if (includeFinishAction) {
+    return recurringReminderActionOrder.map(buildReminderAction);
+  }
+
+  return [
+    buildReminderAction('mark_done'),
+    buildReminderAction('snooze_10_min'),
+    buildReminderAction('snooze_1_hour'),
+    buildReminderAction('snooze_evening'),
+    buildReminderAction('snooze_tomorrow')
+  ];
+}
 
 export function configureNotificationHandling(settings?: Pick<AppSettings, 'soundEnabled' | 'vibrationEnabled'>): void {
   if (notificationConfigured) {
@@ -44,33 +116,8 @@ export function configureNotificationHandling(settings?: Pick<AppSettings, 'soun
     });
   }
 
-  void Notifications.setNotificationCategoryAsync(TASK_REMINDER_CATEGORY, [
-    {
-      identifier: 'mark_done',
-      buttonTitle: String(i18n.t('notifications.actionMarkDone')),
-      options: { opensAppToForeground: true }
-    },
-    {
-      identifier: 'snooze_10_min',
-      buttonTitle: String(i18n.t('notifications.actionSnooze10')),
-      options: { opensAppToForeground: true }
-    },
-    {
-      identifier: 'snooze_1_hour',
-      buttonTitle: String(i18n.t('notifications.actionSnooze1h')),
-      options: { opensAppToForeground: true }
-    },
-    {
-      identifier: 'snooze_evening',
-      buttonTitle: String(i18n.t('notifications.actionSnoozeEvening')),
-      options: { opensAppToForeground: true }
-    },
-    {
-      identifier: 'snooze_tomorrow',
-      buttonTitle: String(i18n.t('notifications.actionSnoozeTomorrow')),
-      options: { opensAppToForeground: true }
-    }
-  ]);
+  void Notifications.setNotificationCategoryAsync(TASK_REMINDER_CATEGORY, buildReminderActions(false));
+  void Notifications.setNotificationCategoryAsync(TASK_RECURRING_REMINDER_CATEGORY, buildReminderActions(true));
 
   notificationConfigured = true;
 }
@@ -107,6 +154,10 @@ function getTaskReminderBody(task: Task): string {
   return String(i18n.t('notifications.body', { title: task.title.trim() }));
 }
 
+function getTaskReminderCategory(task: Task): string {
+  return task.taskMode === 'recurring' ? TASK_RECURRING_REMINDER_CATEGORY : TASK_REMINDER_CATEGORY;
+}
+
 export async function scheduleTaskReminder(task: Task, fireAt: Date, soundEnabled = true): Promise<string> {
   const trigger: Notifications.DateTriggerInput = {
     type: Notifications.SchedulableTriggerInputTypes.DATE,
@@ -118,7 +169,7 @@ export async function scheduleTaskReminder(task: Task, fireAt: Date, soundEnable
     content: {
       title: String(i18n.t('notifications.title')),
       body: getTaskReminderBody(task),
-      categoryIdentifier: TASK_REMINDER_CATEGORY,
+      categoryIdentifier: getTaskReminderCategory(task),
       sound: soundEnabled ? 'default' : undefined,
       data: {
         taskId: task.id,
@@ -142,7 +193,7 @@ export async function cancelNotifications(notificationIds: string[]): Promise<vo
   await Promise.all(notificationIds.map((id) => cancelNotification(id)));
 }
 
-export function resolveSnoozeTime(action: NotificationAction, now = new Date()): Date {
+export function resolveSnoozeTime(action: NotificationAction, now = new Date(), task?: Task | null): Date {
   const next = new Date(now);
 
   switch (action) {
@@ -161,9 +212,13 @@ export function resolveSnoozeTime(action: NotificationAction, now = new Date()):
       return next;
     }
     case 'snooze_tomorrow':
+      if (task) {
+        return getTomorrowSnoozeDateForTask(task, now);
+      }
       next.setDate(next.getDate() + 1);
       next.setHours(8, 0, 0, 0);
       return next;
+    case 'mark_done_forever':
     case 'mark_done':
     default:
       return now;

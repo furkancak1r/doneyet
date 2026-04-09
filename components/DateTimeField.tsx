@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useApp } from '@/hooks/useApp';
 import { formatDateTimeTR, formatDateTR, formatTimeDisplay } from '@/utils/date';
@@ -9,18 +10,34 @@ export function DateTimeField({
   label,
   value,
   mode = 'datetime',
-  onChange
+  onChange,
+  disabled = false,
+  allowChangesWhileDisabled = false
 }: {
   label: string;
   value: Date;
   mode?: 'date' | 'time' | 'datetime';
   onChange: (date: Date) => void;
+  disabled?: boolean;
+  allowChangesWhileDisabled?: boolean;
 }) {
   const { theme } = useApp();
   const [open, setOpen] = useState(false);
   const locale = getCurrentLocale();
 
+  useEffect(() => {
+    // Keep the iOS spinner mounted during short save windows. Callers can opt in
+    // to still accepting wheel changes while disabled.
+    if (disabled && open && Platform.OS !== 'ios') {
+      setOpen(false);
+    }
+  }, [disabled, open]);
+
   const handleChange = (_event: DateTimePickerEvent, selected?: Date) => {
+    if (disabled && !allowChangesWhileDisabled) {
+      return;
+    }
+
     if (selected) {
       onChange(selected);
     }
@@ -32,11 +49,20 @@ export function DateTimeField({
 
   return (
     <View style={styles.wrap}>
-      <Pressable onPress={() => setOpen((current) => !current)} style={[styles.button, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ disabled }}
+        disabled={disabled}
+        onPress={disabled ? undefined : () => setOpen((current) => !current)}
+        style={[styles.button, { backgroundColor: theme.surface, borderColor: theme.border, opacity: disabled ? 0.6 : 1 }]}
+      >
         <Text style={[styles.label, { color: theme.text }]}>{label}</Text>
-        <Text style={[styles.buttonLabel, { color: theme.text }]}>
-          {mode === 'date' ? formatDateTR(value) : mode === 'time' ? formatTimeDisplay(value) : formatDateTimeTR(value)}
-        </Text>
+        <View style={styles.valueRow}>
+          <Text style={[styles.buttonLabel, { color: theme.text }]}>
+            {mode === 'date' ? formatDateTR(value) : mode === 'time' ? formatTimeDisplay(value) : formatDateTimeTR(value)}
+          </Text>
+          <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color={theme.mutedText} />
+        </View>
       </Pressable>
       {open ? (
         <DateTimePicker
@@ -72,7 +98,15 @@ const styles = StyleSheet.create({
   },
   buttonLabel: {
     fontSize: 16,
-    fontWeight: '600'
+    fontWeight: '600',
+    flexShrink: 1
+  },
+  valueRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12
   },
   iosPicker: {
     marginTop: 8

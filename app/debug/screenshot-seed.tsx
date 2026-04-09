@@ -25,7 +25,7 @@ export default function ScreenshotSeedScreen() {
 
     void (async () => {
       const payload = createScreenshotSeedPayload(locale);
-      const result = await replaceBackup(JSON.stringify(payload));
+      const result = await replaceBackup(JSON.stringify(payload), { suppressSuccessToast: true });
 
       if (cancelled) {
         return;

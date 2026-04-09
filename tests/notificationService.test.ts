@@ -31,7 +31,28 @@ vi.mock('@/i18n', () => ({
   }
 }));
 
-import { scheduleTaskReminder, TASK_REMINDER_CATEGORY, TASK_REMINDER_CHANNEL } from '../services/notificationService';
+import {
+  resolveSnoozeTime,
+  scheduleTaskReminder,
+  TASK_RECURRING_REMINDER_CATEGORY,
+  TASK_REMINDER_CATEGORY,
+  TASK_REMINDER_CHANNEL
+} from '../services/notificationService';
+
+function expectLocalDateTime(
+  date: Date,
+  year: number,
+  monthIndex: number,
+  day: number,
+  hour: number,
+  minute: number
+): void {
+  expect(date.getFullYear()).toBe(year);
+  expect(date.getMonth()).toBe(monthIndex);
+  expect(date.getDate()).toBe(day);
+  expect(date.getHours()).toBe(hour);
+  expect(date.getMinutes()).toBe(minute);
+}
 
 function buildTask(overrides: Partial<Task> & Pick<Task, 'id'>): Task {
   const { id, ...rest } = overrides;
@@ -88,6 +109,25 @@ describe('notification service', () => {
       shouldShowList: true
     });
     expect(notificationBehavior).not.toHaveProperty('shouldShowAlert');
+    expect(setNotificationCategoryAsync).toHaveBeenCalledTimes(2);
+
+    const categoryCalls = new Map(
+      setNotificationCategoryAsync.mock.calls as Array<[string, Array<{ identifier: string }>]>
+    );
+
+    expect(categoryCalls.get(TASK_REMINDER_CATEGORY)?.map((action) => action.identifier)).toEqual([
+      'mark_done',
+      'snooze_10_min',
+      'snooze_1_hour',
+      'snooze_evening',
+      'snooze_tomorrow'
+    ]);
+    expect(categoryCalls.get(TASK_RECURRING_REMINDER_CATEGORY)?.map((action) => action.identifier)).toEqual([
+      'mark_done',
+      'mark_done_forever',
+      'snooze_10_min',
+      'snooze_tomorrow'
+    ]);
   });
 
   it('schedules reminders with an explicit Expo DATE trigger on Android', async () => {
@@ -114,5 +154,39 @@ describe('notification service', () => {
         channelId: TASK_REMINDER_CHANNEL
       }
     });
+  });
+
+  it('uses the recurring notification category for recurring tasks', async () => {
+    const fireAt = new Date('2026-03-31T06:00:00.000Z');
+    const task = buildTask({ id: 'task-recurring', taskMode: 'recurring' });
+    scheduleNotificationAsync.mockResolvedValue('notif-recurring');
+
+    await scheduleTaskReminder(task, fireAt, true);
+
+    expect(scheduleNotificationAsync).toHaveBeenCalledWith({
+      content: expect.objectContaining({
+        categoryIdentifier: TASK_RECURRING_REMINDER_CATEGORY
+      }),
+      trigger: {
+        type: 'date',
+        date: fireAt,
+        channelId: TASK_REMINDER_CHANNEL
+      }
+    });
+  });
+
+  it('uses the task reminder clock for tomorrow snoozes', () => {
+    const now = new Date(2026, 2, 31, 18, 45, 0, 0);
+
+    const result = resolveSnoozeTime(
+      'snooze_tomorrow',
+      now,
+      buildTask({
+        id: 'task-2',
+        startReminderTime: '09:30'
+      })
+    );
+
+    expectLocalDateTime(result, 2026, 3, 1, 9, 30);
   });
 });

@@ -6,6 +6,7 @@ export function Button({
   onPress,
   variant = 'primary',
   loading = false,
+  disabled = false,
   style,
   testID,
   accessibilityLabel
@@ -14,11 +15,13 @@ export function Button({
   onPress: () => void;
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'success';
   loading?: boolean;
+  disabled?: boolean;
   style?: ViewStyle;
   testID?: string;
   accessibilityLabel?: string;
 }) {
   const { theme } = useApp();
+  const isDisabled = disabled || loading;
   const backgroundColor =
     variant === 'primary'
       ? theme.primary
@@ -35,12 +38,19 @@ export function Button({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityState={{ disabled: isDisabled }}
       collapsable={false}
-      onPress={onPress}
+      disabled={isDisabled}
+      onPress={isDisabled ? undefined : onPress}
       testID={testID}
       style={({ pressed }) => [
         styles.button,
-        { backgroundColor, borderColor: theme.border, shadowColor: theme.shadow, opacity: pressed ? 0.85 : 1 },
+        {
+          backgroundColor,
+          borderColor: theme.border,
+          shadowColor: theme.shadow,
+          opacity: isDisabled ? 0.56 : pressed ? 0.85 : 1
+        },
         style
       ]}
     >

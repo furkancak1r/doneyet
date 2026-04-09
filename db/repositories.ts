@@ -1,6 +1,6 @@
 import { withDatabase } from '@/db/client';
-import { mapListRow, mapNotificationRow, mapSettingsRow, mapTaskRow } from '@/db/mappers';
-import { AppList, AppSettings, Task, TaskNotificationRow } from '@/types/domain';
+import { mapListRow, mapNotificationRow, mapSettingsRow, mapTaskCompletionHistoryRow, mapTaskRow } from '@/db/mappers';
+import { AppList, AppSettings, Task, TaskCompletionHistoryEntry, TaskNotificationRow } from '@/types/domain';
 import { stableStringify } from '@/utils/json';
 
 export async function fetchLists(): Promise<AppList[]> {
@@ -51,6 +51,15 @@ export async function fetchTaskById(id: string): Promise<Task | null> {
   return withDatabase(async (db) => {
     const row = (await db.getFirstAsync('SELECT * FROM tasks WHERE id = ?', [id])) as Record<string, unknown> | null;
     return row ? mapTaskRow(row) : null;
+  });
+}
+
+export async function fetchTaskCompletionHistory(): Promise<TaskCompletionHistoryEntry[]> {
+  return withDatabase(async (db) => {
+    const rows = (await db.getAllAsync(
+      'SELECT * FROM task_completion_history ORDER BY completedAt DESC, id DESC'
+    )) as Record<string, unknown>[];
+    return rows.map(mapTaskCompletionHistoryRow);
   });
 }
 
@@ -116,6 +125,34 @@ export async function saveTask(task: Task): Promise<void> {
         task.snoozedUntil,
         task.notificationIdsJson,
         task.completedAt
+      ]
+    );
+  });
+}
+
+export async function saveTaskCompletionHistoryEntry(entry: TaskCompletionHistoryEntry): Promise<void> {
+  await withDatabase(async (db) => {
+    await db.runAsync(
+      `INSERT INTO task_completion_history (
+        id, taskId, taskTitleSnapshot, taskDescriptionSnapshot, taskModeSnapshot, listId, listNameSnapshot, completedAt
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        taskId = excluded.taskId,
+        taskTitleSnapshot = excluded.taskTitleSnapshot,
+        taskDescriptionSnapshot = excluded.taskDescriptionSnapshot,
+        taskModeSnapshot = excluded.taskModeSnapshot,
+        listId = excluded.listId,
+        listNameSnapshot = excluded.listNameSnapshot,
+        completedAt = excluded.completedAt`,
+      [
+        entry.id,
+        entry.taskId,
+        entry.taskTitleSnapshot,
+        entry.taskDescriptionSnapshot,
+        entry.taskModeSnapshot,
+        entry.listId,
+        entry.listNameSnapshot,
+        entry.completedAt
       ]
     );
   });
@@ -203,6 +240,7 @@ export async function saveSettings(settings: AppSettings): Promise<void> {
 export async function clearAppData(): Promise<void> {
   await withDatabase(async (db) => {
     await db.execAsync(`
+      DELETE FROM task_completion_history;
       DELETE FROM task_notifications;
       DELETE FROM tasks;
       DELETE FROM lists;

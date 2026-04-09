@@ -9,6 +9,7 @@ export function ListCard({
   count,
   onPress,
   onLongPress,
+  disabled = false,
   dragging = false,
   showDragHandle = false,
   testID
@@ -17,6 +18,7 @@ export function ListCard({
   count: number;
   onPress?: () => void;
   onLongPress?: () => void;
+  disabled?: boolean;
   dragging?: boolean;
   showDragHandle?: boolean;
   testID?: string;
@@ -28,9 +30,11 @@ export function ListCard({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={list.name}
+      accessibilityState={{ disabled }}
       collapsable={false}
-      onPress={onPress}
-      onLongPress={onLongPress}
+      disabled={disabled}
+      onPress={disabled ? undefined : onPress}
+      onLongPress={disabled ? undefined : onLongPress}
       delayLongPress={180}
       testID={testID ?? `list-card-${list.id}`}
       style={({ pressed }) => [
@@ -39,7 +43,7 @@ export function ListCard({
           backgroundColor: theme.surface,
           borderColor: dragging ? theme.primary : theme.border,
           shadowColor: theme.shadow,
-          opacity: pressed || dragging ? 0.88 : 1,
+          opacity: disabled ? 0.58 : pressed || dragging ? 0.88 : 1,
           transform: [{ scale: dragging ? 0.985 : 1 }]
         }
       ]}

@@ -6,7 +6,7 @@ import { useApp } from '@/hooks/useApp';
 import { useTranslation } from 'react-i18next';
 
 export default function EditTaskScreen() {
-  const { tasks, updateTask } = useApp();
+  const { tasks, updateTask, isTaskMutating } = useApp();
   const { t } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams<{ taskId: string }>();
@@ -16,6 +16,8 @@ export default function EditTaskScreen() {
     return <Screen />;
   }
 
+  const submitting = isTaskMutating(task.id);
+
   return (
     <Screen>
       <Stack.Screen options={{ title: t('routes.editTask') }} />
@@ -23,6 +25,7 @@ export default function EditTaskScreen() {
         initialTask={task}
         initialTaskMode={task.taskMode}
         submitLabel={t('common.update')}
+        submitting={submitting}
         onSubmit={async (values) => {
           await updateTask(task.id, values);
           router.back();

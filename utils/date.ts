@@ -109,6 +109,26 @@ export function addRepeatInterval(date: Date, value: number, unit: RepeatInterva
   return unit === 'minutes' ? addMinutes(date, value) : addHours(date, value);
 }
 
+function getTaskReminderClock(task: Task): { hour: number; minute: number } {
+  const { hour, minute } = parseClockTime(task.startReminderTime);
+  if (Number.isInteger(hour) && Number.isInteger(minute) && hour >= 0 && hour < 24 && minute >= 0 && minute < 60) {
+    return { hour, minute };
+  }
+
+  const fallback = new Date(task.startDateTime);
+  return {
+    hour: Number.isFinite(fallback.getHours()) ? fallback.getHours() : 8,
+    minute: Number.isFinite(fallback.getMinutes()) ? fallback.getMinutes() : 0
+  };
+}
+
+export function getTomorrowSnoozeDateForTask(task: Task, reference = new Date()): Date {
+  const tomorrow = addDays(reference, 1);
+  const { hour, minute } = getTaskReminderClock(task);
+  tomorrow.setHours(hour, minute, 0, 0);
+  return tomorrow;
+}
+
 export function getNextTaskOccurrence(task: Task, reference = new Date()): Date {
   if (task.snoozedUntil) {
     const snoozed = new Date(task.snoozedUntil);

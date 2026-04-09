@@ -10,7 +10,7 @@ import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 export default function UpcomingScreen() {
-  const { tasks, lists, completeTask, snoozeTask } = useApp();
+  const { tasks, lists, completeTask, completeTaskPermanently, snoozeTask } = useApp();
   const { t } = useTranslation();
   const [sort, setSort] = useState<TaskSort>('nextNotification');
 
@@ -20,7 +20,7 @@ export default function UpcomingScreen() {
   );
 
   return (
-    <Screen animateOnFocus>
+    <Screen includeBottomSafeArea={false} animateOnFocus>
       <Section title={t('upcoming.title')} />
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 12 }}>
         <Chip label={t('upcoming.sortStartDate')} selected={sort === 'startDate'} onPress={() => setSort('startDate')} />
@@ -34,6 +34,7 @@ export default function UpcomingScreen() {
         emptyDescription={t('upcoming.emptyDescription')}
         onPressTask={(task) => router.push(`/tasks/${task.id}`)}
         onCompleteTask={(task) => void completeTask(task.id)}
+        onFinishRecurringTask={(task) => void completeTaskPermanently(task.id)}
         onSnoozeTask={(task) => void snoozeTask(task.id, new Date(Date.now() + 60 * 60 * 1000))}
       />
     </Screen>

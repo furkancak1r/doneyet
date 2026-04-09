@@ -414,10 +414,11 @@ export function createScreenshotSeedPayload(locale?: string | null, now = new Da
   };
 
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     exportedAt: now.toISOString(),
     lists,
     tasks,
+    taskCompletionHistory: [],
     taskNotifications: [],
     settings
   };

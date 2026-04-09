@@ -17,6 +17,7 @@ export type TaskMode = 'single' | 'recurring' | 'todo';
 
 export type NotificationAction =
   | 'mark_done'
+  | 'mark_done_forever'
   | 'snooze_10_min'
   | 'snooze_1_hour'
   | 'snooze_evening'
@@ -57,6 +58,17 @@ export interface Task {
   snoozedUntil: string | null;
   notificationIdsJson: string;
   completedAt: string | null;
+}
+
+export interface TaskCompletionHistoryEntry {
+  id: string;
+  taskId: string;
+  taskTitleSnapshot: string;
+  taskDescriptionSnapshot: string;
+  taskModeSnapshot: TaskMode;
+  listId: string;
+  listNameSnapshot: string;
+  completedAt: string;
 }
 
 export interface AppSettings {
@@ -101,6 +113,7 @@ export interface BackupPayload {
   exportedAt: string;
   lists: AppList[];
   tasks: Task[];
+  taskCompletionHistory: TaskCompletionHistoryEntry[];
   taskNotifications: TaskNotificationRow[];
   settings: AppSettings;
 }

@@ -5,7 +5,7 @@ import { useApp } from '@/hooks/useApp';
 import { useTranslation } from 'react-i18next';
 
 export default function NewListScreen() {
-  const { createList } = useApp();
+  const { createList, isCreatingList } = useApp();
   const { t } = useTranslation();
   const router = useRouter();
 
@@ -13,6 +13,7 @@ export default function NewListScreen() {
     <Screen>
       <ListForm
         submitLabel={t('common.create')}
+        submitting={isCreatingList}
         onSubmit={async ({ name, color, icon }) => {
           await createList(name, color, icon);
           router.back();

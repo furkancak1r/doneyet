@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { Alert, Pressable, ScrollView, Share, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Pressable, ScrollView, Share, StyleSheet, Switch, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useApp } from '@/hooks/useApp';
@@ -9,6 +9,7 @@ import { Button } from '@/components/Button';
 import { Chip } from '@/components/Chip';
 import { DateTimeField } from '@/components/DateTimeField';
 import { useTranslation } from 'react-i18next';
+import { KeyboardAwareTextInput } from '@/components/KeyboardAwareTextInput';
 
 function toDateFromTime(clock: string): Date {
   const now = new Date();
@@ -18,13 +19,29 @@ function toDateFromTime(clock: string): Date {
 }
 
 export default function SettingsScreen() {
-  const { settings, updateSettings, theme, exportBackup, importBackup, notificationGranted, debugScreenshotMode, requestNotificationPermission } = useApp();
+  const {
+    settings,
+    updateSettings,
+    theme,
+    exportBackup,
+    importBackup,
+    notificationGranted,
+    debugScreenshotMode,
+    requestNotificationPermission,
+    isSettingsMutating,
+    isImportingBackup,
+    isRequestingNotificationPermission
+  } = useApp();
   const { t } = useTranslation();
   const scrollRef = useRef<ScrollView>(null);
   const [startTime, setStartTime] = useState(toDateFromTime(settings.defaultStartTime));
   const [importOpen, setImportOpen] = useState(false);
   const [importText, setImportText] = useState('');
   const [importError, setImportError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setStartTime(toDateFromTime(settings.defaultStartTime));
+  }, [settings.defaultStartTime]);
 
   const persistStartTime = async (value: Date) => {
     await updateSettings({
@@ -46,7 +63,6 @@ export default function SettingsScreen() {
 
     setImportText('');
     setImportError(null);
-    Alert.alert(t('settings.backupImportedTitle'), t('settings.backupImportedMessage'));
   };
 
   const toggleImport = () => {
@@ -62,13 +78,18 @@ export default function SettingsScreen() {
   };
 
   return (
-    <Screen scrollRef={scrollRef} animateOnFocus>
+    <Screen scrollRef={scrollRef} includeBottomSafeArea={false} animateOnFocus>
       {!notificationGranted && !debugScreenshotMode ? (
         <Section title={t('settings.permissionTitle')}>
           <View style={[styles.permissionCard, { backgroundColor: theme.surface, borderColor: theme.border, shadowColor: theme.shadow }]}>
             <Text style={[styles.permissionTitle, { color: theme.text }]}>{t('settings.permissionCardTitle')}</Text>
             <Text style={[styles.permissionText, { color: theme.mutedText }]}>{t('settings.permissionText')}</Text>
-            <Button label={t('settings.permissionButton')} onPress={() => void requestNotificationPermission()} />
+            <Button
+              label={t('settings.permissionButton')}
+              onPress={() => void requestNotificationPermission()}
+              loading={isRequestingNotificationPermission}
+              disabled={isRequestingNotificationPermission}
+            />
           </View>
         </Section>
       ) : null}
@@ -78,6 +99,8 @@ export default function SettingsScreen() {
           label={t('settings.startLabel')}
           value={startTime}
           mode="time"
+          disabled={isSettingsMutating}
+          allowChangesWhileDisabled
           onChange={(value) => {
             setStartTime(value);
             void persistStartTime(value);
@@ -88,36 +111,37 @@ export default function SettingsScreen() {
           <Text style={[styles.label, { color: theme.text }]}>{t('settings.autoHide')}</Text>
           <Switch
             value={Boolean(settings.autoHideCompletedTasks)}
+            disabled={isSettingsMutating}
             onValueChange={(value) => void updateSettings({ autoHideCompletedTasks: value ? 1 : 0 })}
           />
         </View>
 
         <View style={styles.toggleRow}>
           <Text style={[styles.label, { color: theme.text }]}>{t('settings.sound')}</Text>
-          <Switch value={Boolean(settings.soundEnabled)} onValueChange={(value) => void updateSettings({ soundEnabled: value ? 1 : 0 })} />
+          <Switch disabled={isSettingsMutating} value={Boolean(settings.soundEnabled)} onValueChange={(value) => void updateSettings({ soundEnabled: value ? 1 : 0 })} />
         </View>
 
         <View style={styles.toggleRow}>
           <Text style={[styles.label, { color: theme.text }]}>{t('settings.vibration')}</Text>
-          <Switch value={Boolean(settings.vibrationEnabled)} onValueChange={(value) => void updateSettings({ vibrationEnabled: value ? 1 : 0 })} />
+          <Switch disabled={isSettingsMutating} value={Boolean(settings.vibrationEnabled)} onValueChange={(value) => void updateSettings({ vibrationEnabled: value ? 1 : 0 })} />
         </View>
 
         <View style={styles.toggleRow}>
           <Text style={[styles.label, { color: theme.text }]}>{t('settings.theme')}</Text>
         </View>
         <View style={styles.chipWrap}>
-          <Chip label={t('settings.themeSystem')} tone="primary" selected={settings.themeMode === 'system'} onPress={() => void updateSettings({ themeMode: 'system' })} />
-          <Chip label={t('settings.themeLight')} tone="primary" selected={settings.themeMode === 'light'} onPress={() => void updateSettings({ themeMode: 'light' })} />
-          <Chip label={t('settings.themeDark')} tone="primary" selected={settings.themeMode === 'dark'} onPress={() => void updateSettings({ themeMode: 'dark' })} />
+          <Chip label={t('settings.themeSystem')} tone="primary" selected={settings.themeMode === 'system'} disabled={isSettingsMutating} onPress={() => void updateSettings({ themeMode: 'system' })} />
+          <Chip label={t('settings.themeLight')} tone="primary" selected={settings.themeMode === 'light'} disabled={isSettingsMutating} onPress={() => void updateSettings({ themeMode: 'light' })} />
+          <Chip label={t('settings.themeDark')} tone="primary" selected={settings.themeMode === 'dark'} disabled={isSettingsMutating} onPress={() => void updateSettings({ themeMode: 'dark' })} />
         </View>
 
         <View style={styles.toggleRow}>
           <Text style={[styles.label, { color: theme.text }]}>{t('settings.language')}</Text>
         </View>
         <View style={styles.chipWrap}>
-          <Chip label={t('settings.languageSystem')} tone="primary" selected={settings.language === 'system'} onPress={() => void updateSettings({ language: 'system' })} />
-          <Chip label={t('settings.languageTurkish')} tone="primary" selected={settings.language === 'tr'} onPress={() => void updateSettings({ language: 'tr' })} />
-          <Chip label={t('settings.languageEnglish')} tone="primary" selected={settings.language === 'en'} onPress={() => void updateSettings({ language: 'en' })} />
+          <Chip label={t('settings.languageSystem')} tone="primary" selected={settings.language === 'system'} disabled={isSettingsMutating} onPress={() => void updateSettings({ language: 'system' })} />
+          <Chip label={t('settings.languageTurkish')} tone="primary" selected={settings.language === 'tr'} disabled={isSettingsMutating} onPress={() => void updateSettings({ language: 'tr' })} />
+          <Chip label={t('settings.languageEnglish')} tone="primary" selected={settings.language === 'en'} disabled={isSettingsMutating} onPress={() => void updateSettings({ language: 'en' })} />
         </View>
 
       </Section>
@@ -128,10 +152,18 @@ export default function SettingsScreen() {
         <Text style={[styles.persistenceNote, { color: theme.mutedText }]}>{t('settings.backupPersistenceNote')}</Text>
 
         <Pressable
-          onPress={toggleImport}
+          accessibilityRole="button"
+          accessibilityState={{ disabled: isImportingBackup }}
+          disabled={isImportingBackup}
+          onPress={isImportingBackup ? undefined : toggleImport}
           style={({ pressed }) => [
             styles.importHeader,
-            { backgroundColor: theme.surface, borderColor: theme.border, shadowColor: theme.shadow, opacity: pressed ? 0.9 : 1 }
+            {
+              backgroundColor: theme.surface,
+              borderColor: theme.border,
+              shadowColor: theme.shadow,
+              opacity: isImportingBackup ? 0.58 : pressed ? 0.9 : 1
+            }
           ]}
         >
           <Text style={[styles.importHeaderTitle, { color: theme.text }]}>{t('settings.backupImportTitle')}</Text>
@@ -140,16 +172,17 @@ export default function SettingsScreen() {
 
         {importOpen ? (
           <View style={styles.importBody}>
-            <TextInput
+            <KeyboardAwareTextInput
               value={importText}
               onChangeText={setImportText}
+              editable={!isImportingBackup}
               placeholder={t('settings.backupImportPlaceholder')}
               placeholderTextColor={theme.mutedText}
               multiline
-              style={[styles.multiline, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+              style={[styles.multiline, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border, opacity: isImportingBackup ? 0.6 : 1 }]}
             />
             {importError ? <Text style={[styles.error, { color: theme.danger }]}>{importError}</Text> : null}
-            <Button label={t('settings.backupImportButton')} onPress={() => void handleImport()} />
+            <Button label={t('settings.backupImportButton')} onPress={() => void handleImport()} loading={isImportingBackup} disabled={isImportingBackup} />
           </View>
         ) : null}
       </Section>

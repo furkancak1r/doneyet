@@ -6,6 +6,7 @@ export function Chip({
   label,
   selected = false,
   onPress,
+  disabled = false,
   tone = 'default',
   icon,
   accessibilityLabel,
@@ -14,6 +15,7 @@ export function Chip({
   label: string;
   selected?: boolean;
   onPress?: () => void;
+  disabled?: boolean;
   tone?: 'default' | 'success' | 'danger' | 'warning' | 'primary';
   icon?: keyof typeof Ionicons.glyphMap;
   accessibilityLabel?: string;
@@ -40,15 +42,17 @@ export function Chip({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityState={{ disabled, selected }}
       collapsable={false}
-      onPress={onPress}
+      disabled={disabled}
+      onPress={disabled ? undefined : onPress}
       testID={testID}
       style={({ pressed }) => [
         styles.chip,
         iconOnly && styles.iconOnlyChip,
         {
           backgroundColor: selected ? selectedBackgroundColor : theme.surfaceAlt,
-          opacity: pressed ? 0.85 : 1,
+          opacity: disabled ? 0.55 : pressed ? 0.85 : 1,
           borderColor: selected ? selectedBorderColor : theme.border,
           shadowColor: theme.shadow
         }

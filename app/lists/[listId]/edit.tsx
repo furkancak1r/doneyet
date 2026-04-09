@@ -6,7 +6,7 @@ import { useApp } from '@/hooks/useApp';
 import { useTranslation } from 'react-i18next';
 
 export default function EditListScreen() {
-  const { lists, updateList } = useApp();
+  const { lists, updateList, isListMutating } = useApp();
   const { t } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams<{ listId: string }>();
@@ -15,6 +15,8 @@ export default function EditListScreen() {
   if (!list) {
     return <Screen />;
   }
+
+  const submitting = isListMutating(list.id);
 
   return (
     <Screen>
@@ -25,6 +27,7 @@ export default function EditListScreen() {
         initialIcon={list.icon}
         submitLabel={t('common.update')}
         submitErrorKey="listForm.errorUpdate"
+        submitting={submitting}
         onSubmit={async ({ name, color, icon }) => {
           await updateList(list.id, { name, color, icon });
           router.back();

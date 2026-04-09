@@ -13,7 +13,7 @@ import { filterTasks, sortTasks } from '@/utils/taskFilters';
 import { useTranslation } from 'react-i18next';
 
 export default function ListDetailScreen() {
-  const { lists, tasks, settings, theme, completeTask, snoozeTask, reorderTasks, deleteList } = useApp();
+  const { lists, tasks, settings, theme, completeTask, completeTaskPermanently, snoozeTask, reorderTasks, deleteList, isListMutating, isTaskMutating, isReorderingTasks } = useApp();
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ listId: string }>();
   const list = useMemo(() => lists.find((item) => item.id === params.listId), [lists, params.listId]);
@@ -29,6 +29,9 @@ export default function ListDetailScreen() {
   if (!list) {
     return <Screen />;
   }
+
+  const listBusy = isListMutating(list.id);
+  const reorderBusy = isReorderingTasks(list.id);
 
   const activeCount = listTasks.filter((task) => task.status === 'active').length;
   const completedCount = listTasks.filter((task) => task.status === 'completed').length;
@@ -46,11 +49,17 @@ export default function ListDetailScreen() {
           </View>
           <Text style={[styles.description, { color: theme.mutedText }]}>{t('listDetail.description', { activeCount, completedCount })}</Text>
           <View style={styles.actionGroup}>
-          <Button label={t('listDetail.addTask')} onPress={() => router.push(`/tasks/new?listId=${list.id}`)} testID="list-detail-add-task" />
-            <Button label={t('listDetail.edit')} variant="secondary" onPress={() => router.push(`/lists/${list.id}/edit`)} />
+            <Button
+              label={t('listDetail.addTask')}
+              onPress={() => router.push(`/tasks/new?listId=${list.id}`)}
+              disabled={listBusy}
+              testID="list-detail-add-task"
+            />
+            <Button label={t('listDetail.edit')} variant="secondary" onPress={() => router.push(`/lists/${list.id}/edit`)} disabled={listBusy} />
             <Button
               label={t('listDetail.delete')}
               variant="danger"
+              disabled={listBusy}
               onPress={() => void confirmDeleteList(list.id, deleteList, { activeCount, completedCount, totalTaskCount }, t)}
             />
           </View>
@@ -65,15 +74,31 @@ export default function ListDetailScreen() {
             <NestableDraggableFlatList
               data={visibleTasks}
               keyExtractor={(item) => item.id}
-              onDragEnd={({ data }) => void reorderTasks(list.id, data.map((item) => item.id))}
+              onDragEnd={({ data }) => {
+                if (reorderBusy) {
+                  return;
+                }
+
+                void reorderTasks(list.id, data.map((item) => item.id));
+              }}
               renderItem={({ item, drag, isActive }) => (
                 <TaskCard
                   task={item}
                   list={lists.find((candidate) => candidate.id === item.listId)}
                   onPress={() => router.push(`/tasks/${item.id}`)}
-                  onComplete={() => void completeTask(item.id)}
-                  onSnooze={item.taskMode === 'todo' ? undefined : () => void snoozeTask(item.id, new Date(Date.now() + 10 * 60 * 1000))}
-                  onLongPress={drag}
+                  onComplete={item.status !== 'completed' ? () => void completeTask(item.id) : undefined}
+                  onFinishRecurringTask={
+                    item.taskMode === 'recurring' && item.status !== 'completed'
+                      ? () => void completeTaskPermanently(item.id)
+                      : undefined
+                  }
+                  onSnooze={
+                    item.taskMode === 'todo' || item.status === 'completed'
+                      ? undefined
+                      : () => void snoozeTask(item.id, new Date(Date.now() + 10 * 60 * 1000))
+                  }
+                  onLongPress={reorderBusy ? undefined : drag}
+                  disabled={reorderBusy || isTaskMutating(item.id)}
                   dragging={isActive}
                   showDragHandle
                 />

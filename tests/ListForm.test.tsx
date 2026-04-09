@@ -81,8 +81,8 @@ describe('ListForm', () => {
     const nameInput = screen.getByDisplayValue('Deep Work');
 
     expect(nameInput).toBeTruthy();
-    expect(screen.getByLabelText('Select color #2E8B57').props.accessibilityState).toEqual({ selected: true });
-    expect(screen.getByLabelText('Home').props.accessibilityState).toEqual({ selected: true });
+    expect(screen.getByLabelText('Select color #2E8B57').props.accessibilityState).toEqual(expect.objectContaining({ selected: true }));
+    expect(screen.getByLabelText('Home').props.accessibilityState).toEqual(expect.objectContaining({ selected: true }));
 
     fireEvent.changeText(nameInput, 'Errands');
     fireEvent.press(screen.getByLabelText('Select color #B42318'));
@@ -96,5 +96,26 @@ describe('ListForm', () => {
         icon: 'cart-outline'
       })
     );
+  });
+
+  it('ignores repeated submit presses while a save is still running', async () => {
+    let resolveSubmit!: () => void;
+    const onSubmit = jest.fn().mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveSubmit = resolve;
+      })
+    );
+
+    render(<ListForm submitLabel="Create" onSubmit={onSubmit} />);
+
+    fireEvent.changeText(screen.getByPlaceholderText('For example: House chores'), 'Errands');
+    const submitButton = screen.getByText('Create');
+    fireEvent.press(submitButton);
+    fireEvent.press(submitButton);
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+
+    resolveSubmit();
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
   });
 });

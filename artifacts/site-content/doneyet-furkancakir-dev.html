@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DoneYet? Website Copy</title>
+    <meta
+      name="description"
+      content="Website copy for the DoneYet? privacy policy and support pages."
+    />
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f5f1e8;
+        --surface: #fffdf8;
+        --surface-alt: #f0ece2;
+        --text: #17201c;
+        --muted: #56615c;
+        --accent: #116466;
+        --border: #d9d2c2;
+        --shadow: rgba(23, 32, 28, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Georgia", "Times New Roman", serif;
+        background:
+          radial-gradient(circle at top left, rgba(17, 100, 102, 0.12), transparent 28%),
+          linear-gradient(180deg, #f7f3eb 0%, var(--bg) 100%);
+        color: var(--text);
+        line-height: 1.65;
+      }
+
+      main {
+        width: min(980px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 48px 0 72px;
+      }
+
+      .hero {
+        margin-bottom: 28px;
+        padding: 28px;
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        background: rgba(255, 253, 248, 0.82);
+        box-shadow: 0 18px 44px var(--shadow);
+        backdrop-filter: blur(10px);
+      }
+
+      .eyebrow {
+        margin: 0 0 10px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0 0 12px;
+        line-height: 1.15;
+      }
+
+      h1 {
+        font-size: clamp(2.2rem, 5vw, 4.2rem);
+      }
+
+      h2 {
+        font-size: clamp(1.7rem, 3vw, 2.4rem);
+      }
+
+      h3 {
+        font-size: 1.2rem;
+      }
+
+      p,
+      li {
+        font-size: 1rem;
+        color: var(--text);
+      }
+
+      .muted,
+      .note,
+      .publish-list li {
+        color: var(--muted);
+      }
+
+      .grid {
+        display: grid;
+        gap: 22px;
+      }
+
+      .card {
+        padding: 28px;
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        background: var(--surface);
+        box-shadow: 0 18px 36px var(--shadow);
+      }
+
+      .section {
+        margin-top: 20px;
+      }
+
+      .pill {
+        display: inline-block;
+        margin-bottom: 14px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: var(--surface-alt);
+        color: var(--accent);
+        font-size: 0.85rem;
+        font-weight: 700;
+      }
+
+      ul {
+        margin: 12px 0 0 20px;
+        padding: 0;
+      }
+
+      .publish-list {
+        margin-top: 18px;
+      }
+
+      .publish-list li + li {
+        margin-top: 8px;
+      }
+
+      .split {
+        display: grid;
+        gap: 24px;
+      }
+
+      @media (min-width: 840px) {
+        .split {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      a {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <p class="eyebrow">DoneYet? Website Copy</p>
+        <h1>Privacy Policy and Support Copy for furkancakir.dev</h1>
+        <p class="muted">
+          This file is written so the content can be copied into two pages on your website:
+          a privacy page and a support page for DoneYet?. The text matches the current app
+          behavior: offline-first task management, local reminders, on-device storage, and
+          optional user-controlled backup export/import.
+        </p>
+        <ul class="publish-list">
+          <li>Suggested privacy page route: <strong>/doneyet/privacy</strong></li>
+          <li>Suggested support page route: <strong>/doneyet/support</strong></li>
+          <li>Suggested contact email on the support page: <strong>furkancakr7@gmail.com</strong></li>
+          <li>Suggested effective date: <strong>April 1, 2026</strong></li>
+        </ul>
+      </section>
+
+      <div class="split">
+        <article class="card" id="privacy-policy">
+          <span class="pill">Privacy Policy</span>
+          <h2>DoneYet? Privacy Policy</h2>
+          <p class="note">Effective date: April 1, 2026</p>
+
+          <section class="section">
+            <h3>Overview</h3>
+            <p>
+              DoneYet? is an offline-first task and reminder app. It is designed so that your
+              task data stays on your device and the app remains usable without creating an
+              account or connecting to a remote server.
+            </p>
+          </section>
+
+          <section class="section">
+            <h3>What information the app uses</h3>
+            <p>DoneYet? may store the following information on your device so the app can work:</p>
+            <ul>
+              <li>Task titles, list names, task status, reminder dates, snooze dates, and completion history.</li>
+              <li>App preferences such as language, theme, sound settings, vibration settings, and default reminder settings.</li>
+              <li>Local notification identifiers needed to schedule, update, and cancel reminders.</li>
+              <li>Backup data only when you choose to export or import your data.</li>
+            </ul>
+          </section>
+
+          <section class="section">
+            <h3>How your information is used</h3>
+            <ul>
+              <li>To show your lists, tasks, reminder schedule, and completed items inside the app.</li>
+              <li>To schedule local notifications on your device until a task is marked done, paused, or changed.</li>
+              <li>To restore your data if you choose to import a backup.</li>
+              <li>To keep your app preferences consistent on the same device.</li>
+            </ul>
+          </section>
+
+          <section class="section">
+            <h3>Where data is stored</h3>
+            <p>
+              DoneYet? stores app data locally on your device using on-device storage. The app
+              does not require a user account, does not run a cloud sync service, and does not
+              upload your task data to a developer-operated server as part of normal use.
+            </p>
+          </section>
+
+          <section class="section">
+            <h3>Notifications</h3>
+            <p>
+              If you allow notifications, DoneYet? uses the notification permission provided by
+              iOS or Android to schedule reminders on your device. Notification content is used
+              only to display your task reminders locally.
+            </p>
+          </section>
+
+          <section class="section">
+            <h3>Backups and sharing</h3>
+            <p>
+              DoneYet? includes export and import tools so you can back up or restore your data.
+              When you export a backup, you decide where that file or text is sent or saved. If
+              you share or upload an exported backup using another service, that third-party
+              service handles the data under its own privacy practices.
+            </p>
+          </section>
+
+          <section class="section">
+            <h3>Analytics, advertising, and tracking</h3>
+            <p>
+              DoneYet? does not use third-party advertising SDKs, does not use developer-run
+              analytics to profile you, and does not track you across apps or websites.
+            </p>
+          </section>
+
+          <section class="section">
+            <h3>Data retention and deletion</h3>
+            <p>
+              Your data remains on your device until you edit it, delete it, replace it with an
+              imported backup, or remove the app from your device. You can also delete individual
+              tasks and lists from inside the app.
+            </p>
+          </section>
+
+          <section class="section">
+            <h3>Children's privacy</h3>
+            <p>
+              DoneYet? is a general productivity app and is not specifically directed to children
+              under 13. The app does not knowingly collect personal information from children
+              through a developer-operated backend service.
+            </p>
+          </section>
+
+          <section class="section">
+            <h3>Changes to this policy</h3>
+            <p>
+              This Privacy Policy may be updated from time to time to reflect product, legal, or
+              operational changes. The latest version should always be published on the current
+              privacy policy page for DoneYet?.
+            </p>
+          </section>
+
+          <section class="section">
+            <h3>Contact</h3>
+            <p>
+              If you have privacy-related questions about DoneYet?, you can contact:
+              <strong>furkancakr7@gmail.com</strong>
+            </p>
+          </section>
+        </article>
+
+        <article class="card" id="support">
+          <span class="pill">Support</span>
+          <h2>DoneYet? Support</h2>
+          <p class="note">Support page copy for furkancakir.dev</p>
+
+          <section class="section">
+            <h3>About the app</h3>
+            <p>
+              DoneYet? is a simple, offline-first task app focused on reminders that keep coming
+              back until a task is completed. It is built for people who want a lightweight task
+              flow without accounts, cloud lock-in, or unnecessary complexity.
+            </p>
+          </section>
+
+          <section class="section">
+            <h3>Contact support</h3>
+            <p>
+              For support requests, bug reports, or App Store review follow-up, contact:
+              <strong>furkancakr7@gmail.com</strong>
+            </p>
+          </section>
+
+          <section class="section">
+            <h3>What to include in a support message</h3>
+            <ul>
+              <li>Your device model and iOS version.</li>
+              <li>The app version you are using.</li>
+              <li>A short description of what happened.</li>
+              <li>The steps you took before the issue appeared.</li>
+              <li>A screenshot or screen recording if one helps explain the problem.</li>
+            </ul>
+          </section>
+
+          <section class="section">
+            <h3>Common help topics</h3>
+            <ul>
+              <li><strong>Notifications are not appearing:</strong> make sure notification permission is enabled for DoneYet? in system settings.</li>
+              <li><strong>Reminder timing feels wrong:</strong> check the task start date, snooze state, and your device date and time settings.</li>
+              <li><strong>I want to move my data:</strong> use the in-app backup export and import tools in Settings.</li>
+              <li><strong>I want to delete my data:</strong> delete items inside the app, replace your backup, or remove the app from the device.</li>
+            </ul>
+          </section>
+
+          <section class="section">
+            <h3>Accounts and data</h3>
+            <p>
+              DoneYet? does not require account creation or sign-in. Core app functionality is
+              available immediately after installation.
+            </p>
+          </section>
+
+          <section class="section">
+            <h3>Privacy-related questions</h3>
+            <p>
+              If your question is about data handling, storage, exports, or permissions, please
+              refer to the DoneYet? Privacy Policy on the matching privacy page.
+            </p>
+          </section>
+
+          <section class="section">
+            <h3>Suggested short support blurb</h3>
+            <p>
+              Need help with DoneYet? Email <strong>furkancakr7@gmail.com</strong> with your app
+              version, device model, iOS version, and a short description of the issue.
+            </p>
+          </section>
+        </article>
+      </div>
+    </main>
+  </body>
+</html>

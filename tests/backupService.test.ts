@@ -7,9 +7,11 @@ const cancelNotifications = vi.fn();
 const fetchAllTaskNotifications = vi.fn();
 const fetchLists = vi.fn();
 const fetchSettings = vi.fn();
+const fetchTaskCompletionHistory = vi.fn();
 const fetchTasks = vi.fn();
 const saveList = vi.fn();
 const saveSettings = vi.fn();
+const saveTaskCompletionHistoryEntry = vi.fn();
 const saveTask = vi.fn();
 const restoreAllTaskSchedules = vi.fn();
 
@@ -18,9 +20,11 @@ vi.mock('../db/repositories', () => ({
   fetchAllTaskNotifications: (...args: unknown[]) => fetchAllTaskNotifications(...args),
   fetchLists: (...args: unknown[]) => fetchLists(...args),
   fetchSettings: (...args: unknown[]) => fetchSettings(...args),
+  fetchTaskCompletionHistory: (...args: unknown[]) => fetchTaskCompletionHistory(...args),
   fetchTasks: (...args: unknown[]) => fetchTasks(...args),
   saveList: (...args: unknown[]) => saveList(...args),
   saveSettings: (...args: unknown[]) => saveSettings(...args),
+  saveTaskCompletionHistoryEntry: (...args: unknown[]) => saveTaskCompletionHistoryEntry(...args),
   saveTask: (...args: unknown[]) => saveTask(...args)
 }));
 
@@ -76,11 +80,13 @@ describe('backup service', () => {
       }
     ]);
     fetchSettings.mockResolvedValue(defaultSettings);
+    fetchTaskCompletionHistory.mockResolvedValue([]);
     fetchAllTaskNotifications.mockResolvedValue([]);
 
     const payload = await createBackupPayload();
 
-    expect(payload.schemaVersion).toBe(3);
+    expect(payload.schemaVersion).toBe(4);
+    expect(payload.taskCompletionHistory).toEqual([]);
     expect('tagsJson' in payload.tasks[0]).toBe(false);
   });
 
@@ -105,6 +111,7 @@ describe('backup service', () => {
           tagsJson: '["important"]'
         }
       ],
+      taskCompletionHistory: [],
       taskNotifications: [],
       settings: defaultSettings
     });
@@ -115,6 +122,7 @@ describe('backup service', () => {
 
     saveList.mockResolvedValue(undefined);
     saveSettings.mockResolvedValue(undefined);
+    saveTaskCompletionHistoryEntry.mockResolvedValue(undefined);
     saveTask.mockResolvedValue(undefined);
     restoreAllTaskSchedules.mockResolvedValue(undefined);
 
@@ -125,7 +133,7 @@ describe('backup service', () => {
 
   it('replaces the existing backup contents before importing new screenshot data', async () => {
     const rawJson = JSON.stringify({
-      schemaVersion: 3,
+      schemaVersion: 4,
       exportedAt: '2025-03-01T00:00:00.000Z',
       lists: [
         {
@@ -164,6 +172,17 @@ describe('backup service', () => {
           completedAt: null
         }
       ],
+      taskCompletionHistory: [
+        {
+          id: 'completion-1',
+          taskId: 'task-1',
+          taskTitleSnapshot: 'Task',
+          taskDescriptionSnapshot: '',
+          listId: 'list-1',
+          listNameSnapshot: 'Focus',
+          completedAt: '2025-03-02T09:00:00.000Z'
+        }
+      ],
       taskNotifications: [],
       settings: defaultSettings
     });
@@ -178,6 +197,7 @@ describe('backup service', () => {
     clearAppData.mockResolvedValue(undefined);
     saveList.mockResolvedValue(undefined);
     saveSettings.mockResolvedValue(undefined);
+    saveTaskCompletionHistoryEntry.mockResolvedValue(undefined);
     saveTask.mockResolvedValue(undefined);
     restoreAllTaskSchedules.mockResolvedValue(undefined);
     cancelNotifications.mockResolvedValue(undefined);
@@ -187,5 +207,68 @@ describe('backup service', () => {
     expect(cancelNotifications).toHaveBeenCalledWith(['notif-1', 'notif-2']);
     expect(clearAppData).toHaveBeenCalledTimes(1);
     expect(saveTask).toHaveBeenCalledWith(expect.objectContaining({ id: 'task-1' }));
+    expect(saveTaskCompletionHistoryEntry).toHaveBeenCalledWith(expect.objectContaining({ id: 'completion-1', taskId: 'task-1' }));
+  });
+
+  it('imports orphaned completion history entries without requiring the original task or list rows', async () => {
+    const rawJson = JSON.stringify({
+      schemaVersion: 4,
+      exportedAt: '2025-03-01T00:00:00.000Z',
+      lists: [],
+      tasks: [],
+      taskCompletionHistory: [
+        {
+          id: 'completion-orphan',
+          taskId: 'missing-task',
+          taskTitleSnapshot: 'Archived task',
+          taskDescriptionSnapshot: '',
+          listId: 'missing-list',
+          listNameSnapshot: 'Archived list',
+          completedAt: '2025-03-02T09:00:00.000Z'
+        }
+      ],
+      taskNotifications: [],
+      settings: defaultSettings
+    });
+
+    saveSettings.mockResolvedValue(undefined);
+    saveTaskCompletionHistoryEntry.mockResolvedValue(undefined);
+    restoreAllTaskSchedules.mockResolvedValue(undefined);
+
+    await expect(importBackupJson(rawJson)).resolves.toEqual({ ok: true });
+
+    expect(saveTask).not.toHaveBeenCalled();
+    expect(saveTaskCompletionHistoryEntry).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'completion-orphan',
+        taskId: 'missing-task',
+        listId: 'missing-list'
+      })
+    );
+  });
+
+  it('ignores malformed completion history entries that are missing required snapshot fields', async () => {
+    const rawJson = JSON.stringify({
+      schemaVersion: 4,
+      exportedAt: '2025-03-01T00:00:00.000Z',
+      lists: [],
+      tasks: [],
+      taskCompletionHistory: [
+        {
+          id: 'completion-bad',
+          taskId: 'task-1',
+          completedAt: '2025-03-02T09:00:00.000Z'
+        }
+      ],
+      taskNotifications: [],
+      settings: defaultSettings
+    });
+
+    saveSettings.mockResolvedValue(undefined);
+    restoreAllTaskSchedules.mockResolvedValue(undefined);
+
+    await expect(importBackupJson(rawJson)).resolves.toEqual({ ok: true });
+
+    expect(saveTaskCompletionHistoryEntry).not.toHaveBeenCalled();
   });
 });

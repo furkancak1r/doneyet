@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from '@/components/Button';
@@ -24,7 +24,8 @@ export function ListForm({
   initialName = '',
   initialColor,
   initialIcon,
-  submitErrorKey = 'listForm.errorCreate'
+  submitErrorKey = 'listForm.errorCreate',
+  submitting = false
 }: {
   onSubmit: (values: { name: string; color: string; icon: string }) => Promise<unknown> | unknown;
   submitLabel: string;
@@ -32,6 +33,7 @@ export function ListForm({
   initialColor?: string;
   initialIcon?: string;
   submitErrorKey?: string;
+  submitting?: boolean;
 }) {
   const { theme } = useApp();
   const { t } = useTranslation();
@@ -39,10 +41,17 @@ export function ListForm({
   const [color, setColor] = useState(resolveInitialColor(initialColor));
   const [icon, setIcon] = useState<ListIconName>(resolveInitialIcon(initialIcon));
   const [error, setError] = useState<string | null>(null);
+  const [localSubmitting, setLocalSubmitting] = useState(false);
+  const submittingRef = useRef(false);
 
   const selectedIcon = useMemo(() => listIcons.find((item) => item.name === icon) ?? listIcons[0], [icon]);
+  const isSubmitting = submitting || localSubmitting;
 
   const handleSubmit = async () => {
+    if (isSubmitting || submittingRef.current) {
+      return;
+    }
+
     const trimmed = name.trim();
     if (!trimmed) {
       setError(t('listForm.errorName'));
@@ -61,15 +70,20 @@ export function ListForm({
 
     try {
       setError(null);
+      submittingRef.current = true;
+      setLocalSubmitting(true);
       await onSubmit({ name: trimmed, color, icon });
     } catch (err) {
       setError(err instanceof Error ? err.message : t(submitErrorKey));
+    } finally {
+      submittingRef.current = false;
+      setLocalSubmitting(false);
     }
   };
 
   return (
     <View>
-      <TextField label={t('listForm.name')} value={name} onChangeText={setName} placeholder={t('listForm.namePlaceholder')} />
+      <TextField label={t('listForm.name')} value={name} onChangeText={setName} placeholder={t('listForm.namePlaceholder')} disabled={isSubmitting} />
 
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('listForm.color')}</Text>
@@ -79,15 +93,16 @@ export function ListForm({
               key={item}
               accessibilityRole="button"
               accessibilityLabel={`${t('listForm.colorAccessibility')} ${item}`}
-              accessibilityState={{ selected: color === item }}
-              onPress={() => setColor(item)}
+              accessibilityState={{ disabled: isSubmitting, selected: color === item }}
+              disabled={isSubmitting}
+              onPress={isSubmitting ? undefined : () => setColor(item)}
               style={({ pressed }) => [
                 styles.colorButton,
                 {
                   backgroundColor: item,
                   borderColor: color === item ? theme.text : theme.border,
                   shadowColor: theme.shadow,
-                  opacity: pressed ? 0.88 : 1
+                  opacity: isSubmitting ? 0.58 : pressed ? 0.88 : 1
                 }
               ]}
             >
@@ -107,15 +122,16 @@ export function ListForm({
                 key={item.name}
                 accessibilityRole="button"
                 accessibilityLabel={t(item.labelKey)}
-                accessibilityState={{ selected: isSelected }}
-                onPress={() => setIcon(item.name)}
+                accessibilityState={{ disabled: isSubmitting, selected: isSelected }}
+                disabled={isSubmitting}
+                onPress={isSubmitting ? undefined : () => setIcon(item.name)}
                 style={({ pressed }) => [
                   styles.iconButton,
                   {
                     backgroundColor: isSelected ? color : theme.surfaceAlt,
                     borderColor: isSelected ? color : theme.border,
                     shadowColor: theme.shadow,
-                    opacity: pressed ? 0.9 : 1
+                    opacity: isSubmitting ? 0.58 : pressed ? 0.9 : 1
                   }
                 ]}
               >
@@ -139,7 +155,7 @@ export function ListForm({
 
       {error ? <Text style={[styles.error, { color: theme.danger }]}>{error}</Text> : null}
 
-      <Button label={submitLabel} onPress={() => void handleSubmit()} />
+      <Button label={submitLabel} onPress={() => void handleSubmit()} loading={isSubmitting} disabled={isSubmitting} />
     </View>
   );
 }

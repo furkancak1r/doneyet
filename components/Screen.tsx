@@ -1,31 +1,38 @@
-import { ReactNode, RefObject, useEffect, useRef } from 'react';
+import { ReactNode, RefObject, useCallback, useEffect, useRef } from 'react';
 import { useIsFocused, useScrollToTop } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { Easing, interpolate, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useApp } from '@/hooks/useApp';
 import { getInitialScreenFocusProgress, resolveScreenFocusAnimation } from '@/components/screenFocusAnimation';
+import { KeyboardAwareScrollController, KeyboardAwareScrollHandle, KeyboardAwareScrollProvider, useKeyboardAwareScrollController } from '@/components/keyboardAwareScroll';
 export function Screen({
   children,
   scroll = true,
   padded = true,
   scrollRef,
+  includeBottomSafeArea = true,
   animateOnFocus = false,
   animateOnRestore = false,
-  testID
+  testID,
+  keyboardController
 }: {
   children?: ReactNode;
   scroll?: boolean;
   padded?: boolean;
   scrollRef?: RefObject<ScrollView | null>;
+  includeBottomSafeArea?: boolean;
   animateOnFocus?: boolean;
   animateOnRestore?: boolean;
   testID?: string;
+  keyboardController?: KeyboardAwareScrollController;
 }) {
   const { theme } = useApp();
   const isFocused = useIsFocused();
   const hasFocusedBeforeRef = useRef(false);
   const internalScrollRef = useRef<ScrollView | null>(null);
+  const internalKeyboardController = useKeyboardAwareScrollController();
+  const activeKeyboardController = keyboardController ?? internalKeyboardController;
   const activeScrollRef = scrollRef ?? internalScrollRef;
   const focusProgress = useSharedValue(getInitialScreenFocusProgress(animateOnFocus));
 
@@ -69,10 +76,24 @@ export function Screen({
     };
   }, [animateOnFocus]);
 
+  const setScrollRef = useCallback(
+    (node: ScrollView | null) => {
+      internalScrollRef.current = node;
+      activeKeyboardController.registerScrollHandle(node as KeyboardAwareScrollHandle | null);
+
+      if (!scrollRef) {
+        return;
+      }
+
+      scrollRef.current = node;
+    },
+    [activeKeyboardController, scrollRef]
+  );
+
   const content = scroll ? (
     <ScrollView
-      ref={activeScrollRef}
-      keyboardShouldPersistTaps="handled"
+      ref={setScrollRef}
+      {...activeKeyboardController.scrollViewProps}
       testID={testID}
       contentContainerStyle={[styles.scrollContent, padded && styles.padded, { backgroundColor: theme.background }]}
     >
@@ -85,11 +106,17 @@ export function Screen({
   );
 
   const animatedContent = <Animated.View style={[styles.flex, { backgroundColor: theme.background }, animatedStyle]}>{content}</Animated.View>;
+  const safeAreaEdges: readonly Edge[] = includeBottomSafeArea ? ['left', 'right', 'bottom'] : ['left', 'right'];
+  const keyboardAvoidingBehavior = Platform.OS === 'ios' && !scroll ? 'padding' : undefined;
 
   return (
-    <SafeAreaView edges={['left', 'right', 'bottom']} style={[styles.flex, { backgroundColor: theme.background }]}>
-      {animatedContent}
-    </SafeAreaView>
+    <KeyboardAwareScrollProvider controller={activeKeyboardController}>
+      <SafeAreaView edges={safeAreaEdges} style={[styles.flex, { backgroundColor: theme.background }]}>
+        <KeyboardAvoidingView behavior={keyboardAvoidingBehavior} style={styles.flex}>
+          {animatedContent}
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </KeyboardAwareScrollProvider>
   );
 }
 

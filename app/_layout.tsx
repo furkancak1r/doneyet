@@ -2,6 +2,7 @@ import { router, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppProvider, NotificationBridge, useApp } from '@/context/AppContext';
+import { AppToast } from '@/components/AppToast';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { I18nextProvider } from 'react-i18next';
@@ -9,7 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import i18n from '@/i18n';
 
 function AppShell() {
-  const { ready, theme } = useApp();
+  const { ready, theme, toast, dismissToast } = useApp();
   const { t } = useTranslation();
 
   if (!ready) {
@@ -25,6 +26,7 @@ function AppShell() {
     <>
       <StatusBar style="auto" />
       <NotificationBridge />
+      <AppToast toast={toast} onDismiss={dismissToast} />
       <Stack
         initialRouteName="index"
         screenOptions={{

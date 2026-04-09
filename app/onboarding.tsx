@@ -34,7 +34,7 @@ function FeatureCard({
 }
 
 export default function OnboardingScreen() {
-  const { theme, updateSettings } = useApp();
+  const { theme, updateSettings, isSettingsMutating } = useApp();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [saving, setSaving] = useState(false);
@@ -70,7 +70,7 @@ export default function OnboardingScreen() {
   );
 
   const finishOnboarding = async () => {
-    if (saving) {
+    if (saving || isSettingsMutating) {
       return;
     }
 
@@ -119,9 +119,15 @@ export default function OnboardingScreen() {
           </View>
         </View>
 
-        <Button label={t('onboarding.cta')} onPress={() => void finishOnboarding()} loading={saving} />
+        <Button label={t('onboarding.cta')} onPress={() => void finishOnboarding()} loading={saving || isSettingsMutating} disabled={saving || isSettingsMutating} />
 
-        <Pressable accessibilityRole="button" onPress={() => void finishOnboarding()} style={styles.skipButton}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ disabled: saving || isSettingsMutating }}
+          disabled={saving || isSettingsMutating}
+          onPress={saving || isSettingsMutating ? undefined : () => void finishOnboarding()}
+          style={[styles.skipButton, { opacity: saving || isSettingsMutating ? 0.58 : 1 }]}
+        >
           <Text style={[styles.skipText, { color: theme.mutedText }]}>{t('onboarding.skip')}</Text>
         </Pressable>
       </ScrollView>

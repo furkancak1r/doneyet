@@ -19,7 +19,7 @@ jest.mock('@expo/vector-icons', () => ({
 }));
 
 jest.mock('react-native-draggable-flatlist', () => ({
-  NestableScrollContainer: ({ children }: { children: React.ReactNode }) => {
+  NestableScrollContainer: ({ children }: { children: any }) => {
     const { View } = require('react-native');
     return <View>{children}</View>;
   },
@@ -28,7 +28,7 @@ jest.mock('react-native-draggable-flatlist', () => ({
     renderItem
   }: {
     data: Array<{ id: string }>;
-    renderItem: (args: { item: { id: string }; drag: () => void; isActive: boolean }) => React.ReactNode;
+    renderItem: (args: { item: { id: string }; drag: () => void; isActive: boolean }) => any;
   }) => {
     const { View } = require('react-native');
     return (
@@ -46,20 +46,34 @@ jest.mock('@/hooks/useApp', () => ({
 }));
 
 jest.mock('@/components/Screen', () => ({
-  Screen: ({ children }: { children: React.ReactNode }) => <>{children}</>
+  Screen: ({ children }: { children: any }) => <>{children}</>
 }));
 
 jest.mock('@/components/Card', () => ({
-  Card: ({ children }: { children: React.ReactNode }) => {
+  Card: ({ children }: { children: any }) => {
     const { View } = require('react-native');
     return <View>{children}</View>;
   }
 }));
 
 jest.mock('@/components/TaskCard', () => ({
-  TaskCard: ({ task }: { task: { title: string } }) => {
-    const { Text } = require('react-native');
-    return <Text>{task.title}</Text>;
+  TaskCard: ({
+    task,
+    onComplete,
+    onFinishRecurringTask
+  }: {
+    task: { id: string; title: string };
+    onComplete?: () => void;
+    onFinishRecurringTask?: () => void;
+  }) => {
+    const { Text, View } = require('react-native');
+    return (
+      <View>
+        <Text>{task.title}</Text>
+        <Text testID={`task-card-complete-${task.id}`}>{onComplete ? 'complete' : 'no-complete'}</Text>
+        <Text testID={`task-card-finish-${task.id}`}>{onFinishRecurringTask ? 'finish' : 'no-finish'}</Text>
+      </View>
+    );
   }
 }));
 
@@ -147,8 +161,11 @@ describe('ListDetailScreen', () => {
       theme,
       completeTask: jest.fn(),
       snoozeTask: jest.fn(),
+      isTaskMutating: jest.fn().mockReturnValue(false),
       reorderTasks: jest.fn(),
-      deleteList
+      deleteList,
+      isListMutating: jest.fn().mockReturnValue(false),
+      isReorderingTasks: jest.fn().mockReturnValue(false)
     } as any);
     const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
 
@@ -175,5 +192,57 @@ describe('ListDetailScreen', () => {
     expect(backMock).toHaveBeenCalled();
 
     alertSpy.mockRestore();
+  });
+
+  it('disables the add-task action while the list itself is mutating', () => {
+    mockedUseApp.mockReturnValue({
+      lists: [{ id: 'list-1', name: 'Work', color: '#116466', icon: 'briefcase-outline', sortOrder: 0, createdAt: '' }],
+      tasks: [],
+      settings: {
+        autoHideCompletedTasks: 0
+      },
+      theme,
+      completeTask: jest.fn(),
+      completeTaskPermanently: jest.fn(),
+      snoozeTask: jest.fn(),
+      isTaskMutating: jest.fn().mockReturnValue(false),
+      reorderTasks: jest.fn(),
+      deleteList: jest.fn(),
+      isListMutating: jest.fn().mockReturnValue(true),
+      isReorderingTasks: jest.fn().mockReturnValue(false)
+    } as any);
+
+    render(<ListDetailScreen />);
+
+    expect(screen.getByTestId('list-detail-add-task').props.accessibilityState.disabled).toBe(true);
+  });
+
+  it('does not expose the finish action for completed recurring tasks', () => {
+    mockedUseApp.mockReturnValue({
+      lists: [{ id: 'list-1', name: 'Work', color: '#116466', icon: 'briefcase-outline', sortOrder: 0, createdAt: '' }],
+      tasks: [
+        { id: 'task-1', title: 'Prepare report', listId: 'list-1', sortOrder: 0, status: 'completed', taskMode: 'recurring' },
+        { id: 'task-2', title: 'Weekly review', listId: 'list-1', sortOrder: 1, status: 'active', taskMode: 'recurring' }
+      ],
+      settings: {
+        autoHideCompletedTasks: 0
+      },
+      theme,
+      completeTask: jest.fn(),
+      completeTaskPermanently: jest.fn(),
+      snoozeTask: jest.fn(),
+      isTaskMutating: jest.fn().mockReturnValue(false),
+      reorderTasks: jest.fn(),
+      deleteList: jest.fn(),
+      isListMutating: jest.fn().mockReturnValue(false),
+      isReorderingTasks: jest.fn().mockReturnValue(false)
+    } as any);
+
+    render(<ListDetailScreen />);
+
+    expect(screen.getByTestId('task-card-complete-task-1').props.children).toBe('no-complete');
+    expect(screen.getByTestId('task-card-finish-task-1').props.children).toBe('no-finish');
+    expect(screen.getByTestId('task-card-complete-task-2').props.children).toBe('complete');
+    expect(screen.getByTestId('task-card-finish-task-2').props.children).toBe('finish');
   });
 });

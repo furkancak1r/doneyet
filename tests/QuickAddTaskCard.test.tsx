@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react-nativ
 import { router } from 'expo-router';
 import { QuickAddTaskCard } from '@/features/tasks/QuickAddTaskCard';
 import { useApp } from '@/hooks/useApp';
+import { useKeyboardAwareScrollContext } from '@/components/keyboardAwareScroll';
 
 jest.mock('expo-router', () => ({
   router: {
@@ -17,6 +18,10 @@ jest.mock('@expo/vector-icons', () => ({
 
 jest.mock('@/hooks/useApp', () => ({
   useApp: jest.fn()
+}));
+
+jest.mock('@/components/keyboardAwareScroll', () => ({
+  useKeyboardAwareScrollContext: jest.fn()
 }));
 
 jest.mock('react-i18next', () => ({
@@ -44,6 +49,7 @@ jest.mock('react-i18next', () => ({
 }));
 
 const mockedUseApp = useApp as jest.MockedFunction<typeof useApp>;
+const mockedUseKeyboardAwareScrollContext = useKeyboardAwareScrollContext as jest.MockedFunction<typeof useKeyboardAwareScrollContext>;
 const pushMock = router.push as jest.Mock;
 
 const theme = {
@@ -78,6 +84,7 @@ function renderCard(overrides?: {
     quickAddResetVersion: overrides?.quickAddResetVersion ?? 0,
     createTask,
     requestQuickAddReset,
+    isCreatingTask: false,
     settings: {
       defaultStartTime: '09:00'
     }
@@ -94,6 +101,18 @@ function renderCard(overrides?: {
 describe('QuickAddTaskCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedUseKeyboardAwareScrollContext.mockReturnValue({
+      handleInputFocus: jest.fn(),
+      registerScrollHandle: jest.fn(),
+      scrollViewProps: {
+        keyboardShouldPersistTaps: 'handled',
+        keyboardDismissMode: 'on-drag',
+        automaticallyAdjustKeyboardInsets: false,
+        scrollEventThrottle: 16,
+        onLayout: jest.fn(),
+        onScroll: jest.fn()
+      }
+    });
   });
 
   it('shows "Devam et" by default for reminder tasks', () => {
@@ -149,7 +168,7 @@ describe('QuickAddTaskCard', () => {
       params: {
         title: 'Doktor randevusu',
         listId: 'list-1',
-        taskMode: 'single'
+        taskMode: 'recurring'
       }
     });
   });
@@ -161,6 +180,28 @@ describe('QuickAddTaskCard', () => {
     fireEvent.press(screen.getByText('Devam et'));
 
     expect(createTask).not.toHaveBeenCalled();
+  });
+
+  it('notifies the keyboard-aware helper when the title input receives focus', () => {
+    const handleInputFocus = jest.fn();
+    mockedUseKeyboardAwareScrollContext.mockReturnValue({
+      handleInputFocus,
+      registerScrollHandle: jest.fn(),
+      scrollViewProps: {
+        keyboardShouldPersistTaps: 'handled',
+        keyboardDismissMode: 'on-drag',
+        automaticallyAdjustKeyboardInsets: false,
+        scrollEventThrottle: 16,
+        onLayout: jest.fn(),
+        onScroll: jest.fn()
+      }
+    });
+
+    renderCard();
+
+    screen.getByPlaceholderText('Yeni görev yaz').props.onFocus?.({ nativeEvent: {} });
+
+    expect(handleInputFocus).toHaveBeenCalledTimes(1);
   });
 
   it('ignores repeated save presses while a To-Do save is in flight', async () => {

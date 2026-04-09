@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '@/hooks/useApp';
 import { Task, TaskFormValues, TaskMode } from '@/types/domain';
@@ -58,6 +58,7 @@ function TaskModeCard({
   label,
   accentColor,
   backgroundColor,
+  disabled = false,
   onPress
 }: {
   active: boolean;
@@ -67,6 +68,7 @@ function TaskModeCard({
   label: string;
   accentColor: string;
   backgroundColor: string;
+  disabled?: boolean;
   onPress: () => void;
 }) {
   const { theme } = useApp();
@@ -74,15 +76,16 @@ function TaskModeCard({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={{ selected: active }}
-      onPress={onPress}
+      accessibilityState={{ disabled, selected: active }}
+      disabled={disabled}
+      onPress={disabled ? undefined : onPress}
       style={({ pressed }) => [
         styles.modeCard,
         {
           backgroundColor,
           borderColor: active ? accentColor : theme.border,
           shadowColor: theme.shadow,
-          opacity: pressed ? 0.94 : 1
+          opacity: disabled ? 0.58 : pressed ? 0.94 : 1
         }
       ]}
     >
@@ -113,7 +116,8 @@ export function TaskForm({
   submitLabel,
   defaultListId,
   initialTitle,
-  initialTaskMode
+  initialTaskMode,
+  submitting = false
 }: {
   initialTask?: Task | null;
   onSubmit: (values: TaskFormValues) => Promise<unknown> | unknown;
@@ -121,6 +125,7 @@ export function TaskForm({
   defaultListId?: string | null;
   initialTitle?: string;
   initialTaskMode?: TaskMode;
+  submitting?: boolean;
 }) {
   const { lists, settings, theme } = useApp();
   const { t } = useTranslation();
@@ -129,11 +134,12 @@ export function TaskForm({
   const monthlyDays = useMemo(() => Array.from({ length: 31 }, (_, index) => index + 1), []);
   const weekdayLabels = useMemo(() => Array.from({ length: 7 }, (_, index) => t(`weekdays.${index}`)), [t]);
   const initialStart = initialTask ? new Date(initialTask.startDateTime) : setTimeOnDate(new Date(), settings.defaultStartTime);
+  const initialReminderTaskMode: TaskMode = initialTask?.taskMode === 'single' || initialTaskMode === 'single' ? 'single' : 'recurring';
   const [title, setTitle] = useState(initialTask?.title ?? initialTitle ?? '');
   const [description, setDescription] = useState(initialTask?.description ?? '');
   const [listId, setListId] = useState(initialTask?.listId ?? defaultListId ?? listChoices[0]?.id ?? '');
-  const [taskMode, setTaskMode] = useState<TaskMode>(initialTaskMode ?? initialTask?.taskMode ?? 'single');
-  const [reminderTaskMode, setReminderTaskMode] = useState<TaskMode>(initialTask?.taskMode === 'recurring' ? 'recurring' : 'single');
+  const [taskMode, setTaskMode] = useState<TaskMode>(initialTaskMode ?? initialTask?.taskMode ?? 'recurring');
+  const [reminderTaskMode, setReminderTaskMode] = useState<TaskMode>(initialReminderTaskMode);
   const [startReminderType, setStartReminderType] = useState(initialTask?.startReminderType ?? 'today_at_time');
   const [startDateTime, setStartDateTime] = useState(initialStart);
   const [weekday, setWeekday] = useState<number>(initialTask?.startReminderWeekday ?? 1);
@@ -144,6 +150,8 @@ export function TaskForm({
   const [repeatIntervalType, setRepeatIntervalType] = useState<TaskFormValues['repeatIntervalType'] | null>(initialTask?.repeatIntervalType ?? null);
   const [clockTime, setClockTime] = useState(toTimeString(initialStart));
   const [error, setError] = useState<string | null>(null);
+  const [localSubmitting, setLocalSubmitting] = useState(false);
+  const submittingRef = useRef(false);
 
   useEffect(() => {
     if (!listId && listChoices[0]?.id) {
@@ -158,9 +166,16 @@ export function TaskForm({
   }, [startReminderType, taskMode]);
 
   const isTodo = taskMode === 'todo';
+  const isRecurring = taskMode === 'recurring';
+  const isReminderTask = !isTodo;
   const isMonthly = startReminderType === 'monthly_on_day' || startReminderType === 'monthly_on_last_day';
+  const isSubmitting = submitting || localSubmitting;
 
   const handleSubmit = async () => {
+    if (isSubmitting || submittingRef.current) {
+      return;
+    }
+
     const trimmedTitle = title.trim();
     if (!trimmedTitle || !listId) {
       setError(t('taskForm.validationTitleAndList'));
@@ -169,14 +184,19 @@ export function TaskForm({
 
     const repeatValue = Number(repeatIntervalValue);
     const nextRepeatIntervalType = isTodo ? (repeatIntervalType ?? 'preset') : repeatIntervalType;
-    const nextRepeatIntervalValue = isTodo ? (Number.isFinite(repeatValue) && repeatValue > 0 ? repeatValue : 1) : repeatValue;
+    const nextRepeatIntervalValue = isTodo
+      ? Number.isFinite(repeatValue) && repeatValue > 0
+        ? repeatValue
+        : 1
+      : repeatValue;
+    const nextRepeatIntervalUnit = repeatIntervalUnit;
 
-    if (!isTodo && !nextRepeatIntervalType) {
+    if (isReminderTask && !nextRepeatIntervalType) {
       setError(t('taskForm.validationRepeatRequired'));
       return;
     }
 
-    if (!isTodo && (!Number.isFinite(repeatValue) || repeatValue <= 0)) {
+    if (isReminderTask && (!Number.isFinite(repeatValue) || repeatValue <= 0)) {
       setError(t('taskForm.validationRepeatPositive'));
       return;
     }
@@ -203,16 +223,32 @@ export function TaskForm({
       startReminderUsesLastDay: !isTodo && nextStartReminderType === 'monthly_on_last_day',
       repeatIntervalType: nextRepeatIntervalType ?? 'preset',
       repeatIntervalValue: nextRepeatIntervalValue,
-      repeatIntervalUnit
+      repeatIntervalUnit: nextRepeatIntervalUnit
     };
 
-    await onSubmit(values);
+    setError(null);
+    submittingRef.current = true;
+    setLocalSubmitting(true);
+
+    try {
+      await onSubmit(values);
+    } finally {
+      submittingRef.current = false;
+      setLocalSubmitting(false);
+    }
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.content}>
-      <TextField label={t('taskForm.title')} value={title} onChangeText={setTitle} placeholder={t('taskForm.titlePlaceholder')} />
-      <TextField label={t('taskForm.description')} value={description} onChangeText={setDescription} placeholder={t('taskForm.descriptionPlaceholder')} multiline />
+    <View style={styles.content}>
+      <TextField label={t('taskForm.title')} value={title} onChangeText={setTitle} placeholder={t('taskForm.titlePlaceholder')} disabled={isSubmitting} />
+      <TextField
+        label={t('taskForm.description')}
+        value={description}
+        onChangeText={setDescription}
+        placeholder={t('taskForm.descriptionPlaceholder')}
+        multiline
+        disabled={isSubmitting}
+      />
 
       <Card style={[styles.blockCard, { backgroundColor: theme.surfaceAlt, borderColor: theme.border, shadowColor: theme.shadow }]}>
         <View style={styles.section}>
@@ -227,6 +263,7 @@ export function TaskForm({
               icon="notifications-outline"
               accentColor={theme.primary}
               backgroundColor={!isTodo ? theme.primarySoft : theme.surface}
+              disabled={isSubmitting}
               onPress={() => setTaskMode(reminderTaskMode)}
             />
             <TaskModeCard
@@ -237,6 +274,7 @@ export function TaskForm({
               icon="checkmark-done-outline"
               accentColor={theme.success}
               backgroundColor={isTodo ? hexToRgba(theme.success, 0.1) : theme.surface}
+              disabled={isSubmitting}
               onPress={() => setTaskMode('todo')}
             />
           </View>
@@ -258,7 +296,7 @@ export function TaskForm({
           <Text style={[styles.sectionHint, { color: theme.mutedText }]}>{t('taskForm.listHint')}</Text>
           <View style={styles.chipWrap}>
             {listChoices.map((list) => (
-              <Chip key={list.id} label={list.name} selected={listId === list.id} onPress={() => setListId(list.id)} />
+              <Chip key={list.id} label={list.name} selected={listId === list.id} disabled={isSubmitting} onPress={() => setListId(list.id)} />
             ))}
           </View>
         </View>
@@ -272,6 +310,7 @@ export function TaskForm({
               <Chip
                 label={t('taskForm.singleSubtype')}
                 selected={taskMode === 'single'}
+                disabled={isSubmitting}
                 onPress={() => {
                   setTaskMode('single');
                   setReminderTaskMode('single');
@@ -281,6 +320,7 @@ export function TaskForm({
                 label={t('taskForm.recurringSubtype')}
                 tone="primary"
                 selected={taskMode === 'recurring'}
+                disabled={isSubmitting}
                 onPress={() => {
                   setTaskMode('recurring');
                   setReminderTaskMode('recurring');
@@ -297,13 +337,16 @@ export function TaskForm({
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('taskForm.startSection')}</Text>
             <View style={styles.chipWrap}>
-              {taskMode === 'single' ? <Chip label={t('taskForm.startExact')} selected={startReminderType === 'exact_date_time'} onPress={() => setStartReminderType('exact_date_time')} /> : null}
-              <Chip label={t('taskForm.startToday')} selected={startReminderType === 'today_at_time'} onPress={() => setStartReminderType('today_at_time')} />
-              <Chip label={t('taskForm.startTomorrow')} selected={startReminderType === 'tomorrow_at_time'} onPress={() => setStartReminderType('tomorrow_at_time')} />
-              <Chip label={t('taskForm.startWeekly')} selected={startReminderType === 'weekly_on_weekday'} onPress={() => setStartReminderType('weekly_on_weekday')} />
+              {taskMode === 'single' ? (
+                <Chip label={t('taskForm.startExact')} selected={startReminderType === 'exact_date_time'} disabled={isSubmitting} onPress={() => setStartReminderType('exact_date_time')} />
+              ) : null}
+              <Chip label={t('taskForm.startToday')} selected={startReminderType === 'today_at_time'} disabled={isSubmitting} onPress={() => setStartReminderType('today_at_time')} />
+              <Chip label={t('taskForm.startTomorrow')} selected={startReminderType === 'tomorrow_at_time'} disabled={isSubmitting} onPress={() => setStartReminderType('tomorrow_at_time')} />
+              <Chip label={t('taskForm.startWeekly')} selected={startReminderType === 'weekly_on_weekday'} disabled={isSubmitting} onPress={() => setStartReminderType('weekly_on_weekday')} />
               <Chip
                 label={t('taskForm.startMonthly')}
                 selected={isMonthly}
+                disabled={isSubmitting}
                 onPress={() => {
                   setStartReminderType(useLastDay ? 'monthly_on_last_day' : 'monthly_on_day');
                 }}
@@ -318,6 +361,7 @@ export function TaskForm({
                 label={t('taskForm.dateLabel')}
                 value={startDateTime}
                 mode="date"
+                disabled={isSubmitting}
                 onChange={(date) => {
                   const merged = mergeDateWithClock(startDateTime, date);
                   setStartDateTime(merged);
@@ -327,6 +371,7 @@ export function TaskForm({
                 label={t('taskForm.timeLabel')}
                 value={startDateTime}
                 mode="time"
+                disabled={isSubmitting}
                 onChange={(date) => {
                   const merged = mergeDateWithClock(startDateTime, date);
                   setStartDateTime(merged);
@@ -339,6 +384,7 @@ export function TaskForm({
               label={t('taskForm.timeLabel')}
               value={startDateTime}
               mode="time"
+              disabled={isSubmitting}
               onChange={(date) => {
                 setStartDateTime(date);
                 setClockTime(toTimeString(date));
@@ -351,7 +397,7 @@ export function TaskForm({
               <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('taskForm.weekdaySection')}</Text>
               <View style={styles.chipWrap}>
                 {weekdayLabels.map((day, index) => (
-                  <Chip key={day} label={day} selected={weekday === index} onPress={() => setWeekday(index)} />
+                  <Chip key={day} label={day} selected={weekday === index} disabled={isSubmitting} onPress={() => setWeekday(index)} />
                 ))}
               </View>
             </View>
@@ -366,6 +412,7 @@ export function TaskForm({
                     key={day}
                     label={String(day)}
                     selected={!useLastDay && dayOfMonth === day}
+                    disabled={isSubmitting}
                     onPress={() => {
                       setDayOfMonth(day);
                       setUseLastDay(false);
@@ -377,6 +424,7 @@ export function TaskForm({
                   label={t('taskForm.monthlyLastDayToggle')}
                   tone="primary"
                   selected={useLastDay}
+                  disabled={isSubmitting}
                   onPress={() => {
                     setUseLastDay(true);
                     setStartReminderType('monthly_on_last_day');
@@ -386,37 +434,53 @@ export function TaskForm({
             </View>
           ) : null}
 
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('taskForm.repeatSection')}</Text>
-            <View style={styles.chipWrap}>
-              {repeatPresets.map((preset) => (
+          {isReminderTask ? (
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('taskForm.repeatSection')}</Text>
+              <View style={styles.chipWrap}>
+                {repeatPresets.map((preset) => (
+                  <Chip
+                    key={preset.label}
+                    label={preset.label}
+                    selected={repeatIntervalType === 'preset' && Number(repeatIntervalValue) === preset.value && repeatIntervalUnit === preset.unit}
+                    disabled={isSubmitting}
+                    onPress={() => {
+                      setRepeatIntervalType('preset');
+                      setRepeatIntervalValue(String(preset.value));
+                      setRepeatIntervalUnit(preset.unit);
+                    }}
+                  />
+                ))}
                 <Chip
-                  key={preset.label}
-                  label={preset.label}
-                  selected={repeatIntervalType === 'preset' && Number(repeatIntervalValue) === preset.value && repeatIntervalUnit === preset.unit}
-                  onPress={() => {
-                    setRepeatIntervalType('preset');
-                    setRepeatIntervalValue(String(preset.value));
-                    setRepeatIntervalUnit(preset.unit);
-                  }}
+                  label={t('taskForm.repeatCustom')}
+                  selected={repeatIntervalType === 'custom'}
+                  disabled={isSubmitting}
+                  onPress={() => setRepeatIntervalType('custom')}
                 />
-              ))}
-              <Chip label={t('taskForm.repeatCustom')} selected={repeatIntervalType === 'custom'} onPress={() => setRepeatIntervalType('custom')} />
-            </View>
-
-            {repeatIntervalType === 'custom' ? (
-              <View style={styles.customRow}>
-                <View style={{ flex: 1 }}>
-                  <TextField label={t('taskForm.repeatValue')} value={repeatIntervalValue} onChangeText={setRepeatIntervalValue} placeholder={t('taskForm.repeatValuePlaceholder')} />
-                </View>
-                <View style={{ flexDirection: 'row', gap: 8 }}>
-                  <Chip label={t('taskForm.repeatMinutes')} selected={repeatIntervalUnit === 'minutes'} onPress={() => setRepeatIntervalUnit('minutes')} />
-                  <Chip label={t('taskForm.repeatHours')} selected={repeatIntervalUnit === 'hours'} onPress={() => setRepeatIntervalUnit('hours')} />
-                </View>
               </View>
-            ) : null}
-            {!repeatIntervalType ? <Text style={[styles.helper, { color: theme.mutedText }]}>{t('taskForm.repeatRequired')}</Text> : null}
-          </View>
+
+              {repeatIntervalType === 'custom' ? (
+                <View style={styles.customRow}>
+                  <View style={{ flex: 1 }}>
+                    <TextField
+                      label={t('taskForm.repeatValue')}
+                      value={repeatIntervalValue}
+                      onChangeText={setRepeatIntervalValue}
+                      placeholder={t('taskForm.repeatValuePlaceholder')}
+                      keyboardType="number-pad"
+                      inputMode="numeric"
+                      disabled={isSubmitting}
+                    />
+                  </View>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <Chip label={t('taskForm.repeatMinutes')} selected={repeatIntervalUnit === 'minutes'} disabled={isSubmitting} onPress={() => setRepeatIntervalUnit('minutes')} />
+                    <Chip label={t('taskForm.repeatHours')} selected={repeatIntervalUnit === 'hours'} disabled={isSubmitting} onPress={() => setRepeatIntervalUnit('hours')} />
+                  </View>
+                </View>
+              ) : null}
+              {!repeatIntervalType ? <Text style={[styles.helper, { color: theme.mutedText }]}>{t('taskForm.repeatRequired')}</Text> : null}
+            </View>
+          ) : null}
         </>
       ) : (
         <Text style={[styles.helper, { color: theme.mutedText, marginBottom: 10 }]}>{t('taskForm.validationFieldsHidden')}</Text>
@@ -425,9 +489,9 @@ export function TaskForm({
       {error ? <Text style={[styles.error, { color: theme.danger }]}>{error}</Text> : null}
 
       <View style={styles.actions}>
-        <Button label={submitLabel} onPress={() => void handleSubmit()} />
+        <Button label={submitLabel} onPress={() => void handleSubmit()} loading={isSubmitting} disabled={isSubmitting} />
       </View>
-    </ScrollView>
+    </View>
   );
 }
 

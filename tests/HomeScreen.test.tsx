@@ -3,6 +3,7 @@ import React from 'react';
 import HomeScreen from '@/app/(tabs)/index';
 import { useApp } from '@/hooks/useApp';
 import { Task } from '@/types/domain';
+import { __resetHomeActiveTaskSwipeHintForTests } from '@/utils/swipeHintSession';
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -16,6 +17,7 @@ jest.mock('@expo/vector-icons', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => ({
+  useIsFocused: jest.fn(() => true),
   useScrollToTop: jest.fn()
 }));
 
@@ -76,9 +78,27 @@ jest.mock('@/components/EmptyState', () => ({
 }));
 
 jest.mock('@/components/TaskCard', () => ({
-  TaskCard: ({ task }: { task: { title: string } }) => {
-    const { Text } = require('react-native');
-    return <Text>{task.title}</Text>;
+  TaskCard: ({
+    task,
+    swipeHintDirection,
+    onSwipeHintStarted
+  }: {
+    task: { id: string; title: string };
+    swipeHintDirection?: string;
+    onSwipeHintStarted?: () => void;
+  }) => {
+    const { Pressable, Text, View } = require('react-native');
+
+    return (
+      <View>
+        <Text testID={`task-card-${task.id}`}>{`${task.title}|${swipeHintDirection ?? 'none'}`}</Text>
+        {swipeHintDirection ? (
+          <Pressable testID={`task-card-start-hint-${task.id}`} onPress={onSwipeHintStarted}>
+            <Text>Start hint</Text>
+          </Pressable>
+        ) : null}
+      </View>
+    );
   }
 }));
 
@@ -183,10 +203,13 @@ function renderScreen(tasks: Task[]) {
     theme,
     completeTask: jest.fn(),
     snoozeTask: jest.fn(),
+    isTaskMutating: jest.fn().mockReturnValue(false),
     notificationGranted: true,
     debugScreenshotMode: false,
     requestNotificationPermission: jest.fn(),
-    reorderLists: jest.fn()
+    reorderLists: jest.fn(),
+    isReorderingLists: false,
+    isRequestingNotificationPermission: false
   } as any);
 
   return render(<HomeScreen />);
@@ -219,50 +242,77 @@ function buildTodoTasks(count: number): Task[] {
 describe('HomeScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    __resetHomeActiveTaskSwipeHintForTests();
   });
 
   it('shows reminder tasks by default and loads five at a time', () => {
     renderScreen([...buildReminderTasks(6), ...buildTodoTasks(2)]);
 
-    expect(screen.getByText('Reminder 1')).toBeTruthy();
-    expect(screen.getByText('Reminder 5')).toBeTruthy();
+    expect(screen.getByText('Reminder 1|two-way')).toBeTruthy();
+    expect(screen.getByText('Reminder 5|none')).toBeTruthy();
     expect(screen.queryByText('Reminder 6')).toBeNull();
     expect(screen.queryByText('Todo 1')).toBeNull();
     expect(screen.getByTestId('home-active-load-more')).toBeTruthy();
 
     fireEvent.press(screen.getByTestId('home-active-load-more'));
 
-    expect(screen.getByText('Reminder 6')).toBeTruthy();
+    expect(screen.getByText('Reminder 6|none')).toBeTruthy();
     expect(screen.queryByTestId('home-active-load-more')).toBeNull();
+  });
+
+  it('only targets the first eligible visible active task for the swipe hint', () => {
+    renderScreen([...buildReminderTasks(3), ...buildTodoTasks(1)]);
+
+    expect(screen.getByTestId('task-card-reminder-1').props.children).toBe('Reminder 1|two-way');
+    expect(screen.getByTestId('task-card-reminder-2').props.children).toBe('Reminder 2|none');
+    expect(screen.getByTestId('task-card-reminder-3').props.children).toBe('Reminder 3|none');
   });
 
   it('switches to To-Do tasks and resets the visible reminder count when switching back', () => {
     renderScreen([...buildReminderTasks(7), ...buildTodoTasks(2)]);
 
     fireEvent.press(screen.getByTestId('home-active-load-more'));
-    expect(screen.getByText('Reminder 7')).toBeTruthy();
+    expect(screen.getByText('Reminder 7|none')).toBeTruthy();
 
     fireEvent.press(screen.getByTestId('home-active-filter-todo'));
 
-    expect(screen.getByText('Todo 1')).toBeTruthy();
-    expect(screen.getByText('Todo 2')).toBeTruthy();
+    expect(screen.getByText('Todo 2|left-only')).toBeTruthy();
+    expect(screen.getByText('Todo 1|none')).toBeTruthy();
     expect(screen.queryByText('Reminder 1')).toBeNull();
     expect(screen.queryByTestId('home-active-load-more')).toBeNull();
 
     fireEvent.press(screen.getByTestId('home-active-filter-reminder'));
 
-    expect(screen.getByText('Reminder 1')).toBeTruthy();
-    expect(screen.getByText('Reminder 5')).toBeTruthy();
+    expect(screen.getByText('Reminder 1|two-way')).toBeTruthy();
+    expect(screen.getByText('Reminder 5|none')).toBeTruthy();
     expect(screen.queryByText('Reminder 6')).toBeNull();
     expect(screen.queryByText('Reminder 7')).toBeNull();
     expect(screen.getByTestId('home-active-load-more')).toBeTruthy();
   });
 
+  it('consumes the swipe hint session once playback starts and does not re-target on rerender or filter changes', () => {
+    renderScreen([...buildReminderTasks(3), ...buildTodoTasks(2)]);
+
+    expect(screen.getByTestId('task-card-reminder-1').props.children).toBe('Reminder 1|two-way');
+
+    fireEvent.press(screen.getByTestId('task-card-start-hint-reminder-1'));
+
+    expect(screen.getByTestId('task-card-reminder-1').props.children).toBe('Reminder 1|none');
+
+    fireEvent.press(screen.getByTestId('home-active-filter-todo'));
+
+    expect(screen.getByTestId('task-card-todo-1').props.children).toBe('Todo 1|none');
+
+    fireEvent.press(screen.getByTestId('home-active-filter-reminder'));
+
+    expect(screen.getByTestId('task-card-reminder-1').props.children).toBe('Reminder 1|none');
+  });
+
   it('defaults to To-Do tasks when there are no active reminders', () => {
     renderScreen(buildTodoTasks(2));
 
-    expect(screen.getByText('Todo 1')).toBeTruthy();
-    expect(screen.getByText('Todo 2')).toBeTruthy();
+    expect(screen.getByText('Todo 2|left-only')).toBeTruthy();
+    expect(screen.getByText('Todo 1|none')).toBeTruthy();
     expect(screen.queryByText('Aktif hatirlatma yok')).toBeNull();
     expect(screen.queryByText('Su anda acik durumda bildirimli bir gorev gorunmuyor.')).toBeNull();
   });
@@ -278,16 +328,19 @@ describe('HomeScreen', () => {
       theme,
       completeTask: jest.fn(),
       snoozeTask: jest.fn(),
+      isTaskMutating: jest.fn().mockReturnValue(false),
       notificationGranted: true,
       debugScreenshotMode: false,
       requestNotificationPermission: jest.fn(),
-      reorderLists: jest.fn()
+      reorderLists: jest.fn(),
+      isReorderingLists: false,
+      isRequestingNotificationPermission: false
     } as any);
 
     view.rerender(<HomeScreen />);
 
-    expect(screen.getByText('Todo 1')).toBeTruthy();
-    expect(screen.getByText('Todo 2')).toBeTruthy();
+    expect(screen.getByText('Todo 2|left-only')).toBeTruthy();
+    expect(screen.getByText('Todo 1|none')).toBeTruthy();
     expect(screen.queryByText('Aktif hatirlatma yok')).toBeNull();
     expect(screen.queryByText('Su anda acik durumda bildirimli bir gorev gorunmuyor.')).toBeNull();
   });
@@ -295,7 +348,7 @@ describe('HomeScreen', () => {
   it('switches back to reminders when reminders appear before the user picks a filter', () => {
     const view = renderScreen(buildTodoTasks(2));
 
-    expect(screen.getByText('Todo 1')).toBeTruthy();
+    expect(screen.getByText('Todo 2|left-only')).toBeTruthy();
     expect(screen.queryByText('Reminder 1')).toBeNull();
 
     mockedUseApp.mockReturnValue({
@@ -304,15 +357,18 @@ describe('HomeScreen', () => {
       theme,
       completeTask: jest.fn(),
       snoozeTask: jest.fn(),
+      isTaskMutating: jest.fn().mockReturnValue(false),
       notificationGranted: true,
       debugScreenshotMode: false,
       requestNotificationPermission: jest.fn(),
-      reorderLists: jest.fn()
+      reorderLists: jest.fn(),
+      isReorderingLists: false,
+      isRequestingNotificationPermission: false
     } as any);
 
     view.rerender(<HomeScreen />);
 
-    expect(screen.getByText('Reminder 1')).toBeTruthy();
+    expect(screen.getByText('Reminder 1|two-way')).toBeTruthy();
     expect(screen.queryByText('Todo 1')).toBeNull();
   });
 
@@ -374,11 +430,11 @@ describe('HomeScreen', () => {
       })
     ]);
 
-    expect(screen.getByText('Todo 2')).toBeTruthy();
-    expect(screen.getByText('Todo 3')).toBeTruthy();
-    expect(screen.getByText('Todo 4')).toBeTruthy();
-    expect(screen.getByText('Todo 5')).toBeTruthy();
-    expect(screen.getByText('Todo 6')).toBeTruthy();
+    expect(screen.getByText('Todo 6|left-only')).toBeTruthy();
+    expect(screen.getByText('Todo 5|none')).toBeTruthy();
+    expect(screen.getByText('Todo 4|none')).toBeTruthy();
+    expect(screen.getByText('Todo 3|none')).toBeTruthy();
+    expect(screen.getByText('Todo 2|none')).toBeTruthy();
     expect(screen.queryByText('Todo oldest')).toBeNull();
     expect(screen.getByTestId('home-active-load-more')).toBeTruthy();
   });
@@ -391,5 +447,12 @@ describe('HomeScreen', () => {
     expect(screen.getByText('Aktif To-Do yok')).toBeTruthy();
     expect(screen.getByText('Su anda acik durumda To-Do gorev gorunmuyor.')).toBeTruthy();
     expect(screen.queryByText('Reminder 1')).toBeNull();
+  });
+
+  it('does not target any task when there are no visible active tasks', () => {
+    renderScreen([]);
+
+    expect(screen.queryByTestId('task-card-start-hint-task-1')).toBeNull();
+    expect(screen.queryByText(/two-way/)).toBeNull();
   });
 });
