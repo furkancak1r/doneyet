@@ -109,6 +109,21 @@ This file applies to the repository root and everything under it.
 - `scripts/screenshot-frame.mjs` is intentionally idempotent for normalized `.png` inputs, so rerunning `npm run screenshots:frame` after a partial success should work without regenerating `.capture.png` files.
 - `frameit` may log harmless warnings about unsupported screen sizes when old Maestro debug artifact folders remain under `fastlane/` or when scanning non-screenshot assets. If framed outputs are created successfully in `fastlane/screenshots/<locale>/*_framed.png`, treat those warnings as non-blocking.
 - If you want a cleaner rerun, it is safe to delete old timestamped Maestro debug folders under `fastlane/` before running `npm run screenshots:frame` again.
+- IMPORTANT: Screenshot locales (`en-US`, `tr`) must stay in sync with metadata locales in `fastlane/metadata/`. Never use `tr-TR` anywhere in the repo — use `tr` only.
+
+## App Store Publishing
+
+- Canonical locales: `en-US` and `tr` (NOT `tr-TR`). This applies to both screenshot folders and metadata folders. Using `tr-TR` will cause the upload to fail locale matching.
+- Publishing is handled exclusively through `fastlane deliver` via the following NPM commands:
+  - `npm run store:listing` — upload metadata and screenshots together (recommended)
+  - `npm run store:metadata` — upload metadata only
+  - `npm run store:screenshots` — upload screenshots only
+- The `npm run store:listing` lane runs a preflight check that verifies both locales (`en-US`, `tr`) have all required screenshots before uploading. If any are missing the upload is aborted to prevent `overwrite_screenshots(true)` from deleting existing assets.
+- Required screenshot files per locale: `home.png`, `calendar.png`, `list-detail.png`, `task-detail.png`, `ipad-home.png`
+- Metadata lives in `fastlane/metadata/<locale>/` as individual `.txt` files (`name.txt`, `description.txt`, `subtitle.txt`, `keywords.txt`, etc.). The old `metadata.txt` format is no longer used.
+- `scripts/appstore-upload.mjs` is deprecated. Do not use it for publishing.
+- After running `npm run store:listing`, verify in App Store Connect that the Turkish localization appears under the correct locale and that screenshots are attached to it.
+- The `overwrite_screenshots(true)` setting in `Deliverfile` means every upload replaces all screenshots for all locales. Always run with a complete set of screenshots for both locales.
 
 ## Useful checks
 

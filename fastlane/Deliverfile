@@ -1,0 +1,5 @@
+app_identifier("com.doneyet.appios")
+screenshots_path("./artifacts/app-store")
+metadata_path("./fastlane/metadata")
+overwrite_screenshots(true)
+languages(["en-US", "tr"])

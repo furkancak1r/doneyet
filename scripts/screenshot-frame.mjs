@@ -81,7 +81,9 @@ function normalizeScreenshots() {
 }
 
 function copyFramedArtifacts() {
+  // The App Store upload reads only from artifacts/app-store, so rebuild it from scratch.
   fs.rmSync(artifactsDir, { recursive: true, force: true });
+  fs.mkdirSync(artifactsDir, { recursive: true });
 
   for (const locale of locales) {
     const destinationDir = path.join(artifactsDir, locale);

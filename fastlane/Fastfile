@@ -1,0 +1,93 @@
+# frozen_string_literal: true
+
+default_platform(:ios)
+
+SCREENSHOTS_ARTIFACTS_PATH = File.expand_path("../artifacts/app-store", __dir__)
+
+PLATFORMS = {
+  iphone: {
+    screenshots: %w[home calendar list-detail task-detail],
+    screenshot_type: "APP_IPHONE_65_HOME"
+  },
+  ipad: {
+    screenshots: %w[ipad-home],
+    screenshot_type: "APP_IPAD_WALLPAPER"
+  }
+}.freeze
+
+LANGUAGES = ["en-US", "tr"].freeze
+
+desc "Upload metadata and screenshots to App Store Connect"
+lane :store_listing do
+  preflight_check
+  deliver(
+    api_key_path: "/Users/furkancakir/.appstoreconnect/fastlane_api_key.json",
+    skip_binary_upload: true,
+    precheck_include_in_app_purchases: false,
+    skip_app_version_update: false,
+    force: true
+  )
+end
+
+desc "Upload only metadata to App Store Connect"
+lane :store_metadata do
+  preflight_check
+  deliver(
+    api_key_path: "/Users/furkancakir/.appstoreconnect/fastlane_api_key.json",
+    skip_binary_upload: true,
+    skip_screenshots: true,
+    precheck_include_in_app_purchases: false,
+    skip_app_version_update: false,
+    force: true
+  )
+end
+
+desc "Upload only screenshots to App Store Connect"
+lane :store_screenshots do
+  preflight_check
+  deliver(
+    api_key_path: "/Users/furkancakir/.appstoreconnect/fastlane_api_key.json",
+    skip_binary_upload: true,
+    skip_metadata: true,
+    overwrite_screenshots: true,
+    precheck_include_in_app_purchases: false,
+    skip_app_version_update: false,
+    force: true
+  )
+end
+
+def preflight_check
+  say("Preflight check for App Store listing upload...")
+
+  missing = []
+
+  LANGUAGES.each do |lang|
+    say("Checking finalized screenshots for #{lang}...")
+    PLATFORMS.each do |platform, config|
+      config[:screenshots].each do |shot|
+        screenshot_path = File.join(SCREENSHOTS_ARTIFACTS_PATH, lang, "#{shot}.png")
+        unless File.exist?(screenshot_path)
+          missing << "#{lang}/#{platform}/#{shot}.png"
+          say("  MISSING: #{screenshot_path}".red)
+        else
+          say("  OK: #{screenshot_path}".green)
+        end
+      end
+    end
+  end
+
+  unless missing.empty?
+    error_count = missing.length
+    say("")
+    say("========================================".red)
+    say("  PREFLIGHT CHECK FAILED".red)
+    say("  #{error_count} screenshot(s) missing:".red)
+    missing.each { |m| say("    - #{m}".red) }
+    say("========================================".red)
+    say("")
+    say("Aborting upload. Run `npm run screenshots:all` to refresh the finalized screenshots, then rerun `npm run store:listing`.".yellow)
+    exit(1)
+  end
+
+  say("Preflight check passed. Finalized screenshots are present for both locales.".green)
+end

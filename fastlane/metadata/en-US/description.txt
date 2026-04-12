@@ -1,0 +1,20 @@
+DoneYet? is an offline-first task app with recurring reminders that keep coming back until the task is complete.
+
+■ FEATURES
+
+• Create one-off or recurring tasks
+• Reminders keep showing until you complete the task
+• Organize tasks into lists
+• Snooze, pause, or mark complete
+• No task data ever leaves your device — fully offline
+• No account or sign-up required
+
+■ HOW IT WORKS
+
+Create a task, set a reminder time. Reminders continue until the task is marked complete. Choose to snooze and you'll be reminded again after your chosen interval. Track it until the end of your day, then check it off — no more alerts once it's done.
+
+■ LOOK AND FEEL
+
+The to-do list is clean, minimal, and easy to scan. Calendar view shows your month at a glance. Drag-and-drop reordering in list details lets you prioritize.
+
+DoneYet? simplifies task management — it keeps reminding you until the work is done.

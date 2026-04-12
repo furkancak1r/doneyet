@@ -13,7 +13,10 @@
     "screenshots:all": "node scripts/screenshot-pipeline.mjs",
     "postinstall": "node scripts/patch-draggable-flatlist.mjs",
     "test": "node scripts/run-vitest.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "store:listing": "bundle exec fastlane store_listing",
+    "store:metadata": "bundle exec fastlane store_metadata",
+    "store:screenshots": "bundle exec fastlane store_screenshots"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
