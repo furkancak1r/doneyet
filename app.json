@@ -2,7 +2,7 @@
   "expo": {
     "name": "DoneYet?",
     "slug": "doneyet",
-    "version": "1.0.0",
+    "version": "1.0.5",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -22,7 +22,7 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.doneyet.app",
+      "package": "com.furkancakir.doneyet",
       "allowBackup": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",

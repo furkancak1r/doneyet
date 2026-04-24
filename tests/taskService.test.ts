@@ -1,5 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { completeTask, completeTaskPermanently, createTask, reactivateCompletedTask, removeTask, reorderTasks, snoozeTask } from '../services/taskService';
+import {
+  completeTask,
+  completeTaskPermanently,
+  createTask,
+  reactivateCompletedTask,
+  recordTaskReminderDelivery,
+  removeTask,
+  reorderTasks,
+  snoozeTask
+} from '../services/taskService';
+import type { Task } from '../types/domain';
 
 const saveTask = vi.fn();
 const saveTaskCompletionHistoryEntry = vi.fn();
@@ -27,6 +37,35 @@ vi.mock('../services/schedulerService', () => ({
   clearTaskSchedule: (...args: unknown[]) => clearTaskSchedule(...args),
   rescheduleTaskAfterMutation: (...args: unknown[]) => rescheduleTaskAfterMutation(...args)
 }));
+
+function buildTask(overrides: Partial<Task> = {}): Task {
+  return {
+    id: 'task-1',
+    title: 'Görev',
+    description: '',
+    listId: 'list-1',
+    sortOrder: 0,
+    createdAt: '2025-01-01T00:00:00.000Z',
+    updatedAt: '2025-01-01T00:00:00.000Z',
+    startReminderType: 'today_at_time',
+    startDateTime: '2025-01-31T09:00:00.000Z',
+    startReminderWeekday: null,
+    startReminderDayOfMonth: null,
+    startReminderTime: '09:00',
+    startReminderUsesLastDay: 0,
+    taskMode: 'recurring',
+    repeatIntervalType: 'preset',
+    repeatIntervalValue: 1,
+    repeatIntervalUnit: 'hours',
+    status: 'active',
+    lastNotificationAt: null,
+    nextNotificationAt: '2025-01-31T09:00:00.000Z',
+    snoozedUntil: null,
+    notificationIdsJson: '["notif-1"]',
+    completedAt: null,
+    ...overrides
+  };
+}
 
 describe('task service', () => {
   beforeEach(() => {
@@ -128,7 +167,7 @@ describe('task service', () => {
       repeatIntervalValue: 1,
       repeatIntervalUnit: 'hours',
       status: 'completed',
-      lastNotificationAt: null,
+      lastNotificationAt: '2025-03-01T08:00:00.000Z',
       nextNotificationAt: null,
       snoozedUntil: null,
       notificationIdsJson: '[]',
@@ -139,7 +178,7 @@ describe('task service', () => {
 
     await reactivateCompletedTask('task-1');
 
-    expect(saveTask).toHaveBeenCalledWith(expect.objectContaining({ status: 'active', completedAt: null, snoozedUntil: null }));
+    expect(saveTask).toHaveBeenCalledWith(expect.objectContaining({ status: 'active', completedAt: null, lastNotificationAt: null, snoozedUntil: null }));
   });
 
   it('completing a recurring task advances to the next cycle instead of closing it', async () => {
@@ -196,6 +235,143 @@ describe('task service', () => {
     }
   });
 
+  it('does not complete a future recurring cycle', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-01-31T08:00:00.000Z'));
+
+    try {
+      fetchTaskById.mockResolvedValue(buildTask({ id: 'task-future' }));
+
+      const updated = await completeTask('task-future');
+
+      expect(updated).toBeNull();
+      expect(clearTaskSchedule).not.toHaveBeenCalled();
+      expect(saveTaskCompletionHistoryEntry).not.toHaveBeenCalled();
+      expect(saveTask).not.toHaveBeenCalled();
+      expect(rescheduleTaskAfterMutation).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('does not permanently complete a future recurring cycle', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-01-31T08:00:00.000Z'));
+
+    try {
+      fetchTaskById.mockResolvedValue(buildTask({ id: 'task-future' }));
+
+      const updated = await completeTaskPermanently('task-future');
+
+      expect(updated).toBeNull();
+      expect(clearTaskSchedule).not.toHaveBeenCalled();
+      expect(saveTaskCompletionHistoryEntry).not.toHaveBeenCalled();
+      expect(saveTask).not.toHaveBeenCalled();
+      expect(rescheduleTaskAfterMutation).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('completes a remindered recurring cycle even when the next notification is already in the future', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-01-31T10:05:00.000Z'));
+
+    try {
+      fetchTaskById.mockResolvedValue(
+        buildTask({
+          id: 'task-reminded',
+          lastNotificationAt: '2025-01-31T10:00:00.000Z',
+          nextNotificationAt: '2025-01-31T11:00:00.000Z'
+        })
+      );
+      clearTaskSchedule.mockResolvedValue(undefined);
+      saveTaskCompletionHistoryEntry.mockResolvedValue(undefined);
+      saveTask.mockResolvedValue(undefined);
+      rescheduleTaskAfterMutation.mockResolvedValue({ id: 'task-reminded', status: 'active' });
+
+      const updated = await completeTask('task-reminded');
+
+      expect(updated).toBeTruthy();
+      expect(clearTaskSchedule).toHaveBeenCalledTimes(1);
+      expect(saveTask).toHaveBeenCalledWith(expect.objectContaining({ id: 'task-reminded', lastNotificationAt: null }));
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('permanently completes a remindered recurring cycle even when the next notification is already in the future', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-01-31T10:05:00.000Z'));
+
+    try {
+      fetchTaskById.mockResolvedValue(
+        buildTask({
+          id: 'task-reminded',
+          lastNotificationAt: '2025-01-31T10:00:00.000Z',
+          nextNotificationAt: '2025-01-31T11:00:00.000Z'
+        })
+      );
+      clearTaskSchedule.mockResolvedValue(undefined);
+      saveTaskCompletionHistoryEntry.mockResolvedValue(undefined);
+      saveTask.mockResolvedValue(undefined);
+
+      const updated = await completeTaskPermanently('task-reminded');
+
+      expect(updated).toBeTruthy();
+      expect(clearTaskSchedule).toHaveBeenCalledTimes(1);
+      expect(saveTask).toHaveBeenCalledWith(expect.objectContaining({ id: 'task-reminded', status: 'completed', lastNotificationAt: null }));
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('records the latest delivered recurring reminder without regressing existing anchors', async () => {
+    fetchTaskById.mockResolvedValue(
+      buildTask({
+        id: 'task-reminded',
+        lastNotificationAt: '2025-01-31T09:00:00.000Z',
+        nextNotificationAt: '2025-01-31T11:00:00.000Z'
+      })
+    );
+    saveTask.mockResolvedValue(undefined);
+
+    const updated = await recordTaskReminderDelivery('task-reminded', new Date('2025-01-31T10:00:00.000Z'));
+
+    expect(updated?.lastNotificationAt).toBe('2025-01-31T10:00:00.000Z');
+    expect(saveTask).toHaveBeenCalledWith(expect.objectContaining({ id: 'task-reminded', lastNotificationAt: '2025-01-31T10:00:00.000Z' }));
+
+    vi.clearAllMocks();
+    fetchTaskById.mockResolvedValue(
+      buildTask({
+        id: 'task-reminded',
+        lastNotificationAt: '2025-01-31T10:00:00.000Z',
+        nextNotificationAt: '2025-01-31T11:00:00.000Z'
+      })
+    );
+
+    const sameTask = await recordTaskReminderDelivery('task-reminded', new Date('2025-01-31T09:30:00.000Z'));
+
+    expect(sameTask?.lastNotificationAt).toBe('2025-01-31T10:00:00.000Z');
+    expect(saveTask).not.toHaveBeenCalled();
+  });
+
+  it('ignores delivered recurring reminders from an already advanced cycle', async () => {
+    fetchTaskById.mockResolvedValue(
+      buildTask({
+        id: 'task-reminded',
+        startDateTime: '2025-02-01T09:00:00.000Z',
+        lastNotificationAt: null,
+        nextNotificationAt: '2025-02-01T09:00:00.000Z'
+      })
+    );
+
+    const sameTask = await recordTaskReminderDelivery('task-reminded', new Date('2025-01-31T10:00:00.000Z'));
+
+    expect(sameTask?.lastNotificationAt).toBeNull();
+    expect(saveTask).not.toHaveBeenCalled();
+  });
+
   it('permanently completing a recurring task closes it and records its final cycle history', async () => {
     fetchTaskById.mockResolvedValue({
       id: 'task-3',
@@ -216,7 +392,7 @@ describe('task service', () => {
       repeatIntervalValue: 1,
       repeatIntervalUnit: 'hours',
       status: 'active',
-      lastNotificationAt: null,
+      lastNotificationAt: '2025-01-31T09:00:00.000Z',
       nextNotificationAt: '2025-01-31T09:00:00.000Z',
       snoozedUntil: null,
       notificationIdsJson: '["notif-2"]',
@@ -243,6 +419,7 @@ describe('task service', () => {
       expect.objectContaining({
         status: 'completed',
         taskMode: 'recurring',
+        lastNotificationAt: null,
         nextNotificationAt: null,
         snoozedUntil: null,
         completedAt: expect.any(String)
@@ -251,6 +428,7 @@ describe('task service', () => {
     expect(updated).toMatchObject({
       status: 'completed',
       taskMode: 'recurring',
+      lastNotificationAt: null,
       nextNotificationAt: null,
       snoozedUntil: null
     });

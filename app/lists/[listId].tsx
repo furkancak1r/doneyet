@@ -10,6 +10,7 @@ import { Button } from '@/components/Button';
 import { TaskCard } from '@/components/TaskCard';
 import { EmptyState } from '@/components/EmptyState';
 import { filterTasks, sortTasks } from '@/utils/taskFilters';
+import { isRecurringCycleDue } from '@/utils/date';
 import { useTranslation } from 'react-i18next';
 
 export default function ListDetailScreen() {
@@ -81,28 +82,30 @@ export default function ListDetailScreen() {
 
                 void reorderTasks(list.id, data.map((item) => item.id));
               }}
-              renderItem={({ item, drag, isActive }) => (
-                <TaskCard
-                  task={item}
-                  list={lists.find((candidate) => candidate.id === item.listId)}
-                  onPress={() => router.push(`/tasks/${item.id}`)}
-                  onComplete={item.status !== 'completed' ? () => void completeTask(item.id) : undefined}
-                  onFinishRecurringTask={
-                    item.taskMode === 'recurring' && item.status !== 'completed'
-                      ? () => void completeTaskPermanently(item.id)
-                      : undefined
-                  }
-                  onSnooze={
-                    item.taskMode === 'todo' || item.status === 'completed'
-                      ? undefined
-                      : () => void snoozeTask(item.id, new Date(Date.now() + 10 * 60 * 1000))
-                  }
-                  onLongPress={reorderBusy ? undefined : drag}
-                  disabled={reorderBusy || isTaskMutating(item.id)}
-                  dragging={isActive}
-                  showDragHandle
-                />
-              )}
+              renderItem={({ item, drag, isActive }) => {
+                const recurringCycleDue = isRecurringCycleDue(item);
+                const canCompleteTask = item.status !== 'completed' && (item.taskMode !== 'recurring' || recurringCycleDue);
+                const canFinishRecurringTask = item.taskMode === 'recurring' && recurringCycleDue;
+
+                return (
+                  <TaskCard
+                    task={item}
+                    list={lists.find((candidate) => candidate.id === item.listId)}
+                    onPress={() => router.push(`/tasks/${item.id}`)}
+                    onComplete={canCompleteTask ? () => void completeTask(item.id) : undefined}
+                    onFinishRecurringTask={canFinishRecurringTask ? () => void completeTaskPermanently(item.id) : undefined}
+                    onSnooze={
+                      item.taskMode === 'todo' || item.status === 'completed'
+                        ? undefined
+                        : () => void snoozeTask(item.id, new Date(Date.now() + 10 * 60 * 1000))
+                    }
+                    onLongPress={reorderBusy ? undefined : drag}
+                    disabled={reorderBusy || isTaskMutating(item.id)}
+                    dragging={isActive}
+                    showDragHandle
+                  />
+                );
+              }}
             />
           )}
         </View>

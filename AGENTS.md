@@ -64,6 +64,7 @@ This file applies to the repository root and everything under it.
 
 - `expo-notifications` foreground handlers should not use deprecated `shouldShowAlert`.
 - Use `shouldShowBanner` and / or `shouldShowList` to control foreground presentation instead.
+- iOS notification actions and widget actions must perform their task mutations in the background without foregrounding or deep-linking into the app. Use the native App Group SQLite action path for notification actions and WidgetKit/AppIntent buttons for widget actions; do not replace these with app-opening fallback routes unless the user explicitly asks for an app-opening flow.
 
 ## App Store screenshot pipeline
 

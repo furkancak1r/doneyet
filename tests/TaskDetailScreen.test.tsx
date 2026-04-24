@@ -48,7 +48,7 @@ jest.mock('@/components/TaskCard', () => ({
 jest.mock('@/components/Button', () => ({
   Button: ({ label, disabled, onPress, testID }: { label: string; disabled?: boolean; onPress?: () => void; testID?: string }) => {
     const { Text } = require('react-native');
-    return <Text {...({ testID: testID ?? `button:${label}`, disabled, onPress } as any)}>{label}</Text>;
+    return <Text {...({ testID: testID ?? `button:${label}`, disabled, onPress: disabled ? undefined : onPress } as any)}>{label}</Text>;
   }
 }));
 
@@ -204,6 +204,80 @@ describe('TaskDetailScreen', () => {
     expect(screen.getByTestId('task-detail-complete-and-stop').props.disabled).toBe(true);
   });
 
+  it('disables recurring completion actions before the cycle is due and ignores presses', () => {
+    const appValue = buildUseAppValue({ taskMode: 'recurring' });
+    const completeTask = appValue.completeTask as jest.Mock;
+    const completeTaskPermanently = appValue.completeTaskPermanently as jest.Mock;
+    mockedUseApp.mockReturnValue({
+      ...appValue,
+      isTaskMutating: jest.fn().mockReturnValue(false)
+    });
+
+    render(<TaskDetailScreen />);
+
+    expect(screen.getByTestId('task-detail-complete').props.disabled).toBe(true);
+    expect(screen.getByTestId('task-detail-complete-and-stop').props.disabled).toBe(true);
+
+    fireEvent.press(screen.getByTestId('task-detail-complete'));
+    fireEvent.press(screen.getByTestId('task-detail-complete-and-stop'));
+
+    expect(completeTask).not.toHaveBeenCalled();
+    expect(completeTaskPermanently).not.toHaveBeenCalled();
+    expect(mockBack).not.toHaveBeenCalled();
+    expect(replaceMock).not.toHaveBeenCalled();
+  });
+
+  it('enables recurring completion actions once the cycle is due', async () => {
+    const appValue = buildUseAppValue({
+      taskMode: 'recurring',
+      startDateTime: '2020-01-01T09:00:00.000Z',
+      nextNotificationAt: '2020-01-01T09:00:00.000Z'
+    });
+    const completeTask = appValue.completeTask as jest.Mock;
+    mockedUseApp.mockReturnValue({
+      ...appValue,
+      isTaskMutating: jest.fn().mockReturnValue(false)
+    });
+
+    render(<TaskDetailScreen />);
+
+    expect(screen.getByTestId('task-detail-complete').props.disabled).toBe(false);
+    expect(screen.getByTestId('task-detail-complete-and-stop').props.disabled).toBe(false);
+
+    fireEvent.press(screen.getByTestId('task-detail-complete'));
+
+    await waitFor(() => {
+      expect(completeTask).toHaveBeenCalledWith('task-1');
+      expect(mockBack).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('keeps recurring completion actions enabled after a reminder has fired even if the next one is future-dated', async () => {
+    const appValue = buildUseAppValue({
+      taskMode: 'recurring',
+      startDateTime: '2020-01-01T09:00:00.000Z',
+      lastNotificationAt: '2020-01-01T09:00:00.000Z',
+      nextNotificationAt: '2030-01-01T09:00:00.000Z'
+    });
+    const completeTask = appValue.completeTask as jest.Mock;
+    mockedUseApp.mockReturnValue({
+      ...appValue,
+      isTaskMutating: jest.fn().mockReturnValue(false)
+    });
+
+    render(<TaskDetailScreen />);
+
+    expect(screen.getByTestId('task-detail-complete').props.disabled).toBe(false);
+    expect(screen.getByTestId('task-detail-complete-and-stop').props.disabled).toBe(false);
+
+    fireEvent.press(screen.getByTestId('task-detail-complete'));
+
+    await waitFor(() => {
+      expect(completeTask).toHaveBeenCalledWith('task-1');
+      expect(mockBack).toHaveBeenCalledTimes(1);
+    });
+  });
+
   it('completes a task and returns to the previous screen when available', async () => {
     const appValue = buildUseAppValue();
     const completeTask = appValue.completeTask as jest.Mock;
@@ -244,7 +318,11 @@ describe('TaskDetailScreen', () => {
   });
 
   it('permanently completes an active recurring task from the detail action and returns to the previous screen', async () => {
-    const appValue = buildUseAppValue({ taskMode: 'recurring' });
+    const appValue = buildUseAppValue({
+      taskMode: 'recurring',
+      startDateTime: '2020-01-01T09:00:00.000Z',
+      nextNotificationAt: '2020-01-01T09:00:00.000Z'
+    });
     const completeTaskPermanently = appValue.completeTaskPermanently as jest.Mock;
     mockedUseApp.mockReturnValue({
       ...appValue,
@@ -265,7 +343,11 @@ describe('TaskDetailScreen', () => {
 
   it('logs permanent completion failures without crashing the detail action', async () => {
     const error = new Error('boom');
-    const appValue = buildUseAppValue({ taskMode: 'recurring' });
+    const appValue = buildUseAppValue({
+      taskMode: 'recurring',
+      startDateTime: '2020-01-01T09:00:00.000Z',
+      nextNotificationAt: '2020-01-01T09:00:00.000Z'
+    });
     const completeTaskPermanently = appValue.completeTaskPermanently as jest.Mock;
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 

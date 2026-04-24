@@ -6,7 +6,7 @@ import { Screen } from '@/components/Screen';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { TaskCard } from '@/components/TaskCard';
-import { formatDateTimeTR, getTomorrowSnoozeDateForTask, getVisibleTaskState, weekdayName } from '@/utils/date';
+import { formatDateTimeTR, getTomorrowSnoozeDateForTask, getVisibleTaskState, isRecurringCycleDue, weekdayName } from '@/utils/date';
 import { snoozeEveningTime } from '@/constants/settings';
 import { useTranslation } from 'react-i18next';
 
@@ -26,9 +26,11 @@ export default function TaskDetailScreen() {
   const isRecurring = task.taskMode === 'recurring';
   const isTodo = task.taskMode === 'todo';
   const isCompleted = task.status === 'completed';
+  const recurringCycleDue = isRecurringCycleDue(task);
   const showCompleteAction = !isCompleted;
   const showSnoozeActions = !isTodo && !isCompleted;
   const taskBusy = isTaskMutating(task.id);
+  const completeDisabled = taskBusy || (isRecurring && !recurringCycleDue);
   const navigateAfterMutation = useCallback(() => {
     if (routerInstance.canGoBack()) {
       routerInstance.back();
@@ -50,16 +52,16 @@ export default function TaskDetailScreen() {
   };
 
   const handleComplete = useCallback(async () => {
-    if (taskBusy || isCompleted) {
+    if (taskBusy || isCompleted || (isRecurring && !recurringCycleDue)) {
       return;
     }
 
     await completeTask(task.id);
     navigateAfterMutation();
-  }, [completeTask, isCompleted, navigateAfterMutation, task.id, taskBusy]);
+  }, [completeTask, isCompleted, isRecurring, navigateAfterMutation, recurringCycleDue, task.id, taskBusy]);
 
   const handleCompleteAndFinish = useCallback(async () => {
-    if (taskBusy || !isRecurring || isCompleted) {
+    if (taskBusy || !isRecurring || isCompleted || !recurringCycleDue) {
       return;
     }
 
@@ -69,7 +71,7 @@ export default function TaskDetailScreen() {
     } catch (error) {
       console.error(`Failed to permanently complete recurring task ${task.id}.`, error);
     }
-  }, [completeTaskPermanently, isCompleted, isRecurring, navigateAfterMutation, task.id, taskBusy]);
+  }, [completeTaskPermanently, isCompleted, isRecurring, navigateAfterMutation, recurringCycleDue, task.id, taskBusy]);
 
   const handlePause = useCallback(async () => {
     if (taskBusy || isCompleted || isTodo || task.status === 'paused') {
@@ -153,7 +155,7 @@ export default function TaskDetailScreen() {
               label={isTodo ? t('taskDetail.completeTodo') : isRecurring ? t('taskDetail.completeRecurring') : t('taskDetail.completeSingle')}
               variant="success"
               onPress={() => void handleComplete()}
-              disabled={taskBusy}
+              disabled={completeDisabled}
               testID="task-detail-complete"
             />
           ) : null}
@@ -162,7 +164,7 @@ export default function TaskDetailScreen() {
               label={t('taskDetail.completeRecurringAndStop')}
               variant="secondary"
               onPress={handleCompleteAndFinish}
-              disabled={taskBusy}
+              disabled={taskBusy || !recurringCycleDue}
               testID="task-detail-complete-and-stop"
             />
           ) : null}

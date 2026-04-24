@@ -5,7 +5,7 @@ type NotificationPermissions = {
 };
 
 type ForegroundSyncDependencies = {
-  configureNotificationHandling: (settings: Pick<AppSettings, 'soundEnabled' | 'vibrationEnabled'>) => void;
+  configureNotificationHandling: (settings: Pick<AppSettings, 'soundEnabled' | 'vibrationEnabled'>) => Promise<void>;
   getNotificationPermissions: () => Promise<NotificationPermissions>;
   restoreAllTaskSchedules: (settings: AppSettings) => Promise<void>;
   setAppLanguage: (language: AppSettings['language']) => Promise<unknown>;
@@ -19,7 +19,7 @@ export async function syncForegroundAppState(settings: AppSettings, dependencies
 
   const permissions = await dependencies.getNotificationPermissions();
   dependencies.setNotificationGranted(permissions.granted);
-  dependencies.configureNotificationHandling(settings);
+  await dependencies.configureNotificationHandling(settings);
   await dependencies.restoreAllTaskSchedules(settings);
 
   return permissions.granted;

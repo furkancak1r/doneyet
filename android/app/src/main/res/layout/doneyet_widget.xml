@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:id="@+id/widget_root"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:background="@drawable/doneyet_widget_background"
+  android:orientation="vertical"
+  android:padding="14dp">
+
+  <LinearLayout
+    android:id="@+id/widget_header"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+      android:id="@+id/widget_title"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:ellipsize="end"
+      android:fontFamily="sans"
+      android:maxLines="1"
+      android:text="DoneYet?"
+      android:textColor="#133B36"
+      android:textSize="17sp"
+      android:textStyle="bold" />
+
+    <TextView
+      android:id="@+id/widget_subtitle"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="2dp"
+      android:ellipsize="end"
+      android:maxLines="1"
+      android:textColor="#65736F"
+      android:textSize="11sp" />
+  </LinearLayout>
+
+  <LinearLayout
+    android:id="@+id/widget_empty"
+    android:layout_width="match_parent"
+    android:layout_height="0dp"
+    android:layout_weight="1"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+      android:id="@+id/widget_empty_title"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:gravity="center"
+      android:textColor="#133B36"
+      android:textSize="14sp"
+      android:textStyle="bold" />
+
+    <TextView
+      android:id="@+id/widget_empty_description"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="4dp"
+      android:gravity="center"
+      android:textColor="#65736F"
+      android:textSize="11sp" />
+  </LinearLayout>
+
+  <LinearLayout
+    android:id="@+id/widget_rows"
+    android:layout_width="match_parent"
+    android:layout_height="0dp"
+    android:layout_marginTop="8dp"
+    android:layout_weight="1"
+    android:orientation="vertical">
+
+    <LinearLayout
+      android:id="@+id/widget_row_1"
+      style="@style/DoneYetWidgetRow">
+      <TextView android:id="@+id/widget_row_color_1" style="@style/DoneYetWidgetRowColor" />
+      <LinearLayout style="@style/DoneYetWidgetRowText"><TextView android:id="@+id/widget_row_title_1" style="@style/DoneYetWidgetTaskTitle" /><TextView android:id="@+id/widget_row_meta_1" style="@style/DoneYetWidgetTaskMeta" /></LinearLayout>
+      <TextView android:id="@+id/widget_row_done_1" style="@style/DoneYetWidgetDoneButton" />
+      <TextView android:id="@+id/widget_row_snooze_1" style="@style/DoneYetWidgetSnoozeButton" />
+    </LinearLayout>
+
+    <LinearLayout
+      android:id="@+id/widget_row_2"
+      style="@style/DoneYetWidgetRow">
+      <TextView android:id="@+id/widget_row_color_2" style="@style/DoneYetWidgetRowColor" />
+      <LinearLayout style="@style/DoneYetWidgetRowText"><TextView android:id="@+id/widget_row_title_2" style="@style/DoneYetWidgetTaskTitle" /><TextView android:id="@+id/widget_row_meta_2" style="@style/DoneYetWidgetTaskMeta" /></LinearLayout>
+      <TextView android:id="@+id/widget_row_done_2" style="@style/DoneYetWidgetDoneButton" />
+      <TextView android:id="@+id/widget_row_snooze_2" style="@style/DoneYetWidgetSnoozeButton" />
+    </LinearLayout>
+
+    <LinearLayout
+      android:id="@+id/widget_row_3"
+      style="@style/DoneYetWidgetRow">
+      <TextView android:id="@+id/widget_row_color_3" style="@style/DoneYetWidgetRowColor" />
+      <LinearLayout style="@style/DoneYetWidgetRowText"><TextView android:id="@+id/widget_row_title_3" style="@style/DoneYetWidgetTaskTitle" /><TextView android:id="@+id/widget_row_meta_3" style="@style/DoneYetWidgetTaskMeta" /></LinearLayout>
+      <TextView android:id="@+id/widget_row_done_3" style="@style/DoneYetWidgetDoneButton" />
+      <TextView android:id="@+id/widget_row_snooze_3" style="@style/DoneYetWidgetSnoozeButton" />
+    </LinearLayout>
+
+    <LinearLayout
+      android:id="@+id/widget_row_4"
+      style="@style/DoneYetWidgetRow">
+      <TextView android:id="@+id/widget_row_color_4" style="@style/DoneYetWidgetRowColor" />
+      <LinearLayout style="@style/DoneYetWidgetRowText"><TextView android:id="@+id/widget_row_title_4" style="@style/DoneYetWidgetTaskTitle" /><TextView android:id="@+id/widget_row_meta_4" style="@style/DoneYetWidgetTaskMeta" /></LinearLayout>
+      <TextView android:id="@+id/widget_row_done_4" style="@style/DoneYetWidgetDoneButton" />
+      <TextView android:id="@+id/widget_row_snooze_4" style="@style/DoneYetWidgetSnoozeButton" />
+    </LinearLayout>
+
+    <LinearLayout
+      android:id="@+id/widget_row_5"
+      style="@style/DoneYetWidgetRow">
+      <TextView android:id="@+id/widget_row_color_5" style="@style/DoneYetWidgetRowColor" />
+      <LinearLayout style="@style/DoneYetWidgetRowText"><TextView android:id="@+id/widget_row_title_5" style="@style/DoneYetWidgetTaskTitle" /><TextView android:id="@+id/widget_row_meta_5" style="@style/DoneYetWidgetTaskMeta" /></LinearLayout>
+      <TextView android:id="@+id/widget_row_done_5" style="@style/DoneYetWidgetDoneButton" />
+      <TextView android:id="@+id/widget_row_snooze_5" style="@style/DoneYetWidgetSnoozeButton" />
+    </LinearLayout>
+
+    <LinearLayout
+      android:id="@+id/widget_row_6"
+      style="@style/DoneYetWidgetRow">
+      <TextView android:id="@+id/widget_row_color_6" style="@style/DoneYetWidgetRowColor" />
+      <LinearLayout style="@style/DoneYetWidgetRowText"><TextView android:id="@+id/widget_row_title_6" style="@style/DoneYetWidgetTaskTitle" /><TextView android:id="@+id/widget_row_meta_6" style="@style/DoneYetWidgetTaskMeta" /></LinearLayout>
+      <TextView android:id="@+id/widget_row_done_6" style="@style/DoneYetWidgetDoneButton" />
+      <TextView android:id="@+id/widget_row_snooze_6" style="@style/DoneYetWidgetSnoozeButton" />
+    </LinearLayout>
+
+    <LinearLayout
+      android:id="@+id/widget_row_7"
+      style="@style/DoneYetWidgetRow">
+      <TextView android:id="@+id/widget_row_color_7" style="@style/DoneYetWidgetRowColor" />
+      <LinearLayout style="@style/DoneYetWidgetRowText"><TextView android:id="@+id/widget_row_title_7" style="@style/DoneYetWidgetTaskTitle" /><TextView android:id="@+id/widget_row_meta_7" style="@style/DoneYetWidgetTaskMeta" /></LinearLayout>
+      <TextView android:id="@+id/widget_row_done_7" style="@style/DoneYetWidgetDoneButton" />
+      <TextView android:id="@+id/widget_row_snooze_7" style="@style/DoneYetWidgetSnoozeButton" />
+    </LinearLayout>
+
+    <LinearLayout
+      android:id="@+id/widget_row_8"
+      style="@style/DoneYetWidgetRow">
+      <TextView android:id="@+id/widget_row_color_8" style="@style/DoneYetWidgetRowColor" />
+      <LinearLayout style="@style/DoneYetWidgetRowText"><TextView android:id="@+id/widget_row_title_8" style="@style/DoneYetWidgetTaskTitle" /><TextView android:id="@+id/widget_row_meta_8" style="@style/DoneYetWidgetTaskMeta" /></LinearLayout>
+      <TextView android:id="@+id/widget_row_done_8" style="@style/DoneYetWidgetDoneButton" />
+      <TextView android:id="@+id/widget_row_snooze_8" style="@style/DoneYetWidgetSnoozeButton" />
+    </LinearLayout>
+  </LinearLayout>
+</LinearLayout>

@@ -39,6 +39,27 @@ Upload only screenshots to App Store Connect
 
 ----
 
+
+## Android
+
+### android play_validate
+
+```sh
+[bundle exec] fastlane android play_validate
+```
+
+Validate Android Play Store metadata, screenshots, and AAB for closed testing
+
+### android play_closed_testing
+
+```sh
+[bundle exec] fastlane android play_closed_testing
+```
+
+Upload Android Play Store metadata, screenshots, and AAB to the closed testing track
+
+----
+
 This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.
 
 More information about _fastlane_ can be found on [fastlane.tools](https://fastlane.tools).

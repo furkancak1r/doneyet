@@ -383,6 +383,15 @@
       "actionSnoozeEvening": "Akşama ertele",
       "actionSnoozeTomorrow": "Yarın hatırlat"
     },
+    "widget": {
+      "title": "DoneYet?",
+      "subtitle": "{{overdue}} geciken • {{today}} bugün • {{todo}} To-Do",
+      "emptyTitle": "Takip edilecek görev yok",
+      "emptyDescription": "Bugün ve geciken görevler burada görünür.",
+      "actionDone": "Yapıldı",
+      "actionCompleteCycle": "Bu döngüyü tamamla",
+      "actionCompleteFinish": "Tamamla ve bitir"
+    },
     "errors": {
       "duplicateList": "Bu isimde bir liste zaten var.",
       "backupInvalid": "Yedek dosyası okunamadı veya biçimi geçersiz."
@@ -805,6 +814,15 @@
       "actionSnooze1h": "Snooze 1 hour",
       "actionSnoozeEvening": "Snooze until evening",
       "actionSnoozeTomorrow": "Remind tomorrow"
+    },
+    "widget": {
+      "title": "DoneYet?",
+      "subtitle": "{{overdue}} overdue • {{today}} today • {{todo}} To-Do",
+      "emptyTitle": "Nothing to track",
+      "emptyDescription": "Today and overdue tasks show up here.",
+      "actionDone": "Done",
+      "actionCompleteCycle": "Complete this cycle",
+      "actionCompleteFinish": "Complete and finish"
     },
     "errors": {
       "duplicateList": "A list with this name already exists.",

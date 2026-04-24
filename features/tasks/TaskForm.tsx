@@ -167,7 +167,6 @@ export function TaskForm({
 
   const isTodo = taskMode === 'todo';
   const isRecurring = taskMode === 'recurring';
-  const isReminderTask = !isTodo;
   const isMonthly = startReminderType === 'monthly_on_day' || startReminderType === 'monthly_on_last_day';
   const isSubmitting = submitting || localSubmitting;
 
@@ -183,22 +182,25 @@ export function TaskForm({
     }
 
     const repeatValue = Number(repeatIntervalValue);
-    const nextRepeatIntervalType = isTodo ? (repeatIntervalType ?? 'preset') : repeatIntervalType;
-    const nextRepeatIntervalValue = isTodo
-      ? Number.isFinite(repeatValue) && repeatValue > 0
-        ? repeatValue
-        : 1
-      : repeatValue;
-    const nextRepeatIntervalUnit = repeatIntervalUnit;
+    const hasValidRepeatValue = Number.isFinite(repeatValue) && repeatValue > 0;
+    let nextRepeatIntervalType: TaskFormValues['repeatIntervalType'] = initialTask?.repeatIntervalType ?? 'preset';
+    let nextRepeatIntervalValue = initialTask?.repeatIntervalValue ?? 1;
+    let nextRepeatIntervalUnit: TaskFormValues['repeatIntervalUnit'] = initialTask?.repeatIntervalUnit ?? 'hours';
 
-    if (isReminderTask && !nextRepeatIntervalType) {
-      setError(t('taskForm.validationRepeatRequired'));
-      return;
-    }
+    if (isRecurring) {
+      if (!repeatIntervalType) {
+        setError(t('taskForm.validationRepeatRequired'));
+        return;
+      }
 
-    if (isReminderTask && (!Number.isFinite(repeatValue) || repeatValue <= 0)) {
-      setError(t('taskForm.validationRepeatPositive'));
-      return;
+      if (!hasValidRepeatValue) {
+        setError(t('taskForm.validationRepeatPositive'));
+        return;
+      }
+
+      nextRepeatIntervalType = repeatIntervalType;
+      nextRepeatIntervalValue = repeatValue;
+      nextRepeatIntervalUnit = repeatIntervalUnit;
     }
 
     const nextStartReminderType = isTodo
@@ -221,7 +223,7 @@ export function TaskForm({
       startReminderDayOfMonth: !isTodo && nextStartReminderType === 'monthly_on_day' ? dayOfMonth : null,
       startReminderTime: clockTime,
       startReminderUsesLastDay: !isTodo && nextStartReminderType === 'monthly_on_last_day',
-      repeatIntervalType: nextRepeatIntervalType ?? 'preset',
+      repeatIntervalType: nextRepeatIntervalType,
       repeatIntervalValue: nextRepeatIntervalValue,
       repeatIntervalUnit: nextRepeatIntervalUnit
     };
@@ -434,7 +436,7 @@ export function TaskForm({
             </View>
           ) : null}
 
-          {isReminderTask ? (
+          {isRecurring ? (
             <View style={styles.section}>
               <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('taskForm.repeatSection')}</Text>
               <View style={styles.chipWrap}>

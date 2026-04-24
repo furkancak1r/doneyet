@@ -9,6 +9,7 @@ const saveTask = vi.fn();
 const scheduleTaskReminder = vi.fn();
 const cancelNotifications = vi.fn();
 const hasNotificationPermission = vi.fn();
+const configureNotificationHandling = vi.fn();
 
 vi.mock('../db/repositories', () => ({
   fetchAllTaskNotifications: (...args: unknown[]) => fetchAllTaskNotifications(...args),
@@ -20,7 +21,8 @@ vi.mock('../db/repositories', () => ({
 vi.mock('../services/notificationService', () => ({
   scheduleTaskReminder: (...args: unknown[]) => scheduleTaskReminder(...args),
   cancelNotifications: (...args: unknown[]) => cancelNotifications(...args),
-  hasNotificationPermission: (...args: unknown[]) => hasNotificationPermission(...args)
+  hasNotificationPermission: (...args: unknown[]) => hasNotificationPermission(...args),
+  configureNotificationHandling: (...args: unknown[]) => configureNotificationHandling(...args)
 }));
 
 function buildTask(overrides: Partial<Task> & Pick<Task, 'id'>): Task {
@@ -39,7 +41,7 @@ function buildTask(overrides: Partial<Task> & Pick<Task, 'id'>): Task {
     startReminderDayOfMonth: null,
     startReminderTime: '20:20',
     startReminderUsesLastDay: 0,
-    taskMode: 'single',
+    taskMode: 'recurring',
     repeatIntervalType: 'preset',
     repeatIntervalValue: 30,
     repeatIntervalUnit: 'minutes',
@@ -77,6 +79,7 @@ describe('scheduler service', () => {
     cancelNotifications.mockResolvedValue(undefined);
     replaceTaskNotifications.mockResolvedValue(undefined);
     saveTask.mockResolvedValue(undefined);
+    configureNotificationHandling.mockResolvedValue(undefined);
     scheduleTaskReminder.mockImplementation(async (task: Task, fireAt: Date) => `${task.id}-${fireAt.toISOString()}`);
   });
 
@@ -133,8 +136,123 @@ describe('scheduler service', () => {
 
       expect(scheduleTaskReminder).toHaveBeenCalledTimes(64);
       expectLocalDateTime(scheduleTaskReminder.mock.calls[0][1] as Date, 2025, 2, 1, 20, 50);
+      expect(result?.lastNotificationAt).toBe(new Date(2025, 2, 1, 20, 20, 0, 0).toISOString());
       expect(result?.nextNotificationAt).toBeTruthy();
       expectLocalDateTime(new Date(result?.nextNotificationAt ?? ''), 2025, 2, 1, 20, 50);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('preserves the latest delivered recurring occurrence while advancing the next one into the future', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2025, 2, 1, 21, 5, 0, 0));
+
+    try {
+      fetchTasks.mockResolvedValue([
+        buildTask({
+          id: 'task-1',
+          nextNotificationAt: new Date(2025, 2, 1, 20, 20, 0, 0).toISOString()
+        })
+      ]);
+
+      const result = await syncTaskSchedule('task-1');
+
+      expect(result?.lastNotificationAt).toBe(new Date(2025, 2, 1, 20, 50, 0, 0).toISOString());
+      expect(result?.nextNotificationAt).toBe(new Date(2025, 2, 1, 21, 20, 0, 0).toISOString());
+      expect(saveTask).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'task-1',
+          lastNotificationAt: new Date(2025, 2, 1, 20, 50, 0, 0).toISOString(),
+          nextNotificationAt: new Date(2025, 2, 1, 21, 20, 0, 0).toISOString()
+        })
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('schedules only one future notification for single reminders', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2025, 2, 1, 20, 10, 0, 0));
+
+    try {
+      fetchTasks.mockResolvedValue([
+        buildTask({
+          id: 'task-single',
+          taskMode: 'single'
+        })
+      ]);
+
+      const result = await syncTaskSchedule('task-single');
+
+      expect(scheduleTaskReminder).toHaveBeenCalledTimes(1);
+      expectLocalDateTime(scheduleTaskReminder.mock.calls[0][1] as Date, 2025, 2, 1, 20, 20);
+
+      expect(replaceTaskNotifications).toHaveBeenCalledTimes(1);
+      const rows = replaceTaskNotifications.mock.calls[0][1] as Array<{ scheduledFor: string }>;
+      expect(rows).toHaveLength(1);
+      expectLocalDateTime(new Date(rows[0].scheduledFor), 2025, 2, 1, 20, 20);
+
+      expect(result?.nextNotificationAt).toBeTruthy();
+      expectLocalDateTime(new Date(result?.nextNotificationAt ?? ''), 2025, 2, 1, 20, 20);
+      expect(JSON.parse(result?.notificationIdsJson ?? '[]')).toHaveLength(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('keeps overdue single reminders anchored without rescheduling them', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2025, 2, 1, 20, 35, 0, 0));
+
+    try {
+      fetchTasks.mockResolvedValue([
+        buildTask({
+          id: 'task-single',
+          taskMode: 'single',
+          nextNotificationAt: new Date(2025, 2, 1, 20, 20, 0, 0).toISOString()
+        })
+      ]);
+
+      const result = await syncTaskSchedule('task-single');
+
+      expect(scheduleTaskReminder).not.toHaveBeenCalled();
+      expect(replaceTaskNotifications).not.toHaveBeenCalled();
+      expect(saveTask).not.toHaveBeenCalled();
+      expect(result?.nextNotificationAt).toBe(new Date(2025, 2, 1, 20, 20, 0, 0).toISOString());
+      expect(result?.notificationIdsJson).toBe('[]');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('schedules only the future snooze for single reminders', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2025, 2, 1, 20, 35, 0, 0));
+
+    try {
+      const snoozedUntil = new Date(2025, 2, 1, 21, 5, 0, 0).toISOString();
+      fetchTasks.mockResolvedValue([
+        buildTask({
+          id: 'task-single',
+          taskMode: 'single',
+          nextNotificationAt: snoozedUntil,
+          snoozedUntil
+        })
+      ]);
+
+      const result = await syncTaskSchedule('task-single');
+
+      expect(scheduleTaskReminder).toHaveBeenCalledTimes(1);
+      expectLocalDateTime(scheduleTaskReminder.mock.calls[0][1] as Date, 2025, 2, 1, 21, 5);
+
+      const rows = replaceTaskNotifications.mock.calls[0][1] as Array<{ scheduledFor: string }>;
+      expect(rows).toHaveLength(1);
+      expectLocalDateTime(new Date(rows[0].scheduledFor), 2025, 2, 1, 21, 5);
+      expect(result?.nextNotificationAt).toBe(snoozedUntil);
+      expect(result?.snoozedUntil).toBe(snoozedUntil);
+      expect(JSON.parse(result?.notificationIdsJson ?? '[]')).toHaveLength(1);
     } finally {
       vi.useRealTimers();
     }

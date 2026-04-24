@@ -6,6 +6,16 @@ export function getNotificationResponseKey(response: NotificationResponseLike): 
   return `${String(response.notification.request.identifier)}::${String(response.actionIdentifier ?? '')}`;
 }
 
+export function getNotificationResponseScheduledFor(response: NotificationResponseLike): Date | null {
+  const scheduledFor = response.notification.request.content.data?.scheduledFor;
+  if (typeof scheduledFor !== 'string') {
+    return null;
+  }
+
+  const date = new Date(scheduledFor);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 export async function handleNotificationResponseOnce<T extends NotificationResponseLike>(
   response: T,
   handledKeys: Set<string>,

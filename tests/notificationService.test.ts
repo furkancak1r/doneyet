@@ -93,7 +93,7 @@ describe('notification service', () => {
     vi.resetModules();
     const { configureNotificationHandling } = await import('../services/notificationService');
 
-    configureNotificationHandling();
+    await configureNotificationHandling();
 
     expect(setNotificationHandler).toHaveBeenCalledTimes(1);
 
@@ -188,5 +188,54 @@ describe('notification service', () => {
     );
 
     expectLocalDateTime(result, 2026, 3, 1, 9, 30);
+  });
+
+  it('bases 10 minute snoozes on the task scheduled time when it is still useful', () => {
+    const now = new Date(2026, 2, 31, 11, 15, 0, 0);
+    const scheduledFor = new Date(2026, 2, 31, 13, 0, 0, 0);
+
+    const result = resolveSnoozeTime(
+      'snooze_10_min',
+      now,
+      buildTask({
+        id: 'task-3',
+        nextNotificationAt: scheduledFor.toISOString()
+      })
+    );
+
+    expectLocalDateTime(result, 2026, 2, 31, 13, 10);
+  });
+
+  it('falls back to now when the scheduled-time snooze would already be in the past', () => {
+    const now = new Date(2026, 2, 31, 13, 20, 0, 0);
+    const scheduledFor = new Date(2026, 2, 31, 13, 0, 0, 0);
+
+    const result = resolveSnoozeTime(
+      'snooze_10_min',
+      now,
+      buildTask({
+        id: 'task-4',
+        nextNotificationAt: scheduledFor.toISOString()
+      })
+    );
+
+    expectLocalDateTime(result, 2026, 2, 31, 13, 30);
+  });
+
+  it('uses the notification scheduledFor timestamp for relative snoozes when provided', () => {
+    const now = new Date(2026, 2, 31, 13, 5, 0, 0);
+    const scheduledFor = new Date(2026, 2, 31, 13, 0, 0, 0);
+
+    const result = resolveSnoozeTime(
+      'snooze_10_min',
+      now,
+      buildTask({
+        id: 'task-5',
+        nextNotificationAt: new Date(2026, 2, 31, 14, 0, 0, 0).toISOString()
+      }),
+      scheduledFor
+    );
+
+    expectLocalDateTime(result, 2026, 2, 31, 13, 10);
   });
 });

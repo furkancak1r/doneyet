@@ -3,6 +3,7 @@ import { TaskCard, type TaskCardSwipeHintDirection } from '@/components/TaskCard
 import { EmptyState } from '@/components/EmptyState';
 import { useApp } from '@/hooks/useApp';
 import { AppList, Task } from '@/types/domain';
+import { isRecurringCycleDue } from '@/utils/date';
 
 export function TaskListView({
   tasks,
@@ -37,24 +38,26 @@ export function TaskListView({
 
   return (
     <View>
-      {tasks.map((task) => (
-        <TaskCard
-          key={task.id}
-          task={task}
-          list={lists.find((list) => list.id === task.listId)}
-          onPress={onPressTask ? () => onPressTask(task) : undefined}
-          onComplete={onCompleteTask ? () => onCompleteTask(task) : undefined}
-          onFinishRecurringTask={
-            task.taskMode === 'recurring' && task.status !== 'completed' && onFinishRecurringTask
-              ? () => onFinishRecurringTask(task)
-              : undefined
-          }
-          onSnooze={onSnoozeTask ? () => onSnoozeTask(task) : undefined}
-          disabled={isTaskMutating(task.id)}
-          swipeHintDirection={swipeHintTaskId === task.id ? swipeHintDirection : undefined}
-          onSwipeHintStarted={swipeHintTaskId === task.id ? onSwipeHintStarted : undefined}
-        />
-      ))}
+      {tasks.map((task) => {
+        const recurringCycleDue = isRecurringCycleDue(task);
+        const canCompleteTask = task.taskMode !== 'recurring' || recurringCycleDue;
+        const canFinishRecurringTask = task.taskMode === 'recurring' && recurringCycleDue;
+
+        return (
+          <TaskCard
+            key={task.id}
+            task={task}
+            list={lists.find((list) => list.id === task.listId)}
+            onPress={onPressTask ? () => onPressTask(task) : undefined}
+            onComplete={onCompleteTask && canCompleteTask ? () => onCompleteTask(task) : undefined}
+            onFinishRecurringTask={onFinishRecurringTask && canFinishRecurringTask ? () => onFinishRecurringTask(task) : undefined}
+            onSnooze={onSnoozeTask ? () => onSnoozeTask(task) : undefined}
+            disabled={isTaskMutating(task.id)}
+            swipeHintDirection={swipeHintTaskId === task.id ? swipeHintDirection : undefined}
+            onSwipeHintStarted={swipeHintTaskId === task.id ? onSwipeHintStarted : undefined}
+          />
+        );
+      })}
     </View>
   );
 }

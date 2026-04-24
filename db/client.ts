@@ -1,13 +1,23 @@
 import * as SQLite from 'expo-sqlite';
+import { prepareWidgetStorage } from '@/native/DoneYetWidget';
 
 type Database = Awaited<ReturnType<typeof SQLite.openDatabaseAsync>>;
 
 let databasePromise: Promise<Database> | null = null;
+let databaseDirectoryPromise: Promise<string | undefined> | null = null;
 let initialized = false;
+
+export async function prepareDatabaseStorage(): Promise<string | undefined> {
+  if (!databaseDirectoryPromise) {
+    databaseDirectoryPromise = prepareWidgetStorage().then((result) => result.databaseDirectory);
+  }
+
+  return databaseDirectoryPromise;
+}
 
 export async function getDatabase(): Promise<Database> {
   if (!databasePromise) {
-    databasePromise = SQLite.openDatabaseAsync('doneyet.db');
+    databasePromise = prepareDatabaseStorage().then((databaseDirectory) => SQLite.openDatabaseAsync('doneyet.db', undefined, databaseDirectory));
   }
 
   return databasePromise;

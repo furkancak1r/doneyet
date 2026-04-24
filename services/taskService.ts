@@ -14,7 +14,7 @@ import { clearTaskSchedule, rescheduleTaskAfterMutation } from '@/services/sched
 import { AppSettings, Task, TaskCompletionHistoryEntry, TaskFormValues } from '@/types/domain';
 import { createId } from '@/utils/id';
 import { stableStringify } from '@/utils/json';
-import { getNextStartDateTime, toIso } from '@/utils/date';
+import { getNextStartDateTime, isRecurringCycleDue, isReminderInCurrentRecurringCycle, toIso } from '@/utils/date';
 import { mergeVisibleOrder, renumberSortOrders } from '@/utils/order';
 
 function buildTaskFromValues(values: TaskFormValues, existing?: Task | null): Task {
@@ -82,12 +82,31 @@ async function saveTaskCompletionHistory(task: Task, completedAt: string): Promi
   await saveTaskCompletionHistoryEntry(completionHistoryEntry);
 }
 
+function getLaterReminderAnchor(existingValue: string | null, candidate: Date): string | null {
+  const candidateTime = candidate.getTime();
+  if (Number.isNaN(candidateTime)) {
+    return existingValue ?? null;
+  }
+
+  if (!existingValue) {
+    return candidate.toISOString();
+  }
+
+  const existingDate = new Date(existingValue);
+  if (Number.isNaN(existingDate.getTime()) || existingDate.getTime() < candidateTime) {
+    return candidate.toISOString();
+  }
+
+  return existingValue;
+}
+
 async function markTaskCompleted(existing: Task, completedAt = new Date().toISOString()): Promise<Task> {
   await clearTaskSchedule(existing);
   const updated: Task = {
     ...existing,
     status: 'completed',
     completedAt,
+    lastNotificationAt: null,
     nextNotificationAt: null,
     snoozedUntil: null,
     notificationIdsJson: stableStringify([]),
@@ -147,6 +166,10 @@ export async function completeTask(taskId: string, settings: AppSettings = defau
   }
 
   if (existing.taskMode === 'recurring') {
+    if (!isRecurringCycleDue(existing)) {
+      return null;
+    }
+
     await clearTaskSchedule(existing);
     const now = new Date();
     const completedAt = now.toISOString();
@@ -165,6 +188,7 @@ export async function completeTask(taskId: string, settings: AppSettings = defau
       ...existing,
       status: 'active',
       completedAt,
+      lastNotificationAt: null,
       startDateTime: toIso(nextCycleStart),
       nextNotificationAt: toIso(nextCycleStart),
       snoozedUntil: null,
@@ -189,6 +213,10 @@ export async function completeTaskPermanently(taskId: string): Promise<Task | nu
       return existing;
     }
 
+    if (!isRecurringCycleDue(existing)) {
+      return null;
+    }
+
     const completedAt = new Date().toISOString();
     await saveTaskCompletionHistory(existing, completedAt);
     return markTaskCompleted(existing, completedAt);
@@ -207,6 +235,7 @@ export async function pauseTask(taskId: string): Promise<Task | null> {
   const updated: Task = {
     ...existing,
     status: 'paused',
+    lastNotificationAt: null,
     notificationIdsJson: stableStringify([]),
     updatedAt: new Date().toISOString()
   };
@@ -224,10 +253,39 @@ export async function resumeTask(taskId: string, settings: AppSettings = default
     ...existing,
     status: 'active',
     completedAt: null,
+    lastNotificationAt: null,
     updatedAt: new Date().toISOString()
   };
   await saveTask(updated);
   return rescheduleTaskAfterMutation(taskId, settings);
+}
+
+export async function recordTaskReminderDelivery(taskId: string, deliveredAt: Date): Promise<Task | null> {
+  const existing = await fetchTaskById(taskId);
+  if (!existing) {
+    return null;
+  }
+
+  if (existing.taskMode !== 'recurring' || existing.status !== 'active') {
+    return existing;
+  }
+
+  if (!isReminderInCurrentRecurringCycle(existing, deliveredAt)) {
+    return existing;
+  }
+
+  const nextLastNotificationAt = getLaterReminderAnchor(existing.lastNotificationAt, deliveredAt);
+  if (nextLastNotificationAt === existing.lastNotificationAt) {
+    return existing;
+  }
+
+  const updated: Task = {
+    ...existing,
+    lastNotificationAt: nextLastNotificationAt,
+    updatedAt: new Date().toISOString()
+  };
+  await saveTask(updated);
+  return updated;
 }
 
 export async function snoozeTask(taskId: string, snoozedUntil: Date, settings: AppSettings = defaultSettings): Promise<Task | null> {
@@ -274,6 +332,7 @@ export async function reactivateCompletedTask(taskId: string, settings: AppSetti
     ...existing,
     status: 'active',
     completedAt: null,
+    lastNotificationAt: null,
     snoozedUntil: null,
     nextNotificationAt: null,
     updatedAt: new Date().toISOString()

@@ -7,7 +7,7 @@ describe('app foreground sync', () => {
     const setAppLanguage = vi.fn().mockResolvedValue('tr');
     const getNotificationPermissions = vi.fn().mockResolvedValue({ granted: true });
     const setNotificationGranted = vi.fn();
-    const configureNotificationHandling = vi.fn();
+    const configureNotificationHandling = vi.fn().mockResolvedValue(undefined);
     const restoreAllTaskSchedules = vi.fn().mockResolvedValue(undefined);
 
     const granted = await syncForegroundAppState(
@@ -33,7 +33,7 @@ describe('app foreground sync', () => {
     const setAppLanguage = vi.fn().mockResolvedValue('en');
     const getNotificationPermissions = vi.fn().mockResolvedValue({ granted: false });
     const setNotificationGranted = vi.fn();
-    const configureNotificationHandling = vi.fn();
+    const configureNotificationHandling = vi.fn().mockResolvedValue(undefined);
     const restoreAllTaskSchedules = vi.fn().mockResolvedValue(undefined);
     const settings = { ...defaultSettings, language: 'en' as const };
 

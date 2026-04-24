@@ -1,0 +1,20 @@
+DoneYet?, görevlerini tamamlayana kadar seni uyaran, yinelenen hatırlatıcılarla çalışan çevrimdışı öncelikli bir görev uygulamasıdır.
+
+ÖZELLİKLER
+
+- Tek seferlik veya tekrarlayan görevler oluştur
+- Hatırlatıcıları tamamlayana kadar sürekli göster
+- Görevleri listeler halinde düzenle
+- Ertele, duraklat veya doğrudan tamamla
+- Hiçbir görev verisi sunucuya gönderilmez — tamamen çevrimdışı
+- Hiçbir hesap veya kayıt gerekmez
+
+NASIL ÇALIŞIR
+
+Bir görev oluştur, hatırlatma zamanı belirle. Görev tamamlanana kadar hatırlatmalar devam eder. Ertelemeyi seçersen belirlediğin süre sonunda tekrar hatırlatılırsın. Bugün bitene kadar takip et, sonra listeden çık — görev tamamlandığında uyarı artık gelmez.
+
+GÖRÜNÜM
+
+Yapılacaklar listesi temiz, sade ve kolay okunur. Takvim görünümü aylık planını gösterir. Liste detaylarında sürükle-bırak sıralama ile önceliklerini değiştir.
+
+DoneYet?, görev yönetimini basitleştirir — seni tekrar tekrar uyarır, ta ki iş bitene kadar.

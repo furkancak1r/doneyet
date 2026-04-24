@@ -8,6 +8,7 @@ import {
   getNextTaskOccurrence,
   getTomorrowSnoozeDateForTask,
   getVisibleTaskState,
+  isRecurringCycleDue,
   isLeapYear
 } from '../utils/date';
 import { Task } from '../types/domain';
@@ -157,18 +158,109 @@ describe('date helpers', () => {
     expectLocalDateTime(result, 2025, 2, 1, 10, 1);
   });
 
-  it('advances past nextNotificationAt by repeat interval before falling back to start rules', () => {
+  it('advances recurring tasks past nextNotificationAt by repeat interval before falling back to start rules', () => {
     const reference = new Date(2025, 2, 1, 20, 35, 0, 0);
 
     const result = getNextTaskOccurrence(
       buildTask({
         id: 'task-1',
+        taskMode: 'recurring',
         nextNotificationAt: new Date(2025, 2, 1, 20, 20, 0, 0).toISOString()
       }),
       reference
     );
 
     expectLocalDateTime(result, 2025, 2, 1, 20, 50);
+  });
+
+  it('keeps one-time tasks anchored to a past nextNotificationAt', () => {
+    const reference = new Date(2025, 2, 1, 20, 35, 0, 0);
+
+    const result = getNextTaskOccurrence(
+      buildTask({
+        id: 'task-single',
+        taskMode: 'single',
+        nextNotificationAt: new Date(2025, 2, 1, 20, 20, 0, 0).toISOString()
+      }),
+      reference
+    );
+
+    expectLocalDateTime(result, 2025, 2, 1, 20, 20);
+  });
+
+  it('reports recurring cycles as due only when an active due date has arrived', () => {
+    const reference = new Date(2025, 2, 1, 20, 20, 0, 0);
+
+    expect(
+      isRecurringCycleDue(
+        buildTask({
+          id: 'due-now',
+          taskMode: 'recurring',
+          nextNotificationAt: new Date(2025, 2, 1, 20, 20, 0, 0).toISOString()
+        }),
+        reference
+      )
+    ).toBe(true);
+    expect(
+      isRecurringCycleDue(
+        buildTask({
+          id: 'due-from-start',
+          taskMode: 'recurring',
+          nextNotificationAt: null,
+          startDateTime: new Date(2025, 2, 1, 20, 0, 0, 0).toISOString()
+        }),
+        reference
+      )
+    ).toBe(true);
+    expect(
+      isRecurringCycleDue(
+        buildTask({
+          id: 'due-from-last-notification',
+          taskMode: 'recurring',
+          startDateTime: new Date(2025, 2, 1, 20, 0, 0, 0).toISOString(),
+          lastNotificationAt: new Date(2025, 2, 1, 20, 10, 0, 0).toISOString(),
+          nextNotificationAt: new Date(2025, 2, 1, 21, 20, 0, 0).toISOString()
+        }),
+        reference
+      )
+    ).toBe(true);
+    expect(
+      isRecurringCycleDue(
+        buildTask({
+          id: 'future',
+          taskMode: 'recurring',
+          nextNotificationAt: new Date(2025, 2, 1, 20, 21, 0, 0).toISOString()
+        }),
+        reference
+      )
+    ).toBe(false);
+    expect(
+      isRecurringCycleDue(
+        buildTask({
+          id: 'stale-last-notification',
+          taskMode: 'recurring',
+          startDateTime: new Date(2025, 2, 1, 20, 20, 0, 0).toISOString(),
+          lastNotificationAt: new Date(2025, 2, 1, 20, 10, 0, 0).toISOString(),
+          nextNotificationAt: new Date(2025, 2, 1, 21, 20, 0, 0).toISOString()
+        }),
+        reference
+      )
+    ).toBe(false);
+    expect(
+      isRecurringCycleDue(
+        buildTask({
+          id: 'future-snoozed',
+          taskMode: 'recurring',
+          lastNotificationAt: new Date(2025, 2, 1, 20, 10, 0, 0).toISOString(),
+          nextNotificationAt: new Date(2025, 2, 1, 21, 20, 0, 0).toISOString(),
+          snoozedUntil: new Date(2025, 2, 1, 20, 30, 0, 0).toISOString()
+        }),
+        reference
+      )
+    ).toBe(false);
+    expect(isRecurringCycleDue(buildTask({ id: 'single', taskMode: 'single' }), reference)).toBe(false);
+    expect(isRecurringCycleDue(buildTask({ id: 'paused', taskMode: 'recurring', status: 'paused' }), reference)).toBe(false);
+    expect(isRecurringCycleDue(buildTask({ id: 'invalid', taskMode: 'recurring', nextNotificationAt: 'not-a-date' }), reference)).toBe(false);
   });
 
   it('keeps a future snoozedUntil as the next occurrence', () => {

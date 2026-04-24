@@ -1,11 +1,17 @@
 {
   "name": "doneyet",
-  "version": "1.0.0",
+  "version": "1.0.5",
   "private": true,
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
+    "android:sync-native": "expo prebuild --platform android --no-install",
+    "android:build:production": "npx eas-cli build --platform android --profile production --non-interactive",
+    "android:submit:production": "npx eas-cli submit --platform android --profile production --latest --non-interactive --wait",
+    "android:play:prepare": "node scripts/play-store-prepare.mjs",
+    "android:play:validate": "node scripts/play-store-fastlane.mjs play_validate",
+    "android:play:closed-testing": "node scripts/play-store-fastlane.mjs play_closed_testing",
     "ios": "node scripts/run-native-ios.mjs",
     "web": "expo start --web",
     "screenshots:capture": "node scripts/screenshot-capture.mjs",

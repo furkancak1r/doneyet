@@ -1,12 +1,17 @@
 import { describe, expect, it, vi } from 'vitest';
-import { getNotificationResponseKey, handleNotificationResponseOnce } from '../services/notificationResponseService';
+import { getNotificationResponseKey, getNotificationResponseScheduledFor, handleNotificationResponseOnce } from '../services/notificationResponseService';
 
 function makeResponse(overrides?: Partial<{ actionIdentifier: string; identifier: string }>) {
   return {
     actionIdentifier: overrides?.actionIdentifier ?? 'mark_done',
     notification: {
       request: {
-        identifier: overrides?.identifier ?? 'notif-1'
+        identifier: overrides?.identifier ?? 'notif-1',
+        content: {
+          data: {
+            scheduledFor: '2025-01-31T10:00:00.000Z'
+          }
+        }
       }
     }
   };
@@ -30,6 +35,25 @@ describe('notification response service', () => {
     expect(firstResult).toBe(true);
     expect(secondResult).toBe(false);
     expect(completeRecurringTask).toHaveBeenCalledTimes(1);
+  });
+
+  it('parses the scheduled reminder time from notification data', () => {
+    expect(getNotificationResponseScheduledFor(makeResponse() as never)?.toISOString()).toBe('2025-01-31T10:00:00.000Z');
+    expect(
+      getNotificationResponseScheduledFor({
+        ...makeResponse(),
+        notification: {
+          request: {
+            ...makeResponse().notification.request,
+            content: {
+              data: {
+                scheduledFor: 'not-a-date'
+              }
+            }
+          }
+        }
+      } as never)
+    ).toBeNull();
   });
 
   it('removes the dedupe key when handling fails so a retry can run', async () => {

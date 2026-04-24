@@ -3,6 +3,14 @@
 default_platform(:ios)
 
 SCREENSHOTS_ARTIFACTS_PATH = File.expand_path("../artifacts/app-store", __dir__)
+PLAY_STORE_METADATA_PATH = File.expand_path("metadata/android", __dir__)
+PLAY_STORE_JSON_KEY_PATH = "/Users/furkancakir/.google-play/doneyet-google-play-service-account.json"
+PLAY_STORE_PACKAGE_NAME = "com.furkancakir.doneyet"
+PLAY_STORE_TRACK = ENV.fetch("PLAY_TRACK", "alpha")
+PLAY_STORE_RELEASE_STATUS = ENV.fetch("PLAY_RELEASE_STATUS", "draft")
+PLAY_STORE_LANGUAGES = ["en-US", "tr-TR"].freeze
+PLAY_STORE_METADATA_FILES = %w[title.txt short_description.txt full_description.txt].freeze
+PLAY_STORE_SCREENSHOTS = %w[01-home.png 02-task-detail.png].freeze
 
 PLATFORMS = {
   iphone: {
@@ -16,12 +24,16 @@ PLATFORMS = {
 }.freeze
 
 LANGUAGES = ["en-US", "tr"].freeze
+APP_STORE_VERSION = ENV.fetch("APP_STORE_VERSION", "1.0.4")
+APP_STORE_BUILD_NUMBER = ENV.fetch("APP_STORE_BUILD_NUMBER", "17")
 
 desc "Upload metadata and screenshots to App Store Connect"
 lane :store_listing do
   preflight_check
   deliver(
     api_key_path: "/Users/furkancakir/.appstoreconnect/fastlane_api_key.json",
+    app_version: APP_STORE_VERSION,
+    build_number: APP_STORE_BUILD_NUMBER,
     skip_binary_upload: true,
     precheck_include_in_app_purchases: false,
     skip_app_version_update: false,
@@ -34,6 +46,7 @@ lane :store_metadata do
   preflight_check
   deliver(
     api_key_path: "/Users/furkancakir/.appstoreconnect/fastlane_api_key.json",
+    app_version: APP_STORE_VERSION,
     skip_binary_upload: true,
     skip_screenshots: true,
     precheck_include_in_app_purchases: false,
@@ -47,6 +60,7 @@ lane :store_screenshots do
   preflight_check
   deliver(
     api_key_path: "/Users/furkancakir/.appstoreconnect/fastlane_api_key.json",
+    app_version: APP_STORE_VERSION,
     skip_binary_upload: true,
     skip_metadata: true,
     overwrite_screenshots: true,
@@ -90,4 +104,99 @@ def preflight_check
   end
 
   say("Preflight check passed. Finalized screenshots are present for both locales.".green)
+end
+
+def play_store_preflight_check
+  say("Preflight check for Google Play closed testing upload...")
+
+  missing = []
+
+  unless File.exist?(PLAY_STORE_JSON_KEY_PATH)
+    missing << PLAY_STORE_JSON_KEY_PATH
+  end
+
+  PLAY_STORE_LANGUAGES.each do |language|
+    locale_dir = File.join(PLAY_STORE_METADATA_PATH, language)
+
+    PLAY_STORE_METADATA_FILES.each do |file_name|
+      file_path = File.join(locale_dir, file_name)
+      missing << file_path unless File.exist?(file_path)
+    end
+
+    changelog_path = File.join(locale_dir, "changelogs", "default.txt")
+    missing << changelog_path unless File.exist?(changelog_path)
+
+    icon_path = File.join(locale_dir, "images", "icon.png")
+    missing << icon_path unless File.exist?(icon_path)
+
+    PLAY_STORE_SCREENSHOTS.each do |screenshot_name|
+      screenshot_path = File.join(locale_dir, "images", "phoneScreenshots", screenshot_name)
+      missing << screenshot_path unless File.exist?(screenshot_path)
+    end
+  end
+
+  unless missing.empty?
+    say("")
+    say("========================================".red)
+    say("  PLAY PREFLIGHT CHECK FAILED".red)
+    missing.each { |path| say("    - #{path}".red) }
+    say("========================================".red)
+    say("")
+    exit(1)
+  end
+
+  say("Google Play metadata files are ready.".green)
+end
+
+def play_store_resolve_aab_path(options)
+  explicit = options[:aab_path].to_s.strip
+  return explicit unless explicit.empty?
+
+  env_path = ENV.fetch("ANDROID_AAB_PATH", "").strip
+  return env_path unless env_path.empty?
+
+  candidates = Dir[File.expand_path("~/Downloads/DoneYet-android-production-*.aab")].sort_by do |file_path|
+    File.mtime(file_path)
+  end.reverse
+
+  UI.user_error!("Could not find a DoneYet Android AAB. Pass aab_path:<path> or set ANDROID_AAB_PATH.") if candidates.empty?
+
+  candidates.first
+end
+
+platform :android do
+  desc "Validate Android Play Store metadata, screenshots, and AAB for closed testing"
+  lane :play_validate do |options|
+    play_store_preflight_check
+    validate_play_store_json_key(json_key: PLAY_STORE_JSON_KEY_PATH)
+
+    upload_to_play_store(
+      package_name: PLAY_STORE_PACKAGE_NAME,
+      json_key: PLAY_STORE_JSON_KEY_PATH,
+      track: PLAY_STORE_TRACK,
+      aab: play_store_resolve_aab_path(options),
+      metadata_path: PLAY_STORE_METADATA_PATH,
+      release_status: PLAY_STORE_RELEASE_STATUS,
+      skip_upload_apk: true,
+      sync_image_upload: true,
+      validate_only: true
+    )
+  end
+
+  desc "Upload Android Play Store metadata, screenshots, and AAB to the closed testing track"
+  lane :play_closed_testing do |options|
+    play_store_preflight_check
+    validate_play_store_json_key(json_key: PLAY_STORE_JSON_KEY_PATH)
+
+    upload_to_play_store(
+      package_name: PLAY_STORE_PACKAGE_NAME,
+      json_key: PLAY_STORE_JSON_KEY_PATH,
+      track: PLAY_STORE_TRACK,
+      aab: play_store_resolve_aab_path(options),
+      metadata_path: PLAY_STORE_METADATA_PATH,
+      release_status: PLAY_STORE_RELEASE_STATUS,
+      skip_upload_apk: true,
+      sync_image_upload: true
+    )
+  end
 end

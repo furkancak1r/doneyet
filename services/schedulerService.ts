@@ -1,6 +1,6 @@
 import { defaultSettings } from '@/constants/settings';
 import { fetchAllTaskNotifications, fetchTasks, replaceTaskNotifications, saveTask } from '@/db/repositories';
-import { cancelNotifications, hasNotificationPermission, scheduleTaskReminder } from '@/services/notificationService';
+import { cancelNotifications, configureNotificationHandling, hasNotificationPermission, scheduleTaskReminder } from '@/services/notificationService';
 import { AppSettings, Task, TaskNotificationRow } from '@/types/domain';
 import { addRepeatInterval, getNextTaskOccurrence, getNextStartDateTime, toIso } from '@/utils/date';
 import { createId } from '@/utils/id';
@@ -17,6 +17,7 @@ type ScheduledNotificationDraft = Omit<TaskNotificationRow, 'status' | 'createdA
 
 type TaskScheduleDraft = {
   notificationIds: string[];
+  lastNotificationAt: string | null;
   nextNotificationAt: string | null;
   rows: ScheduledNotificationDraft[];
   snoozedUntil: string | null;
@@ -79,25 +80,115 @@ function groupTaskNotifications(rows: TaskNotificationRow[]): Map<string, TaskNo
   return byTaskId;
 }
 
+function getLaterReminderAnchor(existingValue: string | null, candidate: Date): string | null {
+  const candidateTime = candidate.getTime();
+  if (Number.isNaN(candidateTime)) {
+    return existingValue;
+  }
+
+  if (!existingValue) {
+    return candidate.toISOString();
+  }
+
+  const existingDate = new Date(existingValue);
+  if (Number.isNaN(existingDate.getTime()) || existingDate.getTime() < candidateTime) {
+    return candidate.toISOString();
+  }
+
+  return existingValue;
+}
+
+function buildRecurringTaskScheduleDraft(task: Task, now: Date): TaskScheduleDraft {
+  const snoozedUntil = task.snoozedUntil && new Date(task.snoozedUntil).getTime() > now.getTime() ? task.snoozedUntil : null;
+  if (snoozedUntil) {
+    return {
+      notificationIds: [],
+      lastNotificationAt: task.lastNotificationAt,
+      nextNotificationAt: snoozedUntil,
+      rows: [],
+      snoozedUntil
+    };
+  }
+
+  if (task.nextNotificationAt) {
+    let candidate = new Date(task.nextNotificationAt);
+    let lastNotificationAt = task.lastNotificationAt;
+
+    if (!Number.isNaN(candidate.getTime())) {
+      while (candidate.getTime() <= now.getTime()) {
+        lastNotificationAt = getLaterReminderAnchor(lastNotificationAt, candidate);
+        candidate = addRepeatInterval(candidate, task.repeatIntervalValue, task.repeatIntervalUnit);
+      }
+
+      return {
+        notificationIds: [],
+        lastNotificationAt,
+        nextNotificationAt: toIso(candidate),
+        rows: [],
+        snoozedUntil: null
+      };
+    }
+  }
+
+  const nextOccurrence = getNextTaskOccurrence(task, now);
+
+  return {
+    notificationIds: [],
+    lastNotificationAt: task.lastNotificationAt,
+    nextNotificationAt: toIso(nextOccurrence),
+    rows: [],
+    snoozedUntil: null
+  };
+}
+
 function buildInitialTaskScheduleDraft(task: Task, now: Date): TaskScheduleDraft {
   if (task.taskMode === 'todo' || task.status !== 'active') {
     return {
       notificationIds: [],
+      lastNotificationAt: task.lastNotificationAt,
       nextNotificationAt: null,
       rows: [],
       snoozedUntil: null
     };
   }
 
-  const nextOccurrence = getNextTaskOccurrence(task, now);
   const snoozedUntil = task.snoozedUntil && new Date(task.snoozedUntil).getTime() > now.getTime() ? task.snoozedUntil : null;
+  if (snoozedUntil) {
+    return {
+      notificationIds: [],
+      lastNotificationAt: task.lastNotificationAt,
+      nextNotificationAt: snoozedUntil,
+      rows: [],
+      snoozedUntil
+    };
+  }
+
+  if (task.taskMode === 'recurring') {
+    return buildRecurringTaskScheduleDraft(task, now);
+  }
+
+  const nextOccurrence = getNextTaskOccurrence(task, now);
 
   return {
     notificationIds: [],
+    lastNotificationAt: task.lastNotificationAt,
     nextNotificationAt: toIso(nextOccurrence),
     rows: [],
-    snoozedUntil
+    snoozedUntil: null
   };
+}
+
+function getSchedulableDate(draft: TaskScheduleDraft, now: Date): Date | null {
+  if (!draft.nextNotificationAt) {
+    return null;
+  }
+
+  const scheduledFor = new Date(draft.nextNotificationAt);
+  if (Number.isNaN(scheduledFor.getTime()) || scheduledFor.getTime() <= now.getTime()) {
+    return null;
+  }
+
+  return scheduledFor;
 }
 
 async function rebuildTaskSchedules(settings: AppSettings = defaultSettings): Promise<Map<string, Task>> {
@@ -118,10 +209,11 @@ async function rebuildTaskSchedules(settings: AppSettings = defaultSettings): Pr
     const draft = buildInitialTaskScheduleDraft(task, now);
     drafts.set(task.id, draft);
 
-    if (draft.nextNotificationAt) {
+    const scheduledFor = getSchedulableDate(draft, now);
+    if (scheduledFor) {
       candidates.push({
         task,
-        scheduledFor: new Date(draft.nextNotificationAt)
+        scheduledFor
       });
     }
   }
@@ -129,6 +221,7 @@ async function rebuildTaskSchedules(settings: AppSettings = defaultSettings): Pr
   const canSchedule = await hasNotificationPermission();
 
   if (canSchedule) {
+    await configureNotificationHandling(settings);
     const soundEnabled = Boolean((settings ?? defaultSettings).soundEnabled);
 
     for (let scheduledCount = 0; scheduledCount < MAX_PENDING_NOTIFICATIONS && candidates.length > 0; scheduledCount += 1) {
@@ -153,10 +246,12 @@ async function rebuildTaskSchedules(settings: AppSettings = defaultSettings): Pr
         createdAt: new Date().toISOString()
       });
 
-      candidates.push({
-        task: candidate.task,
-        scheduledFor: addRepeatInterval(candidate.scheduledFor, candidate.task.repeatIntervalValue, candidate.task.repeatIntervalUnit)
-      });
+      if (candidate.task.taskMode === 'recurring') {
+        candidates.push({
+          task: candidate.task,
+          scheduledFor: addRepeatInterval(candidate.scheduledFor, candidate.task.repeatIntervalValue, candidate.task.repeatIntervalUnit)
+        });
+      }
     }
   }
 
@@ -165,6 +260,7 @@ async function rebuildTaskSchedules(settings: AppSettings = defaultSettings): Pr
   for (const task of tasks) {
     const draft = drafts.get(task.id) ?? {
       notificationIds: [],
+      lastNotificationAt: task.lastNotificationAt,
       nextNotificationAt: null,
       rows: [],
       snoozedUntil: null
@@ -173,6 +269,7 @@ async function rebuildTaskSchedules(settings: AppSettings = defaultSettings): Pr
     const shouldReplaceRows = previousRows.length > 0 || draft.rows.length > 0;
     const nextNotificationIdsJson = stableStringify(draft.notificationIds);
     const shouldSaveTask =
+      task.lastNotificationAt !== draft.lastNotificationAt ||
       task.nextNotificationAt !== draft.nextNotificationAt ||
       task.snoozedUntil !== draft.snoozedUntil ||
       task.notificationIdsJson !== nextNotificationIdsJson;
@@ -184,6 +281,7 @@ async function rebuildTaskSchedules(settings: AppSettings = defaultSettings): Pr
     if (shouldSaveTask) {
       const updatedTask: Task = {
         ...task,
+        lastNotificationAt: draft.lastNotificationAt,
         nextNotificationAt: draft.nextNotificationAt,
         snoozedUntil: draft.snoozedUntil,
         notificationIdsJson: nextNotificationIdsJson,

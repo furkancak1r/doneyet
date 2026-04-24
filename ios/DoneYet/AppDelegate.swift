@@ -1,6 +1,8 @@
+import EXNotifications
 import Expo
 import React
 import ReactAppDependencyProvider
+import UserNotifications
 
 @UIApplicationMain
 public class AppDelegate: ExpoAppDelegate {
@@ -8,6 +10,7 @@ public class AppDelegate: ExpoAppDelegate {
 
   var reactNativeDelegate: ExpoReactNativeFactoryDelegate?
   var reactNativeFactory: RCTReactNativeFactory?
+  private let notificationActionDelegate = DoneYetNotificationActionDelegate()
 
   public override func application(
     _ application: UIApplication,
@@ -20,6 +23,7 @@ public class AppDelegate: ExpoAppDelegate {
     reactNativeDelegate = delegate
     reactNativeFactory = factory
     bindReactNativeFactory(factory)
+    NotificationCenterManager.shared.addDelegate(notificationActionDelegate)
 
 #if os(iOS) || os(tvOS)
     window = UIWindow(frame: UIScreen.main.bounds)
@@ -49,6 +53,23 @@ public class AppDelegate: ExpoAppDelegate {
   ) -> Bool {
     let result = RCTLinkingManager.application(application, continue: userActivity, restorationHandler: restorationHandler)
     return super.application(application, continue: userActivity, restorationHandler: restorationHandler) || result
+  }
+}
+
+final class DoneYetNotificationActionDelegate: NSObject, NotificationDelegate {
+  func didReceive(_ response: UNNotificationResponse, completionHandler: @escaping () -> Void) -> Bool {
+    guard let action = DoneYetActionKind(notificationActionIdentifier: response.actionIdentifier) else {
+      return false
+    }
+
+    guard let taskId = response.notification.request.content.userInfo["taskId"] as? String else {
+      return true
+    }
+
+    let scheduledForText = response.notification.request.content.userInfo["scheduledFor"] as? String
+    let scheduledFor = scheduledForText.flatMap(DateFormatter.doneYetISO.date(from:))
+    DoneYetActionEngine.perform(action: action, taskId: taskId, scheduledFor: scheduledFor)
+    return true
   }
 }
 

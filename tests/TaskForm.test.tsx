@@ -173,15 +173,15 @@ describe('TaskForm', () => {
     expect(screen.getByText('Repeat interval')).toBeTruthy();
   });
 
-  it('shows repeat controls for one-time reminders', () => {
+  it('hides repeat controls for one-time reminders', () => {
     render(<TaskForm initialTaskMode="single" submitLabel="Save" onSubmit={jest.fn()} />);
 
-    expect(screen.getByText('Repeat interval')).toBeTruthy();
-    expect(screen.getByText('Custom')).toBeTruthy();
-    expect(screen.getByText('Choose a repeat interval before saving.')).toBeTruthy();
+    expect(screen.queryByText('Repeat interval')).toBeNull();
+    expect(screen.queryByText('Custom')).toBeNull();
+    expect(screen.queryByText('Choose a repeat interval before saving.')).toBeNull();
   });
 
-  it('requires a repeat interval for new single reminders', async () => {
+  it('saves new single reminders without requiring a repeat interval', async () => {
     const onSubmit = jest.fn();
 
     render(<TaskForm initialTaskMode="single" submitLabel="Save" onSubmit={onSubmit} />);
@@ -189,8 +189,17 @@ describe('TaskForm', () => {
     fireEvent.changeText(screen.getByPlaceholderText('For example: Pay the electricity bill'), 'Morning walk');
     fireEvent.press(screen.getByText('Save'));
 
-    await waitFor(() => expect(screen.getByText('Select a repeat interval.')).toBeTruthy());
-    expect(onSubmit).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          taskMode: 'single',
+          repeatIntervalType: 'preset',
+          repeatIntervalValue: 1,
+          repeatIntervalUnit: 'hours'
+        })
+      )
+    );
+    expect(screen.queryByText('Select a repeat interval.')).toBeNull();
   });
 
   it('preserves the saved repeat settings when editing an existing single reminder', async () => {
@@ -208,6 +217,8 @@ describe('TaskForm', () => {
         onSubmit={onSubmit}
       />
     );
+
+    expect(screen.queryByText('Repeat interval')).toBeNull();
 
     fireEvent.press(screen.getByText('Save'));
 
@@ -238,12 +249,14 @@ describe('TaskForm', () => {
   it('shows repeat controls again when switching back from a To-Do to reminders', () => {
     render(<TaskForm initialTaskMode="single" submitLabel="Save" onSubmit={jest.fn()} />);
 
-    expect(screen.getByText('Repeat interval')).toBeTruthy();
+    expect(screen.queryByText('Repeat interval')).toBeNull();
 
     fireEvent.press(screen.getByText('To-Do'));
     expect(screen.queryByText('Repeat interval')).toBeNull();
 
     fireEvent.press(screen.getByText('Reminder'));
+    expect(screen.queryByText('Repeat interval')).toBeNull();
+
     fireEvent.press(screen.getByText('Recurring'));
 
     expect(screen.getByText('Repeat interval')).toBeTruthy();

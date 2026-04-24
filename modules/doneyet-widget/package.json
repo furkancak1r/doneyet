@@ -1,0 +1,8 @@
+{
+  "name": "doneyet-widget",
+  "version": "1.0.0",
+  "description": "Local native widget helpers for DoneYet?",
+  "main": "src/index.ts",
+  "private": true,
+  "license": "UNLICENSED"
+}

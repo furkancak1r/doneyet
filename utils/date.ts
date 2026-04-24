@@ -139,6 +139,10 @@ export function getNextTaskOccurrence(task: Task, reference = new Date()): Date 
 
   if (task.nextNotificationAt) {
     let candidate = new Date(task.nextNotificationAt);
+    if (task.taskMode !== 'recurring') {
+      return candidate;
+    }
+
     while (candidate.getTime() <= reference.getTime()) {
       candidate = addRepeatInterval(candidate, task.repeatIntervalValue, task.repeatIntervalUnit);
     }
@@ -154,6 +158,47 @@ export function getNextTaskOccurrence(task: Task, reference = new Date()): Date 
     Boolean(task.startReminderUsesLastDay),
     reference
   );
+}
+
+export function isReminderInCurrentRecurringCycle(task: Task, reminderAt: Date): boolean {
+  if (task.taskMode !== 'recurring' || task.status !== 'active') {
+    return false;
+  }
+
+  const reminderTime = reminderAt.getTime();
+  if (Number.isNaN(reminderTime)) {
+    return false;
+  }
+
+  const cycleStart = new Date(task.startDateTime);
+  if (!Number.isNaN(cycleStart.getTime()) && reminderTime < cycleStart.getTime()) {
+    return false;
+  }
+
+  return true;
+}
+
+export function isRecurringCycleDue(task: Task, reference = new Date()): boolean {
+  if (task.taskMode !== 'recurring' || task.status !== 'active') {
+    return false;
+  }
+
+  const snoozedUntil = task.snoozedUntil ? new Date(task.snoozedUntil) : null;
+  if (snoozedUntil && !Number.isNaN(snoozedUntil.getTime()) && snoozedUntil.getTime() > reference.getTime()) {
+    return false;
+  }
+
+  const lastNotificationAt = task.lastNotificationAt ? new Date(task.lastNotificationAt) : null;
+  if (lastNotificationAt && isReminderInCurrentRecurringCycle(task, lastNotificationAt)) {
+    return lastNotificationAt.getTime() <= reference.getTime();
+  }
+
+  const dueAtValue = task.nextNotificationAt ?? task.startDateTime;
+  if (!dueAtValue) {
+    return false;
+  }
+  const dueAt = new Date(dueAtValue);
+  return !Number.isNaN(dueAt.getTime()) && dueAt.getTime() <= reference.getTime();
 }
 
 export function hasTimePassed(reference: Date, target: Date): boolean {

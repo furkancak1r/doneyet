@@ -46,3 +46,4 @@ jest-cache/
 
 # Local release artifacts
 artifacts/testflight/
+artifacts/releases/

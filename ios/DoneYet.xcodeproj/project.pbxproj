@@ -13,9 +13,37 @@
 		820A1B870F9172783D20C5B7 /* libPods-DoneYet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3E9392A05F0D71474F03C9C6 /* libPods-DoneYet.a */; };
 		8AA70B0F986D18CBA3B1150D /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58AEFA7DE557A895E88C1547 /* ExpoModulesProvider.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
+		DYWT00000000000000000001 /* DoneYetWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = DYWF00000000000000000001 /* DoneYetWidgets.swift */; };
+		DYWT00000000000000000002 /* DoneYetWidgets.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = DYWF00000000000000000004 /* DoneYetWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		DYWT00000000000000000003 /* DoneYetSharedActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = DYWF00000000000000000005 /* DoneYetSharedActions.swift */; };
+		DYWT00000000000000000004 /* DoneYetSharedActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = DYWF00000000000000000005 /* DoneYetSharedActions.swift */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 		TR1NC234B68108700A75B9A /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = TR1NC234A68108700A75B9A /* InfoPlist.strings */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		DYWP00000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DYWT00000000000000000010;
+			remoteInfo = DoneYetWidgets;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		DYWB00000000000000000001 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				DYWT00000000000000000002 /* DoneYetWidgets.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		13B07F961A680F5B00A75B9A /* DoneYet.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DoneYet.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -28,10 +56,15 @@
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		BE36FC25BA7CBC2C1A1C587B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = DoneYet/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		DDD330EF170271577C18FB19 /* Pods-DoneYet.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DoneYet.debug.xcconfig"; path = "Target Support Files/Pods-DoneYet/Pods-DoneYet.debug.xcconfig"; sourceTree = "<group>"; };
+		DYWF00000000000000000001 /* DoneYetWidgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoneYetWidgets.swift; sourceTree = "<group>"; };
+		DYWF00000000000000000002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		DYWF00000000000000000003 /* DoneYetWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DoneYetWidgets.entitlements; sourceTree = "<group>"; };
+		DYWF00000000000000000004 /* DoneYetWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = DoneYetWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		DYWF00000000000000000005 /* DoneYetSharedActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoneYetSharedActions.swift; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = DoneYet/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* DoneYet-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "DoneYet-Bridging-Header.h"; path = "DoneYet/DoneYet-Bridging-Header.h"; sourceTree = "<group>"; };
-		TR1NC234A68108700A75B9A /* InfoPlist.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; path = "DoneYet/tr.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		TR1NC234A68108700A75B9A /* InfoPlist.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; path = DoneYet/tr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -40,6 +73,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				820A1B870F9172783D20C5B7 /* libPods-DoneYet.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DYWB00000000000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -59,14 +99,6 @@
 				TR1NC234C68108700A75B9A /* tr.lproj */,
 			);
 			name = DoneYet;
-			sourceTree = "<group>";
-		};
-		TR1NC234C68108700A75B9A /* tr.lproj */ = {
-			isa = PBXGroup;
-			children = (
-				TR1NC234A68108700A75B9A /* InfoPlist.strings */,
-			);
-			name = "tr.lproj";
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
@@ -89,6 +121,8 @@
 			isa = PBXGroup;
 			children = (
 				13B07FAE1A68108700A75B9A /* DoneYet */,
+				DYWG00000000000000000001 /* DoneYetWidgets */,
+				DYWG00000000000000000002 /* Shared */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
@@ -104,6 +138,7 @@
 			isa = PBXGroup;
 			children = (
 				13B07F961A680F5B00A75B9A /* DoneYet.app */,
+				DYWF00000000000000000004 /* DoneYetWidgets.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -142,6 +177,32 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
+		DYWG00000000000000000001 /* DoneYetWidgets */ = {
+			isa = PBXGroup;
+			children = (
+				DYWF00000000000000000001 /* DoneYetWidgets.swift */,
+				DYWF00000000000000000002 /* Info.plist */,
+				DYWF00000000000000000003 /* DoneYetWidgets.entitlements */,
+			);
+			path = DoneYetWidgets;
+			sourceTree = "<group>";
+		};
+		DYWG00000000000000000002 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				DYWF00000000000000000005 /* DoneYetSharedActions.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		TR1NC234C68108700A75B9A /* tr.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				TR1NC234A68108700A75B9A /* InfoPlist.strings */,
+			);
+			name = tr.lproj;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -154,6 +215,7 @@
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
+				DYWB00000000000000000001 /* Embed App Extensions */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
 				5CBE00719E05695247303836 /* [CP] Embed Pods Frameworks */,
@@ -161,11 +223,28 @@
 			buildRules = (
 			);
 			dependencies = (
+				DYWD00000000000000000001 /* PBXTargetDependency */,
 			);
 			name = DoneYet;
 			productName = DoneYet;
 			productReference = 13B07F961A680F5B00A75B9A /* DoneYet.app */;
 			productType = "com.apple.product-type.application";
+		};
+		DYWT00000000000000000010 /* DoneYetWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DYWC00000000000000000001 /* Build configuration list for PBXNativeTarget "DoneYetWidgets" */;
+			buildPhases = (
+				DYWB00000000000000000003 /* Sources */,
+				DYWB00000000000000000002 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DoneYetWidgets;
+			productName = DoneYetWidgets;
+			productReference = DYWF00000000000000000004 /* DoneYetWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -177,6 +256,10 @@
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
 						LastSwiftMigration = 1250;
+					};
+					DYWT00000000000000000010 = {
+						CreatedOnToolsVersion = 15.0;
+						DevelopmentTeam = 9LYL5R6LS4;
 					};
 				};
 			};
@@ -195,6 +278,7 @@
 			projectRoot = "";
 			targets = (
 				13B07F861A680F5B00A75B9A /* DoneYet */,
+				DYWT00000000000000000010 /* DoneYetWidgets */,
 			);
 		};
 /* End PBXProject section */
@@ -335,11 +419,29 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
+				DYWT00000000000000000003 /* DoneYetSharedActions.swift in Sources */,
 				8AA70B0F986D18CBA3B1150D /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DYWB00000000000000000003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DYWT00000000000000000001 /* DoneYetWidgets.swift in Sources */,
+				DYWT00000000000000000004 /* DoneYetSharedActions.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		DYWD00000000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DYWT00000000000000000010 /* DoneYetWidgets */;
+			targetProxy = DYWP00000000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
@@ -349,7 +451,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = DoneYet/DoneYet.entitlements;
-					CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 28;
 				DEVELOPMENT_TEAM = 9LYL5R6LS4;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -362,11 +464,12 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-					MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.5;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
+					"-lsqlite3",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.doneyet.appios;
@@ -385,8 +488,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_ENTITLEMENTS = DoneYet/DoneYet.entitlements;
-					CURRENT_PROJECT_VERSION = 14;
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 28;
 				DEVELOPMENT_TEAM = 9LYL5R6LS4;
 				INFOPLIST_FILE = DoneYet/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
@@ -394,15 +499,17 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-					MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.5;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
+					"-lsqlite3",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.doneyet.appios;
 				PRODUCT_NAME = DoneYet;
+				PROVISIONING_PROFILE_SPECIFIER = "com.doneyet.appios AppStore";
 				SWIFT_OBJC_BRIDGING_HEADER = "DoneYet/DoneYet-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -534,6 +641,70 @@
 			};
 			name = Release;
 		};
+		DYWC00000000000000000002 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = DoneYetWidgets/DoneYetWidgets.entitlements;
+				CURRENT_PROJECT_VERSION = 28;
+				DEVELOPMENT_TEAM = 9LYL5R6LS4;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = DoneYetWidgets/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.5;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lsqlite3",
+				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
+				PRODUCT_BUNDLE_IDENTIFIER = com.doneyet.appios.widgets;
+				PRODUCT_NAME = DoneYetWidgets;
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		DYWC00000000000000000003 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "Apple Distribution";
+				CODE_SIGN_ENTITLEMENTS = DoneYetWidgets/DoneYetWidgets.entitlements;
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 28;
+				DEVELOPMENT_TEAM = 9LYL5R6LS4;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = DoneYetWidgets/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.5;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lsqlite3",
+				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
+				PRODUCT_BUNDLE_IDENTIFIER = com.doneyet.appios.widgets;
+				PRODUCT_NAME = DoneYetWidgets;
+				PROVISIONING_PROFILE_SPECIFIER = "com.doneyet.appios.widgets AppStore";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -551,6 +722,15 @@
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,
 				83CBBA211A601CBA00E9B192 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DYWC00000000000000000001 /* Build configuration list for PBXNativeTarget "DoneYetWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DYWC00000000000000000002 /* Debug */,
+				DYWC00000000000000000003 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

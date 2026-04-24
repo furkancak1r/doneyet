@@ -1,5 +1,7 @@
 PODS:
   - boost (1.84.0)
+  - DoneYetWidget (1.0.0):
+    - ExpoModulesCore
   - DoubleConversion (1.1.6)
   - EXApplication (6.1.5):
     - ExpoModulesCore
@@ -2029,6 +2031,7 @@ PODS:
 
 DEPENDENCIES:
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
+  - DoneYetWidget (from `../modules/doneyet-widget/ios`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - EXApplication (from `../node_modules/expo-application/ios`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
@@ -2125,6 +2128,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   boost:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
+  DoneYetWidget:
+    :path: "../modules/doneyet-widget/ios"
   DoubleConversion:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
   EXApplication:
@@ -2301,6 +2306,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
+  DoneYetWidget: 9bbf3c28628665e44d98e160110a3775d0f98192
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXApplication: 1e06972201838375ca1ec1ba34d586a98a5dc718
   EXConstants: d3d551cb154718f5161c4247304e96aa59f6cca7

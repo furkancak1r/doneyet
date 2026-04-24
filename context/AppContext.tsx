@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { AppState, useColorScheme, type ColorSchemeName } from 'react-native';
+import { AppState, Platform, useColorScheme, type ColorSchemeName } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Notifications from 'expo-notifications';
 import { AppContextValue, AppToastState, ReplaceBackupOptions, ThemePalette } from '@/types/app';
@@ -14,6 +14,7 @@ import {
   completeTaskPermanently as completeTaskPermanentlyRecord,
   createTask as createTaskRecord,
   getTask,
+  recordTaskReminderDelivery,
   listTasks,
   pauseTask as pauseTaskRecord,
   reactivateCompletedTask,
@@ -35,9 +36,11 @@ import { getSettings, updateSettings as updateSettingsRecord } from '@/services/
 import { importBackupJson, createBackupPayload, replaceBackupJson } from '@/services/backupService';
 import { syncForegroundAppState } from '@/services/appForegroundSync';
 import { configureNotificationHandling, ensureNotificationPermissions, getNotificationPermissions, resolveSnoozeTime } from '@/services/notificationService';
-import { handleNotificationResponseOnce } from '@/services/notificationResponseService';
+import { getNotificationResponseScheduledFor, handleNotificationResponseOnce } from '@/services/notificationResponseService';
 import { restoreAllTaskSchedules } from '@/services/schedulerService';
 import { createSingleFlightTrackedMutationRunner, runTrackedMutation as runTrackedMutationDirect } from '@/context/mutationTracking';
+import { reloadWidgets, writeWidgetSnapshot } from '@/native/DoneYetWidget';
+import { buildWidgetSnapshot, serializeWidgetSnapshot } from '@/utils/widgetSnapshot';
 
 const AppContext = createContext<AppContextValue | null>(null);
 
@@ -47,6 +50,18 @@ const REORDER_LISTS_PENDING_KEY = 'lists:reorder';
 const SETTINGS_PENDING_KEY = 'settings:update';
 const IMPORT_BACKUP_PENDING_KEY = 'backup:import';
 const REQUEST_PERMISSION_PENDING_KEY = 'notifications:permission';
+const notificationActionIdentifiers = new Set<string>([
+  'mark_done',
+  'mark_done_forever',
+  'snooze_10_min',
+  'snooze_1_hour',
+  'snooze_evening',
+  'snooze_tomorrow'
+]);
+
+function isNotificationActionIdentifier(value: string): value is NotificationAction {
+  return notificationActionIdentifiers.has(value);
+}
 
 function getTaskPendingKey(taskId: string): string {
   return `task:${taskId}`;
@@ -133,7 +148,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     async function bootstrap(): Promise<void> {
       await initializeDatabase();
-      configureNotificationHandling(defaultSettings);
+      await configureNotificationHandling(defaultSettings);
       const snapshot = await loadCoreAppData();
       if (!mounted) {
         return;
@@ -145,7 +160,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         loadCoreAppData(),
         fetchTaskCompletionHistory()
       ]);
-      configureNotificationHandling(localizedSnapshot.settings);
+      await configureNotificationHandling(localizedSnapshot.settings);
       setLists(localizedSnapshot.lists);
       setTasks(localizedSnapshot.tasks);
       setTaskCompletionHistory(initialTaskCompletionHistory);
@@ -164,6 +179,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
       mounted = false;
     };
   }, [refresh]);
+
+  useEffect(() => {
+    if (!ready) {
+      return;
+    }
+
+    const snapshot = buildWidgetSnapshot({
+      tasks,
+      lists,
+      settings
+    });
+
+    void writeWidgetSnapshot(serializeWidgetSnapshot(snapshot))
+      .then(reloadWidgets)
+      .catch((error) => {
+        console.error('Failed to sync DoneYet widget snapshot.', error);
+      });
+  }, [lists, ready, settings, tasks]);
 
   useEffect(() => {
     if (!ready) {
@@ -462,7 +495,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const next = await updateSettingsRecord(updates);
           await setAppLanguage(next.language);
           await syncLocalizedDefaultLists();
-          configureNotificationHandling(next);
+          await configureNotificationHandling(next);
           await restoreAllTaskSchedules(next);
           await refresh();
           return next;
@@ -485,7 +518,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             const nextSettings = await getSettings();
             await setAppLanguage(nextSettings.language);
             await syncLocalizedDefaultLists();
-            configureNotificationHandling(nextSettings);
+            await configureNotificationHandling(nextSettings);
             await restoreAllTaskSchedules(nextSettings);
             await refresh();
             await refreshTaskCompletionHistory();
@@ -515,7 +548,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             const nextSettings = await getSettings();
             await setAppLanguage(nextSettings.language);
             await syncLocalizedDefaultLists();
-            configureNotificationHandling(nextSettings);
+            await configureNotificationHandling(nextSettings);
             await restoreAllTaskSchedules(nextSettings);
             await refresh();
             await refreshTaskCompletionHistory();
@@ -549,7 +582,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (permissions.granted) {
           await setAppLanguage(settings.language);
           await syncLocalizedDefaultLists();
-          configureNotificationHandling(settings);
+          await configureNotificationHandling(settings);
           await restoreAllTaskSchedules(settings);
         }
         await refresh();
@@ -568,24 +601,46 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
 
       const actionIdentifier = response.actionIdentifier;
+      const isCustomNotificationAction = isNotificationActionIdentifier(actionIdentifier);
+
+      if (isCustomNotificationAction && Platform.OS === 'ios') {
+        await refresh();
+        await refreshTaskCompletionHistory();
+        return;
+      }
+
+      const scheduledFor = getNotificationResponseScheduledFor(response);
+      if (scheduledFor) {
+        await recordTaskReminderDelivery(taskId, scheduledFor);
+      }
+
+      if (!isCustomNotificationAction) {
+        await refresh();
+        router.push(`/tasks/${taskId}`);
+        return;
+      }
+
+      let updatedTask: Task | null = null;
       if (actionIdentifier === 'mark_done') {
-        await completeTask(taskId);
+        updatedTask = await completeTaskRecord(taskId, settings);
       } else if (actionIdentifier === 'mark_done_forever') {
-        await completeTaskPermanently(taskId);
+        updatedTask = await completeTaskPermanentlyRecord(taskId);
       } else if (actionIdentifier === 'snooze_10_min' || actionIdentifier === 'snooze_1_hour' || actionIdentifier === 'snooze_evening' || actionIdentifier === 'snooze_tomorrow') {
-        const task = actionIdentifier === 'snooze_tomorrow' ? tasks.find((item) => item.id === taskId) ?? (await getTask(taskId)) : null;
+        const task = tasks.find((item) => item.id === taskId) ?? (await getTask(taskId));
         if (actionIdentifier === 'snooze_tomorrow' && !task) {
           return;
         }
 
-        const snoozedUntil = resolveSnoozeTime(actionIdentifier as NotificationAction, new Date(), task);
-        await snoozeTask(taskId, snoozedUntil);
+        const snoozedUntil = resolveSnoozeTime(actionIdentifier as NotificationAction, new Date(), task, scheduledFor);
+        updatedTask = await snoozeTaskRecord(taskId, snoozedUntil, settings);
       }
 
       await refresh();
-      router.push(`/tasks/${taskId}`);
+      if (updatedTask?.taskMode === 'recurring') {
+        await refreshTaskCompletionHistory();
+      }
     },
-    [completeTask, completeTaskPermanently, refresh, router, snoozeTask, tasks]
+    [refresh, refreshTaskCompletionHistory, router, settings, tasks]
   );
 
   const value = useMemo<AppContextValue>(

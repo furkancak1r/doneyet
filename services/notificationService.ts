@@ -9,13 +9,14 @@ export const TASK_REMINDER_CATEGORY = 'doneyet-task-reminder';
 export const TASK_RECURRING_REMINDER_CATEGORY = 'doneyet-task-reminder-recurring';
 export const TASK_REMINDER_CHANNEL = 'doneyet-reminders';
 
-let notificationConfigured = false;
+let notificationHandlerConfigured = false;
+let notificationConfigurationQueue: Promise<void> = Promise.resolve();
 
 type ReminderCategoryAction = {
   identifier: string;
   buttonTitle: string;
   options: {
-    opensAppToForeground: true;
+    opensAppToForeground: boolean;
   };
 };
 
@@ -27,42 +28,44 @@ const recurringReminderActionOrder: NotificationAction[] = [
 ];
 
 function buildReminderAction(action: NotificationAction): ReminderCategoryAction {
+  const opensAppToForeground = Platform.OS !== 'ios';
+
   switch (action) {
     case 'mark_done':
       return {
         identifier: 'mark_done',
         buttonTitle: String(i18n.t('notifications.actionMarkDone')),
-        options: { opensAppToForeground: true }
+        options: { opensAppToForeground }
       };
     case 'mark_done_forever':
       return {
         identifier: 'mark_done_forever',
         buttonTitle: String(i18n.t('notifications.actionMarkDoneForever')),
-        options: { opensAppToForeground: true }
+        options: { opensAppToForeground }
       };
     case 'snooze_10_min':
       return {
         identifier: 'snooze_10_min',
         buttonTitle: String(i18n.t('notifications.actionSnooze10')),
-        options: { opensAppToForeground: true }
+        options: { opensAppToForeground }
       };
     case 'snooze_1_hour':
       return {
         identifier: 'snooze_1_hour',
         buttonTitle: String(i18n.t('notifications.actionSnooze1h')),
-        options: { opensAppToForeground: true }
+        options: { opensAppToForeground }
       };
     case 'snooze_evening':
       return {
         identifier: 'snooze_evening',
         buttonTitle: String(i18n.t('notifications.actionSnoozeEvening')),
-        options: { opensAppToForeground: true }
+        options: { opensAppToForeground }
       };
     case 'snooze_tomorrow':
       return {
         identifier: 'snooze_tomorrow',
         buttonTitle: String(i18n.t('notifications.actionSnoozeTomorrow')),
-        options: { opensAppToForeground: true }
+        options: { opensAppToForeground }
       };
   }
 }
@@ -81,32 +84,9 @@ function buildReminderActions(includeFinishAction: boolean): ReminderCategoryAct
   ];
 }
 
-export function configureNotificationHandling(settings?: Pick<AppSettings, 'soundEnabled' | 'vibrationEnabled'>): void {
-  if (notificationConfigured) {
-    if (Platform.OS === 'android') {
-      void Notifications.setNotificationChannelAsync(TASK_REMINDER_CHANNEL, {
-        name: String(i18n.t('notifications.channelName')),
-        importance: Notifications.AndroidImportance.HIGH,
-        vibrationPattern: settings?.vibrationEnabled ? [0, 250, 250, 250] : undefined,
-        lightColor: '#116466',
-        enableVibrate: Boolean(settings?.vibrationEnabled),
-        sound: settings?.soundEnabled ? 'default' : undefined
-      });
-    }
-    return;
-  }
-
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldPlaySound: true,
-      shouldSetBadge: false,
-      shouldShowBanner: true,
-      shouldShowList: true
-    })
-  });
-
+async function configureAndroidNotificationChannel(settings?: Pick<AppSettings, 'soundEnabled' | 'vibrationEnabled'>): Promise<void> {
   if (Platform.OS === 'android') {
-    void Notifications.setNotificationChannelAsync(TASK_REMINDER_CHANNEL, {
+    await Notifications.setNotificationChannelAsync(TASK_REMINDER_CHANNEL, {
       name: String(i18n.t('notifications.channelName')),
       importance: Notifications.AndroidImportance.HIGH,
       vibrationPattern: settings?.vibrationEnabled ? [0, 250, 250, 250] : undefined,
@@ -115,11 +95,36 @@ export function configureNotificationHandling(settings?: Pick<AppSettings, 'soun
       sound: settings?.soundEnabled ? 'default' : undefined
     });
   }
+}
 
-  void Notifications.setNotificationCategoryAsync(TASK_REMINDER_CATEGORY, buildReminderActions(false));
-  void Notifications.setNotificationCategoryAsync(TASK_RECURRING_REMINDER_CATEGORY, buildReminderActions(true));
+async function configureNotificationCategories(): Promise<void> {
+  await Promise.all([
+    Notifications.setNotificationCategoryAsync(TASK_REMINDER_CATEGORY, buildReminderActions(false)),
+    Notifications.setNotificationCategoryAsync(TASK_RECURRING_REMINDER_CATEGORY, buildReminderActions(true))
+  ]);
+}
 
-  notificationConfigured = true;
+export async function configureNotificationHandling(settings?: Pick<AppSettings, 'soundEnabled' | 'vibrationEnabled'>): Promise<void> {
+  if (!notificationHandlerConfigured) {
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+        shouldShowBanner: true,
+        shouldShowList: true
+      })
+    });
+
+    notificationHandlerConfigured = true;
+  }
+
+  const configure = async () => {
+    await configureAndroidNotificationChannel(settings);
+    await configureNotificationCategories();
+  };
+
+  notificationConfigurationQueue = notificationConfigurationQueue.then(configure, configure);
+  return notificationConfigurationQueue;
 }
 
 export async function getNotificationPermissions(): Promise<Notifications.NotificationPermissionsStatus> {
@@ -193,16 +198,36 @@ export async function cancelNotifications(notificationIds: string[]): Promise<vo
   await Promise.all(notificationIds.map((id) => cancelNotification(id)));
 }
 
-export function resolveSnoozeTime(action: NotificationAction, now = new Date(), task?: Task | null): Date {
+function getValidDate(value: string | null | undefined): Date | null {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function resolveRelativeSnoozeBase(now: Date, task?: Task | null, explicitBase?: Date | null): Date {
+  if (explicitBase && !Number.isNaN(explicitBase.getTime())) {
+    return explicitBase;
+  }
+
+  return getValidDate(task?.snoozedUntil) ?? getValidDate(task?.nextNotificationAt) ?? getValidDate(task?.startDateTime) ?? now;
+}
+
+function addRelativeSnooze(base: Date, now: Date, amountMs: number): Date {
+  const candidate = new Date(base.getTime() + amountMs);
+  return candidate.getTime() > now.getTime() ? candidate : new Date(now.getTime() + amountMs);
+}
+
+export function resolveSnoozeTime(action: NotificationAction, now = new Date(), task?: Task | null, explicitBase?: Date | null): Date {
   const next = new Date(now);
 
   switch (action) {
     case 'snooze_10_min':
-      next.setMinutes(next.getMinutes() + 10);
-      return next;
+      return addRelativeSnooze(resolveRelativeSnoozeBase(now, task, explicitBase), now, 10 * 60_000);
     case 'snooze_1_hour':
-      next.setHours(next.getHours() + 1);
-      return next;
+      return addRelativeSnooze(resolveRelativeSnoozeBase(now, task, explicitBase), now, 60 * 60_000);
     case 'snooze_evening': {
       const [hour, minute] = snoozeEveningTime.split(':').map(Number);
       next.setHours(hour, minute, 0, 0);

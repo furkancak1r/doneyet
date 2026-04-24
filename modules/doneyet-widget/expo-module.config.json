@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": ["DoneYetWidgetModule"]
+  },
+  "android": {
+    "modules": ["com.furkancakir.doneyet.widget.DoneYetWidgetModule"]
+  }
+}

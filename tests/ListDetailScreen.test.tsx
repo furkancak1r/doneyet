@@ -222,7 +222,37 @@ describe('ListDetailScreen', () => {
       lists: [{ id: 'list-1', name: 'Work', color: '#116466', icon: 'briefcase-outline', sortOrder: 0, createdAt: '' }],
       tasks: [
         { id: 'task-1', title: 'Prepare report', listId: 'list-1', sortOrder: 0, status: 'completed', taskMode: 'recurring' },
-        { id: 'task-2', title: 'Weekly review', listId: 'list-1', sortOrder: 1, status: 'active', taskMode: 'recurring' }
+        {
+          id: 'task-2',
+          title: 'Weekly review',
+          listId: 'list-1',
+          sortOrder: 1,
+          status: 'active',
+          taskMode: 'recurring',
+          startDateTime: '2020-01-01T09:00:00.000Z',
+          nextNotificationAt: '2020-01-01T09:00:00.000Z'
+        },
+        {
+          id: 'task-3',
+          title: 'Future review',
+          listId: 'list-1',
+          sortOrder: 2,
+          status: 'active',
+          taskMode: 'recurring',
+          startDateTime: '2030-01-01T09:00:00.000Z',
+          nextNotificationAt: '2030-01-01T09:00:00.000Z'
+        },
+        {
+          id: 'task-4',
+          title: 'Remindered review',
+          listId: 'list-1',
+          sortOrder: 3,
+          status: 'active',
+          taskMode: 'recurring',
+          startDateTime: '2020-01-01T09:00:00.000Z',
+          lastNotificationAt: '2020-01-01T09:00:00.000Z',
+          nextNotificationAt: '2030-01-01T09:00:00.000Z'
+        }
       ],
       settings: {
         autoHideCompletedTasks: 0
@@ -244,5 +274,9 @@ describe('ListDetailScreen', () => {
     expect(screen.getByTestId('task-card-finish-task-1').props.children).toBe('no-finish');
     expect(screen.getByTestId('task-card-complete-task-2').props.children).toBe('complete');
     expect(screen.getByTestId('task-card-finish-task-2').props.children).toBe('finish');
+    expect(screen.getByTestId('task-card-complete-task-3').props.children).toBe('no-complete');
+    expect(screen.getByTestId('task-card-finish-task-3').props.children).toBe('no-finish');
+    expect(screen.getByTestId('task-card-complete-task-4').props.children).toBe('complete');
+    expect(screen.getByTestId('task-card-finish-task-4').props.children).toBe('finish');
   });
 });
