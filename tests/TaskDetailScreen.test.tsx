@@ -1,4 +1,4 @@
-import { Alert } from 'react-native';
+import { Alert, InteractionManager } from 'react-native';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import TaskDetailScreen from '@/app/tasks/[taskId]/index';
 import { useApp } from '@/hooks/useApp';
@@ -169,6 +169,23 @@ function buildUseAppValue(taskOverrides: Record<string, unknown> = {}) {
     theme: baseTheme,
     isTaskMutating: jest.fn().mockReturnValue(true)
   } as any;
+}
+
+function mockPostAlertInteractions() {
+  const callbacks: Array<() => void> = [];
+  const interactionSpy = jest.spyOn(InteractionManager, 'runAfterInteractions').mockImplementation((task) => {
+    if (typeof task === 'function') {
+      callbacks.push(task);
+    }
+
+    return {
+      then: jest.fn(),
+      done: jest.fn(),
+      cancel: jest.fn()
+    };
+  });
+
+  return { callbacks, interactionSpy };
 }
 
 beforeEach(() => {
@@ -503,9 +520,16 @@ describe('TaskDetailScreen', () => {
     });
   });
 
-  it('returns to the previous screen after confirming task deletion', async () => {
+  it('returns to the previous screen after alert interactions before the confirmed task deletion resolves', async () => {
     const appValue = buildUseAppValue();
     const removeTask = appValue.removeTask as jest.Mock;
+    const { callbacks, interactionSpy } = mockPostAlertInteractions();
+    let resolveDelete!: () => void;
+    removeTask.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveDelete = resolve;
+      })
+    );
     const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation((_title, _message, buttons) => {
       const deleteButton = buttons?.find((button) => button.style === 'destructive');
       deleteButton?.onPress?.();
@@ -521,13 +545,98 @@ describe('TaskDetailScreen', () => {
 
       fireEvent.press(screen.getByTestId('task-detail-delete'));
 
+      expect(interactionSpy).toHaveBeenCalledTimes(1);
+      expect(mockBack).not.toHaveBeenCalled();
+      expect(removeTask).not.toHaveBeenCalled();
+
+      callbacks[0]?.();
+
+      expect(mockBack).toHaveBeenCalledTimes(1);
+      expect(replaceMock).not.toHaveBeenCalled();
+      expect(removeTask).toHaveBeenCalledWith('task-1');
+
+      resolveDelete();
+      await waitFor(() => expect(removeTask).toHaveBeenCalledTimes(1));
+    } finally {
+      alertSpy.mockRestore();
+      interactionSpy.mockRestore();
+    }
+  });
+
+  it('falls back to the home tab before deleting when task detail has no back stack', () => {
+    const appValue = buildUseAppValue();
+    const removeTask = appValue.removeTask as jest.Mock;
+    const { callbacks, interactionSpy } = mockPostAlertInteractions();
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation((_title, _message, buttons) => {
+      const deleteButton = buttons?.find((button) => button.style === 'destructive');
+      deleteButton?.onPress?.();
+    });
+
+    try {
+      mockCanGoBack.mockReturnValue(false);
+      mockedUseApp.mockReturnValue({
+        ...appValue,
+        isTaskMutating: jest.fn().mockReturnValue(false)
+      });
+
+      render(<TaskDetailScreen />);
+
+      fireEvent.press(screen.getByTestId('task-detail-delete'));
+
+      expect(interactionSpy).toHaveBeenCalledTimes(1);
+      expect(mockBack).not.toHaveBeenCalled();
+      expect(replaceMock).not.toHaveBeenCalled();
+      expect(removeTask).not.toHaveBeenCalled();
+
+      callbacks[0]?.();
+
+      expect(mockBack).not.toHaveBeenCalled();
+      expect(replaceMock).toHaveBeenCalledWith('/(tabs)');
+      expect(removeTask).toHaveBeenCalledWith('task-1');
+    } finally {
+      alertSpy.mockRestore();
+      interactionSpy.mockRestore();
+    }
+  });
+
+  it('logs task deletion failures after leaving the detail screen', async () => {
+    const error = new Error('delete failed');
+    const appValue = buildUseAppValue();
+    const removeTask = appValue.removeTask as jest.Mock;
+    const { callbacks, interactionSpy } = mockPostAlertInteractions();
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation((_title, _message, buttons) => {
+      const deleteButton = buttons?.find((button) => button.style === 'destructive');
+      deleteButton?.onPress?.();
+    });
+
+    try {
+      removeTask.mockRejectedValueOnce(error);
+      mockedUseApp.mockReturnValue({
+        ...appValue,
+        isTaskMutating: jest.fn().mockReturnValue(false)
+      });
+
+      render(<TaskDetailScreen />);
+
+      fireEvent.press(screen.getByTestId('task-detail-delete'));
+
+      expect(interactionSpy).toHaveBeenCalledTimes(1);
+      expect(mockBack).not.toHaveBeenCalled();
+      expect(removeTask).not.toHaveBeenCalled();
+
+      callbacks[0]?.();
+
+      expect(mockBack).toHaveBeenCalledTimes(1);
+      expect(removeTask).toHaveBeenCalledWith('task-1');
+
       await waitFor(() => {
-        expect(removeTask).toHaveBeenCalledWith('task-1');
-        expect(mockBack).toHaveBeenCalledTimes(1);
-        expect(replaceMock).not.toHaveBeenCalled();
+        expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to delete task task-1.', error);
       });
     } finally {
       alertSpy.mockRestore();
+      interactionSpy.mockRestore();
+      consoleErrorSpy.mockRestore();
     }
   });
 });

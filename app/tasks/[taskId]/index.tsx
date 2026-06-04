@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { Alert, InteractionManager, StyleSheet, Text, View } from 'react-native';
 import { Stack, router, useLocalSearchParams, useRouter } from 'expo-router';
 import { useApp } from '@/hooks/useApp';
 import { Screen } from '@/components/Screen';
@@ -232,10 +232,16 @@ async function confirmDelete(
       text: t('common.delete'),
       style: 'destructive',
       onPress: () => {
-        void (async () => {
-          await removeTask(taskId);
+        InteractionManager.runAfterInteractions(() => {
           navigateAfterMutation();
-        })();
+          void (async () => {
+            try {
+              await removeTask(taskId);
+            } catch (error) {
+              console.error(`Failed to delete task ${taskId}.`, error);
+            }
+          })();
+        });
       }
     }
   ]);

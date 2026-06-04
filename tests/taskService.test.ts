@@ -472,6 +472,27 @@ describe('task service', () => {
     expect(second).toEqual(existingTask);
   });
 
+  it('deletes active tasks without archiving completion history', async () => {
+    const activeTask = buildTask({
+      id: 'task-new',
+      title: 'Yeni gorev',
+      taskMode: 'todo',
+      nextNotificationAt: null,
+      notificationIdsJson: '[]'
+    });
+    fetchTaskById.mockResolvedValue(activeTask);
+    clearTaskSchedule.mockResolvedValue(undefined);
+    deleteTaskNotifications.mockResolvedValue(undefined);
+    deleteTaskRow.mockResolvedValue(undefined);
+
+    await removeTask('task-new');
+
+    expect(clearTaskSchedule).toHaveBeenCalledWith(activeTask);
+    expect(saveTaskCompletionHistoryEntry).not.toHaveBeenCalled();
+    expect(deleteTaskNotifications).toHaveBeenCalledWith('task-new');
+    expect(deleteTaskRow).toHaveBeenCalledWith('task-new');
+  });
+
   it('archives completed one-time tasks before deleting them', async () => {
     fetchTaskById.mockResolvedValue({
       id: 'task-5',
