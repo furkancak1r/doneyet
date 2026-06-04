@@ -1,1 +1,1 @@
-Tek seferlik hatırlatıcılar artık gerçekten tek seferlik kalır; tekrarlı döngüler yalnızca hatırlatma zamanı geldiğinde tamamlanabilir.
+Görev detayında Sil onayından sonra oluşabilen kapanma düzeltildi. Görev silindiğinde uygulama artık güvenli şekilde önceki ekrana döner.

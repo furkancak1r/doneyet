@@ -1,1 +1,1 @@
-One-time reminders now stay truly one-time, and recurring cycles can only be completed after their reminder time arrives.
+Fixed a crash that could happen after confirming task deletion from the task detail screen. Deleting a task now returns safely to the previous screen.
