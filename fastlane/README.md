@@ -37,6 +37,22 @@ Upload only metadata to App Store Connect
 
 Upload only screenshots to App Store Connect
 
+### store_release
+
+```sh
+[bundle exec] fastlane store_release
+```
+
+Submit the prepared App Store build for review
+
+### store_submit_review
+
+```sh
+[bundle exec] fastlane store_submit_review
+```
+
+Submit the prepared App Store version for review without changing screenshots
+
 ----
 
 
