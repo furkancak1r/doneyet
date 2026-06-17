@@ -1,1 +1,1 @@
-Fixed a crash that could happen after confirming task deletion from the task detail screen. Deleting a task now returns safely to the previous screen.
+Recurring reminder notifications now show Complete and finish first, so you can stop a repeating task directly from the notification.

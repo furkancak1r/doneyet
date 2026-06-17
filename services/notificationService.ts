@@ -21,8 +21,8 @@ type ReminderCategoryAction = {
 };
 
 const recurringReminderActionOrder: NotificationAction[] = [
-  'mark_done',
   'mark_done_forever',
+  'mark_done',
   'snooze_10_min',
   'snooze_tomorrow'
 ];

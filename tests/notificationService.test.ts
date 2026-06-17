@@ -123,8 +123,8 @@ describe('notification service', () => {
       'snooze_tomorrow'
     ]);
     expect(categoryCalls.get(TASK_RECURRING_REMINDER_CATEGORY)?.map((action) => action.identifier)).toEqual([
-      'mark_done',
       'mark_done_forever',
+      'mark_done',
       'snooze_10_min',
       'snooze_tomorrow'
     ]);

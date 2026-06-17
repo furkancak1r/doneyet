@@ -24,7 +24,7 @@ PLATFORMS = {
 }.freeze
 
 LANGUAGES = ["en-US", "tr"].freeze
-APP_STORE_VERSION = ENV.fetch("APP_STORE_VERSION", "2026.6.4")
+APP_STORE_VERSION = ENV.fetch("APP_STORE_VERSION", "2026.6.17")
 APP_STORE_BUILD_NUMBER = ENV.fetch("APP_STORE_BUILD_NUMBER", APP_STORE_VERSION)
 
 desc "Upload metadata and screenshots to App Store Connect"

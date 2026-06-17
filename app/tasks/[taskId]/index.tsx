@@ -69,7 +69,7 @@ export default function TaskDetailScreen() {
       await completeTaskPermanently(task.id);
       navigateAfterMutation();
     } catch (error) {
-      console.error(`Failed to permanently complete recurring task ${task.id}.`, error);
+      console.error('Failed to permanently complete recurring task.', task.id, error);
     }
   }, [completeTaskPermanently, isCompleted, isRecurring, navigateAfterMutation, recurringCycleDue, task.id, taskBusy]);
 
@@ -238,7 +238,7 @@ async function confirmDelete(
             try {
               await removeTask(taskId);
             } catch (error) {
-              console.error(`Failed to delete task ${taskId}.`, error);
+              console.error('Failed to delete task.', taskId, error);
             }
           })();
         });

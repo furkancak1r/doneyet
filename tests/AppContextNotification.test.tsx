@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
-import { render, waitFor } from '@testing-library/react-native';
+import { act, render, waitFor } from '@testing-library/react-native';
 import { AppProvider, useApp } from '@/context/AppContext';
 
 const mockPush = jest.fn();
@@ -165,8 +165,10 @@ jest.mock('@/services/schedulerService', () => ({
 jest.mock('@/i18n', () => ({
   __esModule: true,
   default: {
-    t: (key: string) => key
+    t: (key: string) => key,
+    getFixedT: () => (key: string) => key
   },
+  resolveAppLanguage: (language: string | undefined) => (language === 'tr' ? 'tr' : 'en'),
   setAppLanguage: (...args: unknown[]) => mockSetAppLanguage(...args)
 }));
 
@@ -201,19 +203,21 @@ describe('AppContext notification responses', () => {
 
     await waitFor(() => expect(capturedHandleNotificationResponse).toBeTruthy());
 
-    await capturedHandleNotificationResponse?.({
-      actionIdentifier: 'mark_done',
-      notification: {
-        request: {
-          identifier: 'notif-1',
-          content: {
-            data: {
-              taskId: 'task-1',
-              scheduledFor: '2025-01-31T10:00:00.000Z'
+    await act(async () => {
+      await capturedHandleNotificationResponse?.({
+        actionIdentifier: 'mark_done',
+        notification: {
+          request: {
+            identifier: 'notif-1',
+            content: {
+              data: {
+                taskId: 'task-1',
+                scheduledFor: '2025-01-31T10:00:00.000Z'
+              }
             }
           }
         }
-      }
+      });
     });
 
     expect(mockRecordTaskReminderDelivery).not.toHaveBeenCalled();
@@ -230,19 +234,21 @@ describe('AppContext notification responses', () => {
 
     await waitFor(() => expect(capturedHandleNotificationResponse).toBeTruthy());
 
-    await capturedHandleNotificationResponse?.({
-      actionIdentifier: 'expo.modules.notifications.actions.DEFAULT',
-      notification: {
-        request: {
-          identifier: 'notif-1',
-          content: {
-            data: {
-              taskId: 'task-1',
-              scheduledFor: '2025-01-31T10:00:00.000Z'
+    await act(async () => {
+      await capturedHandleNotificationResponse?.({
+        actionIdentifier: 'expo.modules.notifications.actions.DEFAULT',
+        notification: {
+          request: {
+            identifier: 'notif-1',
+            content: {
+              data: {
+                taskId: 'task-1',
+                scheduledFor: '2025-01-31T10:00:00.000Z'
+              }
             }
           }
         }
-      }
+      });
     });
 
     await waitFor(() => {

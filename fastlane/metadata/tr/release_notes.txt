@@ -1,1 +1,1 @@
-Görev detayında Sil onayından sonra oluşabilen kapanma düzeltildi. Görev silindiğinde uygulama artık güvenli şekilde önceki ekrana döner.
+Tekrarlayan hatırlatma bildirimlerinde Tamamla ve bitir artık ilk sırada. Böylece tekrar eden bir görevi bildirimden doğrudan bitirebilirsin.

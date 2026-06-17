@@ -414,7 +414,7 @@ enum DoneYetActionEngine {
     )
     let recurring = UNNotificationCategory(
       identifier: doneYetTaskRecurringReminderCategory,
-      actions: [done, doneForever, snooze10, snoozeTomorrow],
+      actions: [doneForever, done, snooze10, snoozeTomorrow],
       intentIdentifiers: []
     )
 
